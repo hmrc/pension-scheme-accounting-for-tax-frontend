@@ -82,12 +82,10 @@ class InterestControllerSpec
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPenaltiesService)
-    reset(mockRenderer)
     when(mockPenaltiesService.interestRows(any())(any())).thenReturn(getRows())
     when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
   "Interest Controller" when {
@@ -117,7 +115,8 @@ class InterestControllerSpec
       }
 
       "render the correct view with penalty tables for unassociated" in {
-        val result = route(application, httpGETRequest(httpPathGETUnassociated)).value
+        val req = httpGETRequest(httpPathGETUnassociated)
+        val result = route(application, req).value
 
         val view = application.injector.instanceOf[InterestView].apply(
           "Interest on accounting for tax late filing penalty",
@@ -130,7 +129,7 @@ class InterestControllerSpec
             .onPageLoad("0", "0", PenaltiesFilter.All).url,
           "",
           "psa-name"
-        )(httpGETRequest(httpPathGETAssociated("0")), messages)
+        )(req, messages)
 
         status(result) mustEqual OK
 

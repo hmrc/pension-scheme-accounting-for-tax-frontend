@@ -21,6 +21,7 @@ import connectors.ListOfSchemesConnector
 import controllers.financialOverview.psa.routes._
 import controllers.routes
 import data.SampleData.psaId
+import models.ChargeDetailsFilter
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, EventReportingCharges}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP, SSC_30_DAY_LPP}
 import models.financialStatement.PsaFSDetail
@@ -53,25 +54,25 @@ class PenaltiesNavigationServiceSpec extends SpecBase with MockitoSugar with Bef
     when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
 
     "redirect to SelectQuarters page if there are multiple quarters to choose from" in {
-      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(penalties, year, psaId, aftPenalty)) {
+      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(penalties, year, psaId, ChargeDetailsFilter.All)) {
         _ mustBe Redirect(SelectPenaltiesQuarterController.onPageLoad(year.toString))
       }
     }
 
     "redirect to Select Scheme page if there is only one quarter for the penalties" in {
-      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(getAftPenalties("24000040IN"), year, psaId, aftPenalty)) {
+      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(getAftPenalties("24000040IN"), year, psaId, ChargeDetailsFilter.All)) {
         _ mustBe Redirect(SelectSchemeController.onPageLoad(aftPenalty, quarterPeriodStartDate.toString))
       }
     }
 
     "redirect to AllPenalties page if there is only one quarter for the penalties and one scheme" in {
-      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(getAftPenalties(), year, psaId, aftPenalty)) {
+      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(getAftPenalties(), year, psaId, ChargeDetailsFilter.All)) {
         _ mustBe Redirect(AllPenaltiesAndChargesController.onPageLoadAFT(quarterPeriodStartDate.toString, pstr))
       }
     }
 
     "redirect to SessionExpired page if there are no quarters in the given year" in {
-      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(getAftPenalties("24000041IN"), 0, psaId, aftPenalty)) {
+      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(getAftPenalties("24000041IN"), 0, psaId, ChargeDetailsFilter.All)) {
         _ mustBe Redirect(routes.SessionExpiredController.onPageLoad)
       }
     }
@@ -81,20 +82,20 @@ class PenaltiesNavigationServiceSpec extends SpecBase with MockitoSugar with Bef
 
     "redirect to SelectYear page if there are multiple years to choose from for AFT" in {
       whenReady(penaltiesNavigationServiceSpec.navFromPenaltiesTypePage(
-        getAftPenalties("24000041IN", LocalDate.parse("2021-07-01"), LocalDate.parse("2021-07-01")), psaId, AccountingForTaxPenalties)) {
-        _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(AccountingForTaxPenalties))
+        getAftPenalties("24000041IN", LocalDate.parse("2021-07-01"), LocalDate.parse("2021-07-01")), psaId, AccountingForTaxPenalties, ChargeDetailsFilter.All)) {
+        _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(AccountingForTaxPenalties, ChargeDetailsFilter.All))
       }
     }
 
     "redirect to SelectYear page if there are multiple years to choose from for Event Reporting" in {
       val penalties = getAftPenalties("24000041IN", LocalDate.parse("2019-07-01"), LocalDate.parse("2023-07-01"))
-      whenReady(penaltiesNavigationServiceSpec.navFromPenaltiesTypePage(penalties, psaId, EventReportingCharges)) {
-        _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(EventReportingCharges))
+      whenReady(penaltiesNavigationServiceSpec.navFromPenaltiesTypePage(penalties, psaId, EventReportingCharges, ChargeDetailsFilter.All)) {
+        _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(EventReportingCharges, ChargeDetailsFilter.All))
       }
     }
 
     "redirect to SelectYear page if there is one year to choose from for Event Reporting" in {
-      whenReady(penaltiesNavigationServiceSpec.navFromERYearsPage(penalties, year, psaId, EventReportingCharges)) {
+      whenReady(penaltiesNavigationServiceSpec.navFromERYearsPage(penalties, year, EventReportingCharges, ChargeDetailsFilter.All)) {
       _ mustBe Redirect(AllPenaltiesAndChargesController.onPageLoad(year.toString, "24000041IN", EventReportingCharges))
       }
     }

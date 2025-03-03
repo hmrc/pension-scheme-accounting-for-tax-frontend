@@ -19,52 +19,53 @@ package services.financialOverview.psa
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{FinancialStatementConnector, MinimalConnector}
+import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
 import controllers.financialOverview.psa.routes._
 import data.SampleData._
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter.{Overdue, Upcoming}
+import models.financialStatement.PenaltyType.ContractSettlementCharges
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, INTEREST_ON_CONTRACT_SETTLEMENT, SSC_30_DAY_LPP}
 import models.financialStatement._
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
-import models.{ChargeDetailsFilter, SchemeDetails}
+import models.{ChargeDetailsFilter, Index, ListOfSchemes, ListSchemeDetails, SchemeDetails}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.i18n.Messages
 import play.api.libs.json.Json
 import services.PenaltiesServiceSpec.dateNow
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Html, SummaryList}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY}
-import viewmodels.Radios.MessageInterpolators
-import viewmodels.Table
-import viewmodels.Table.Cell
 
 import java.time.LocalDate
-import scala.collection.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
 class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
   import PsaPenaltiesAndChargesServiceSpec._
 
-  val mockSchemeService: SchemeService = mock[SchemeService]
-  val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
-  val mockFinancialInfoCacheConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
-  val mockMinimalConnector: MinimalConnector = mock[MinimalConnector]
-  val dateNow: LocalDate = LocalDate.now()
-  val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, "psa-name", psaFsSeq)
+  private val mockSchemeService: SchemeService = mock[SchemeService]
+  private val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  private val mockFinancialInfoCacheConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
+  private val mockMinimalConnector: MinimalConnector = mock[MinimalConnector]
+  private val mockListOfSchemesConnector = mock[ListOfSchemesConnector]
+  private val dateNow: LocalDate = LocalDate.now()
+  private val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, "psa-name", psaFsSeq)
+  private val listOfSchemes: ListOfSchemes = ListOfSchemes("", "", Some(List(
+    ListSchemeDetails(schemeName, srn, "", None, Some("24000040IN"), Some(pstr), None))))
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   private def config: FrontendAppConfig = mock[FrontendAppConfig]
 
   private val psaPenaltiesAndChargesService = new PsaPenaltiesAndChargesService(fsConnector = mockFSConnector,
-    financialInfoCacheConnector = mockFinancialInfoCacheConnector, schemeService = mockSchemeService, minimalConnector = mockMinimalConnector, config)
+    financialInfoCacheConnector = mockFinancialInfoCacheConnector, minimalConnector = mockMinimalConnector, config, mockListOfSchemesConnector)
 
   private def htmlChargeType(penaltyType: String,
                              chargeReference: String,
@@ -80,7 +81,7 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
         case _ => chargeReference
       }
 
-    Html(
+    HtmlContent(
       s"<a id=$linkId class=govuk-link href=" +
         s"$redirectUrl>" +
         s"$penaltyType " +
@@ -92,11 +93,11 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
   }
 
   private val tableHead = Seq(
-    Cell(msg"psa.financial.overview.penalty", classes = Seq("govuk-!-width-one-half").toSeq),
-    Cell(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-font-weight-bold").toSeq),
-    Cell(msg"psa.financial.overview.payment.charge.amount", classes = Seq("govuk-!-font-weight-bold").toSeq),
-    Cell(msg"psa.financial.overview.payment.due", classes = Seq("govuk-!-font-weight-bold").toSeq),
-    Cell(Html(
+    HeadCell(Text(messages("psa.financial.overview.penalty")), classes = "govuk-!-width-one-half"),
+    HeadCell(Text(messages("psa.financial.overview.charge.reference")), classes = "govuk-!-font-weight-bold"),
+    HeadCell(Text(messages("financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold"),
+    HeadCell(Text(messages("psa.financial.overview.payment.due")), classes = "govuk-!-font-weight-bold"),
+    HeadCell(HtmlContent(
       s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"
     ))
   )
@@ -110,36 +111,36 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
                   schemeName: String,
                   pstr: String,
                   visuallyHiddenText: String
-                 ): Seq[Table.Cell] = {
+                 ): Seq[TableRow] = {
     val statusHtml = status match {
-      case InterestIsAccruing => Html(s"<span class='govuk-tag govuk-tag--blue'>${status.toString}</span>")
-      case PaymentOverdue => Html(s"<span class='govuk-tag govuk-tag--red'>${status.toString}</span>")
+      case InterestIsAccruing => HtmlContent(s"<span class='govuk-tag govuk-tag--blue'>${status.toString}</span>")
+      case PaymentOverdue => HtmlContent(s"<span class='govuk-tag govuk-tag--red'>${status.toString}</span>")
       case _ => if (paymentDue == "£0.00") {
-        Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
+        HtmlContent(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
       } else {
-        Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
+        HtmlContent(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
       }
     }
 
     Seq(
-      Cell(htmlChargeType(penaltyType, chargeReference, redirectUrl, visuallyHiddenText, schemeName, pstr), classes = Seq("govuk-!-width-one-half").toSeq),
-      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-width-one-quarter").toSeq),
-      Cell(Literal(penaltyAmount), classes = Seq("govuk-!-width-one-quarter").toSeq),
-      Cell(Literal(paymentDue), classes = Seq("govuk-!-width-one-quarter").toSeq),
-      Cell(statusHtml)
+      TableRow(htmlChargeType(penaltyType, chargeReference, redirectUrl, visuallyHiddenText, schemeName, pstr), classes = "govuk-!-width-one-half"),
+      TableRow(Text(s"$chargeReference"), classes = "govuk-!-width-one-quarter"),
+      TableRow(Text(penaltyAmount), classes = "govuk-!-width-one-quarter"),
+      TableRow(Text(paymentDue), classes = "govuk-!-width-one-quarter"),
+      TableRow(statusHtml)
     )
   }
 
-  private def penaltiesTable(rows: Seq[Seq[Table.Cell]]): Table =
-    Table(head = tableHead.toSeq, rows = rows.map(_.toSeq).toSeq)
+  private def penaltiesTable(rows: Seq[Seq[TableRow]]): Table =
+    Table(head = Some(tableHead), rows = rows)
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
     when(mockFinancialInfoCacheConnector.fetch(any(), any()))
       .thenReturn(Future.successful(Some(Json.toJson(penaltiesCache))))
+    when(mockListOfSchemesConnector.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
   }
 
   "getPenaltiesAndCharges" must {
@@ -244,6 +245,39 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
 
         result mustBe chargeReferenceRow ++ penaltyAmountRow ++ clearingDetailsRow("2020-06-30") ++
           stoodOverAmountChargeDetailsRow ++ totalAmountDueChargeDetailsRow
+      }
+    }
+
+    "getClearedPenaltiesAndCharges" must {
+      "return correct table" in {
+        val result = psaPenaltiesAndChargesService.getClearedPenaltiesAndCharges(psaId, "2020", ContractSettlementCharges, psaFsCleared)
+
+        val expectedTableHeader = Seq(
+          HeadCell(
+            HtmlContent(
+              s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penaltyOrCharge")}</span>"
+            )),
+          HeadCell(Text(Messages("psa.financial.overview.datePaid.table")), classes = "govuk-!-font-weight-bold"),
+          HeadCell(Text(Messages("financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold")
+        )
+
+        val chargeLink = controllers.financialOverview.psa.routes.ClearedPenaltyOrChargeController.onPageLoad("2020", ContractSettlementCharges, Index(0))
+        val expectedTableRows = Seq(
+          TableRow(HtmlContent(
+            s"<a id=XY002610150184 class=govuk-link href=$chargeLink>" +
+              "Contract Settlement</a></br>" +
+              schemeName + "</br>" +
+              "XY002610150184</br>" +
+              "1 April to 30 June 2020"
+          ), classes = "govuk-!-width-one-half"),
+          TableRow(HtmlContent(s"<p>12 May 2020</p>")),
+          TableRow(HtmlContent(s"<p>£500.00</p>"))
+        )
+
+        val expectedTable = Table(head = Some(expectedTableHeader), rows = Seq(expectedTableRows))
+        whenReady(result) {
+          _ mustBe expectedTable
+        }
       }
     }
 
@@ -400,82 +434,72 @@ object PsaPenaltiesAndChargesServiceSpec {
     )
   )
 
+  val psaFsCleared: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
+      index = 0,
+      chargeReference = "XY002610150184",
+      chargeType = CONTRACT_SETTLEMENT,
+      dueDate = Some(LocalDate.parse("2020-11-15")),
+      totalAmount = 500.00,
+      outstandingAmount = 0.00,
+      accruedInterestTotal = 0.00,
+      stoodOverAmount = 0.00,
+      amountDue = 0.00,
+      periodStartDate = LocalDate.parse("2020-04-01"),
+      periodEndDate = LocalDate.parse("2020-06-30"),
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      psaSourceChargeInfo = None,
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearedAmountItem = 500.00,
+        clearingDate = Some(LocalDate.parse("2020-05-12")),
+        paymDateOrCredDueDate = Some(LocalDate.parse("2020-05-12")),
+        clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT)
+      ))
+    )
+  )
+
   val psaFs: PsaFS = PsaFS(inhibitRefundSignal = false, psaFsSeq.toSeq)
 
-  private def chargeReferenceRow: Seq[SummaryList.Row] = {
+  private def chargeReferenceRow(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(
-          content = msg"psa.financial.overview.charge.reference",
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
-        ),
-        value = Value(
-          content = Literal("XY002610150184"),
-          classes =
-            Seq("govuk-!-width-one-quarter").toSeq
-        ),
-        actions = Nil
+      SummaryListRow(
+        key = Key(Text(messages("psa.financial.overview.charge.reference")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
+        value = Value(Text("XY002610150184"), classes = "govuk-!-width-one-quarter")),
+    )
+  }
+
+  private def penaltyAmountRow(implicit messages: Messages): Seq[SummaryListRow] = {
+    Seq(
+      SummaryListRow(
+        key = Key(Text(messages("psa.financial.overview.penaltyAmount")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
+        value = Value(Text(s"${formatCurrencyAmountAsString(80000.00)}"), classes = "govuk-!-width-one-quarter"),
+        actions = None
       ))
   }
 
-  private def penaltyAmountRow: Seq[SummaryList.Row] = {
+  private def totalAmountDueChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(
-          content = msg"psa.financial.overview.penaltyAmount",
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
-        ),
-        value = Value(
-          content = Literal(s"${formatCurrencyAmountAsString(80000.00)}"),
-          classes =
-            Seq("govuk-!-width-one-quarter").toSeq
-        ),
-        actions = Nil
+      SummaryListRow(
+        key = Key(Text(messages("financialPaymentsAndCharges.paymentDue.overdue.dueDate", LocalDate.parse("2022-03-18").format(dateFormatterDMY))), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
+        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(1029.05)}"), classes = "govuk-!-width-one-quarter govuk-!-font-weight-bold")),
+    )
+  }
+
+  private def stoodOverAmountChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
+    Seq(
+      SummaryListRow(
+        key = Key(Text(messages("paymentsAndCharges.chargeDetails.stoodOverAmount")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
+        value = Value(Text(s"-${formatCurrencyAmountAsString(25089.08)}"), classes = "govuk-!-width-one-quarter"),
+        actions = None
       ))
   }
 
-  private def totalAmountDueChargeDetailsRow: Seq[SummaryList.Row] = {
+  private def clearingDetailsRow(date: String)(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(
-          content = msg"financialPaymentsAndCharges.paymentDue.overdue.dueDate".withArgs(LocalDate.parse("2022-03-18").format(dateFormatterDMY)),
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
-        ),
-        value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(1029.05)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold").toSeq
-        ),
-        actions = Nil
-      ))
-  }
-
-  private def stoodOverAmountChargeDetailsRow: Seq[SummaryList.Row] = {
-    Seq(
-      Row(
-        key = Key(
-          content = msg"paymentsAndCharges.chargeDetails.stoodOverAmount",
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
-        ),
-        value = Value(
-          content = Literal(s"-${formatCurrencyAmountAsString(25089.08)}"),
-          classes = Seq("govuk-!-width-one-quarter").toSeq
-        ),
-        actions = Nil
-      ))
-  }
-
-  private def clearingDetailsRow(date: String): Seq[SummaryList.Row] = {
-    Seq(
-      Row(
-        key = Key(
-          content = msg"financialPaymentsAndCharges.clearingReason.c1".withArgs(formatDateDMY(LocalDate.parse(date))),
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
-        ),
-        value = Value(
-          content = Literal(s"-${formatCurrencyAmountAsString(100)}"),
-          classes = Seq("govuk-!-width-one-quarter").toSeq
-        ),
-        actions = Nil
-      ))
+      SummaryListRow(
+        key = Key(Text(messages("financialPaymentsAndCharges.clearingReason.c1", formatDateDMY(LocalDate.parse(date)))), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
+        value = Value(Text(s"-${formatCurrencyAmountAsString(100)}"), classes = "govuk-!-width-one-quarter")),
+    )
   }
 }

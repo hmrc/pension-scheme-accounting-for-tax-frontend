@@ -23,10 +23,10 @@ import forms.YesNoFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, UserAnswers}
+import models.UserAnswers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.ArgumentMatchers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
@@ -35,18 +35,18 @@ import pages.chargeD.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.DeleteAFTChargeService
 import uk.gov.hmrc.http.UpstreamErrorResponse
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import viewmodels.TwirlRadios
+import views.html.DeleteChargeView
 
 import scala.concurrent.Future
 
 class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures
-  with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+  with MockitoSugar with JsonMatchers with OptionValues with TryValues {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockDeleteAFTChargeService: DeleteAFTChargeService = mock[DeleteAFTChargeService]
   private val application: Application =
@@ -59,12 +59,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures
 
   private def httpPathGET: String = routes.DeleteChargeController.onPageLoad(srn, startDate, accessType, versionInt).url
 
-  private def httpPathPOST: String = routes.DeleteChargeController.onSubmit(srn, startDate, accessType, versionInt).url
-
-  private val viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName)
+  private def submitCall = routes.DeleteChargeController.onSubmit(srn, startDate, accessType, versionInt)
 
   private val userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).success.value
@@ -73,28 +68,24 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures
 
     "return OK and the correct view for a GET" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
       val request = FakeRequest(GET, httpPathGET)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[DeleteChargeView].apply(
+        "chargeB",
+        form,
+        TwirlRadios.yesNo(form("value")),
+        submitCall,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
 
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModel,
-        "radios" -> Radios.yesNo(form("value")),
-        "chargeName" -> "chargeB"
-      )
-
-      templateCaptor.getValue mustEqual "deleteCharge.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the charge deleted" in {
@@ -121,30 +112,26 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures
     "return a Bad Request and errors when invalid data is submitted" in {
 
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[DeleteChargeView].apply(
+        "chargeB",
+        boundForm,
+        TwirlRadios.yesNo(boundForm("value")),
+        submitCall,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
 
-      val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "viewModel" -> viewModel,
-        "radios" -> Radios.yesNo(boundForm("value")),
-        "chargeName" -> "chargeB"
-      )
-
-      templateCaptor.getValue mustEqual "deleteCharge.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

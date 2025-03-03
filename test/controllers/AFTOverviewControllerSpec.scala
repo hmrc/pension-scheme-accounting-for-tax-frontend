@@ -20,30 +20,28 @@ import config.FrontendAppConfig
 import controllers.AFTOverviewControllerSpec.{paymentsCache, schemeFSResponse}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{dummyCall, emptyChargesTable, psaId, schemeDetails, schemeName}
+import data.SampleData.{dummyCall, psaId, schemeDetails, schemeName}
 import matchers.JsonMatchers
 import models.SchemeDetails
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
-import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
+import views.html.AFTOverviewView
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
   private def httpPathGET(srn: String): String = {
     routes.AFTOverviewController.onPageLoad(srn).url
@@ -57,7 +55,6 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
     .overrides(
       Seq[GuiceableModule](
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[SchemeService].toInstance(mockSchemeService),
@@ -67,9 +64,10 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
     )
     .build()
 
+  val emptyChargesTable: Table = Table()
+
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRenderer)
     reset(mockPaymentsAndChargesService)
     reset(mockQuartersService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
@@ -82,38 +80,41 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
       .thenReturn(Future.successful(Seq.empty))
     when(mockPaymentsAndChargesService.getInterestCharges(any()))
       .thenReturn(schemeFSResponse)
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(any(), any(), any(), any())(any())).thenReturn(emptyChargesTable)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-  }
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(any(), any(), any(), any())(any())).thenReturn(emptyChargesTable)  }
 
 
   "AFT Overview Controller" must {
 
     "must return OK and the correct view for a GET" in {
-
       val srn = "test-srn"
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val aftOverviewTemplate = "aftOverview.njk"
 
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
         .thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
 
       val result = route(application, httpGETRequest(httpPathGET(srn))).value
       status(result) mustEqual OK
-      
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
 
-      templateCaptor.getValue mustEqual aftOverviewTemplate
+      val view = application.injector.instanceOf[AFTOverviewView].apply(
+        schemeName = schemeDetails.schemeName,
+        newAftUrl = routes.YearsController.onPageLoad(srn).url,
+        outstandingAmount = "£3,087.15",
+        paymentsAndChargesUrl = "/manage-pension-scheme-accounting-for-tax/test-srn/financial-overview/accounting-for-tax/select-charges-year",
+        quartersInProgress = Seq(),
+        pastYearsAndQuarters = Seq(),
+        viewAllPastAftsUrl = "",
+        returnUrl = dummyCall.url
+      )(httpGETRequest(httpPathGET(srn)), messages)
+
+      compareResultAndView(result, view)
     }
-
 
     "return Success page when paymentsAndChargesService fails" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.failed(new RuntimeException("Test exception")))
 
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
         .thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
 
       val srn: String = "S2012345678"

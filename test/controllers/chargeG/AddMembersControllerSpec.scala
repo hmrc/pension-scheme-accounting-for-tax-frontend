@@ -35,12 +35,9 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
-import play.twirl.api.Html
 import services.{ChargePaginationService, PaginatedMembersInfo, PaginationStats}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{NunjucksSupport}
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
 import viewmodels.{Link, TwirlRadios}
@@ -49,7 +46,7 @@ import views.html.chargeG.AddMembersView
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val form = new AddMembersFormProvider()("chargeD.addMembers.error")
 
@@ -148,19 +145,18 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     bind[ChargePaginationService].toInstance(mockMemberPaginationService)
   )
 
-  private val dummyPagerNavSeq = Seq(Link(id = s"test-id", url = "test-target", linkText = Literal("test-text"), hiddenText = None))
+  private val dummyPagerNavSeq = Seq(Link(id = s"test-id", url = "test-target", linkText = Text("test-text"), hiddenText = None))
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockDeleteChargeHelper)
     when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockMemberPaginationService
       .getItemsPaginated(any(), any(), any(), any(), any()))
       .thenReturn(expectedPaginatedMembersInfo)
-    when(mockMemberPaginationService.pagerNavSeq(any(), any()))
+    when(mockMemberPaginationService.pagerNavSeq(any(), any())(any()))
       .thenReturn(dummyPagerNavSeq)
   }
 
@@ -199,7 +195,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       )(httpGETRequest(httpPathGET), messages)
 
       pageCaptor.getValue mustBe 1
-      verify(mockMemberPaginationService, times(1)).pagerNavSeq(any(), any())
+      verify(mockMemberPaginationService, times(1)).pagerNavSeq(any(), any())(any())
 
       compareResultAndView(result, view)
     }

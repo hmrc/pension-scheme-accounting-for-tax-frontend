@@ -23,27 +23,25 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.{AFTPartialService, SchemeService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 import viewmodels._
+import views.html.partials.SchemePaymentsAndChargesPartialView
 
 import scala.concurrent.Future
 
 class PspSchemeDashboardPartialsControllerSpec
   extends ControllerSpecBase
-    with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
     with Enumerable.Implicits
@@ -63,12 +61,6 @@ class PspSchemeDashboardPartialsControllerSpec
       bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
     )
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
-
-  private val pspDashboardPaymentsAndChargesPartialJson: JsObject =
-    Json.obj("cards" -> Json.toJson(pspDashboardSchemePaymentsAndChargesViewModel))
-
-
-  private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
   private def pspDashboardAftReturnsViewModel: DashboardAftViewModel =
     DashboardAftViewModel(
@@ -103,10 +95,8 @@ class PspSchemeDashboardPartialsControllerSpec
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockAftPartialService)
-    reset(mockRenderer)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.paymentsAndChargesUrl).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
@@ -129,22 +119,22 @@ class PspSchemeDashboardPartialsControllerSpec
       when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any(), any())(any()))
         .thenReturn(pspDashboardSchemePaymentsAndChargesViewModel)
 
-      val result = route(
-        app = application,
-        req = httpGETRequest(pspDashboardAftReturnsPartial)
-          .withHeaders(
-            "idNumber" -> SampleData.srn,
-            "schemeIdType" -> "srn",
-            "psaId" -> SampleData.pspId,
-            "authorisingPsaId" -> SampleData.psaId
-          )
-      ).value
+      val request = httpGETRequest(pspDashboardAftReturnsPartial)
+        .withHeaders(
+          "idNumber" -> SampleData.srn,
+          "schemeIdType" -> "srn",
+          "psaId" -> SampleData.pspId,
+          "authorisingPsaId" -> SampleData.psaId
+        )
+
+      val view = application.injector.instanceOf[SchemePaymentsAndChargesPartialView].apply(
+        pspDashboardSchemePaymentsAndChargesViewModel)(messages)
+
+      val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1))
-        .render(ArgumentMatchers.eq("partials/pspSchemePaymentsAndChargesPartial.njk"), jsonCaptor.capture())(any())
-      jsonCaptor.getValue must containJson(pspDashboardPaymentsAndChargesPartialJson)
+      compareResultAndView(result, view)
     }
   }
 
@@ -172,13 +162,13 @@ class PspSchemeDashboardPartialsControllerSpec
   private def multipleInProgressLink = Link(
     id = "aftContinueInProgressLink",
     url = continueUrl,
-    linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
-    hiddenText = Some(msg"aftPartial.view.hidden")
+    linkText = Text(Messages("pspDashboardAftReturnsCard.inProgressReturns.link")),
+    hiddenText = Some(Text(Messages("aftPartial.view.hidden")))
   )
 
-  private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = msg"aftPartial.start.link")
+  private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = Text(Messages("aftPartial.start.link")))
 
-  private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = msg"aftPartial.view.change.past")
+  private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = Text(Messages("aftPartial.view.change.past")))
 
   private def aftUrl = """http://localhost:8206/manage-pension-scheme-accounting-for-tax"""
 

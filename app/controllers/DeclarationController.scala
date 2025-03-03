@@ -27,13 +27,11 @@ import models.JourneyType.{AFT_SUBMIT_AMEND, AFT_SUBMIT_RETURN}
 import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.requests.DataRequest
-import models.{AFTQuarter, AccessType, Declaration, GenericViewModel, NormalMode}
+import models.{AFTQuarter, AccessType, Declaration, NormalMode}
 import navigators.CompoundNavigator
 import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, DeclarationPage, NameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -42,6 +40,7 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmitt
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.{DeclarationView, PspDeclarationView}
 
 class DeclarationController @Inject()(
     override val messagesApi: MessagesApi,
@@ -55,7 +54,8 @@ class DeclarationController @Inject()(
     navigator: CompoundNavigator,
     val controllerComponents: MessagesControllerComponents,
     config: FrontendAppConfig,
-    renderer: Renderer,
+    declarationView: DeclarationView,
+    pspDeclarationView: PspDeclarationView,
     emailConnector: EmailConnector,
     auditService: AuditService
 )(implicit ec: ExecutionContext)
@@ -65,17 +65,21 @@ class DeclarationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)
       andThen allowSubmission).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        val viewModel = GenericViewModel(
-          submitUrl = routes.DeclarationController.onSubmit(srn, startDate, accessType, version).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName = schemeName
-        )
 
-        val template = request.schemeAdministratorType match {
-          case Administrator => "declaration.njk"
-          case Practitioner => "pspDeclaration.njk"
+        val view = request.schemeAdministratorType match {
+          case Administrator => declarationView(
+            routes.DeclarationController.onSubmit(srn, startDate, accessType, version).url,
+            controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName
+          )
+          case Practitioner => pspDeclarationView(
+            routes.DeclarationController.onSubmit(srn, startDate, accessType, version).url,
+            controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName
+          )
         }
-        renderer.render(template, Json.obj(fields = "viewModel" -> viewModel)).map(Ok(_))
+
+        Future.successful(Ok(view))
       }
     }
 

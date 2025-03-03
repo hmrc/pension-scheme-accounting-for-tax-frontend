@@ -36,15 +36,13 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.{Call, Results}
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers._
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.TwirlMigration
 import views.html.YearsView
 
 import scala.concurrent.Future
 
-class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class YearsControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -71,7 +69,7 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
     super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
   }
 
@@ -91,7 +89,7 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
         submitCall,
         SampleData.schemeName,
         dummyCall.url,
-        TwirlMigration.toTwirlRadios(StartYears.radios(form)(mockAppConfig))
+        StartYears.radios(form)(mockAppConfig)
       )(request, messages)
 
       status(result) mustEqual OK

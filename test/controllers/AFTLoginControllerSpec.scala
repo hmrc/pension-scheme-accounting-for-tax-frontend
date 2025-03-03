@@ -36,13 +36,12 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class AFTLoginControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   //scalastyle.off: magic.number
@@ -71,7 +70,7 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockAppConfig.minimumYear).thenReturn(2020)
     mutableFakeDataRetrievalAction.setViewOnly(false)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
   }
 
   "AFTLogin Controller on a GET" must {

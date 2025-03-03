@@ -19,14 +19,12 @@ package controllers
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
-import models.requests.IdentifierRequest
-import models.{GenericViewModel, StartYears, Year}
+import models.{StartYears, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.YearsView
 
 import javax.inject.Inject
@@ -50,12 +48,12 @@ class YearsController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
+      srn = srn
     ) map { schemeDetails =>
 
       Ok(
-        yearsView(form(config), routes.YearsController.onSubmit(srn), schemeDetails.schemeName, config.schemeDashboardUrl(request).format(srn), TwirlMigration.toTwirlRadios(StartYears.radios(form(config))(config)))
+        yearsView(form(config), routes.YearsController.onSubmit(srn), schemeDetails.schemeName, config.schemeDashboardUrl(request).format(srn),
+          StartYears.radios(form(config))(config))
       )
     }
   }
@@ -67,22 +65,13 @@ class YearsController @Inject()(
         formWithErrors =>
           schemeService.retrieveSchemeDetails(
             psaId = request.idOrException,
-            srn = srn,
-            schemeIdType = "srn"
+            srn = srn
           ) flatMap { schemeDetails =>
             Future.successful(BadRequest(yearsView(formWithErrors, routes.YearsController.onSubmit(srn), schemeDetails.schemeName,
-              config.schemeDashboardUrl(request).format(srn), TwirlMigration.toTwirlRadios(StartYears.radios(form(config))(config)))))
+              config.schemeDashboardUrl(request).format(srn), StartYears.radios(form(config))(config))))
         },
         value => Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, value.getYear.toString)))
       )
-  }
-
-  private def viewModel(schemeName: String, srn: String)(implicit request: IdentifierRequest[_]): GenericViewModel = {
-    GenericViewModel(
-      submitUrl = routes.YearsController.onSubmit(srn).url,
-      returnUrl = config.schemeDashboardUrl(request).format(srn),
-      schemeName = schemeName
-    )
   }
 
 }

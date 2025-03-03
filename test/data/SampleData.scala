@@ -22,7 +22,7 @@ import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrga
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
-import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
+import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT, AFT_DAILY_LFP, CONTRACT_SETTLEMENT}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
 import models.financialStatement._
 import models._
@@ -33,8 +33,8 @@ import play.api.libs.json.Json
 import play.api.mvc.Call
 import services.paymentsAndCharges.PaymentsCache
 import services.financialOverview.scheme.{PaymentsCache => FinancialOverviewPaymentsCache}
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import utils.AFTConstants._
-import viewmodels.Table
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -65,6 +65,7 @@ object SampleData {
   val chargeEDetails2 = ChargeEDetails(chargeAmount2, LocalDate.of(2019, 5, 1), isPaymentMandatory = false)
   val chargeCDetails = ChargeCDetails(paymentDate = QUARTER_START_DATE, amountTaxDue = chargeAmount1)
   val chargeDDetails = ChargeDDetails(QUARTER_START_DATE, Option(chargeAmount1), Option(chargeAmount2))
+  val chargeDDetailsNoTax = ChargeDDetails(QUARTER_START_DATE, None, None)
   val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "123456", qropsTransferDate = QUARTER_START_DATE)
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString, None)
   val version = "1"
@@ -123,8 +124,16 @@ object SampleData {
     UserAnswers(Json.obj(
       "schemeName" -> schemeName,
       "pstr" -> pstr,
-      "quarter" -> AFTQuarter(QUARTER_START_DATE, QUARTER_END_DATE))
-    )
+      "quarter" -> AFTQuarter(QUARTER_START_DATE, QUARTER_END_DATE)
+    ))
+
+  def userAnswersWithStartAndEndDate: UserAnswers =
+    UserAnswers(Json.obj(
+      "schemeName" -> schemeName,
+      "pstr" -> pstr,
+      "startDate" -> QUARTER_START_DATE,
+      "endDate" -> QUARTER_END_DATE
+    ))
 
   def uaWithPSPRAndOneSchemeAnnual: UserAnswers =
     UserAnswers(Json.obj(
@@ -438,7 +447,7 @@ object SampleData {
       Some(AFTOverviewVersion(numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)))
 
   val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
-  val emptyChargesTable: Table = Table(None, Nil, firstCellIsHeader = false, Nil, Nil, Nil)
+  val emptyChargesTable: Table = Table()
 
   def schemeToFinancial(schemeFS: SchemeFS):FinancialOverviewPaymentsCache =
     FinancialOverviewPaymentsCache(loggedInId = "loggedInId",
@@ -487,6 +496,30 @@ object SampleData {
           sourceChargeRefForInterest = None,
           sourceChargeInfo = None,
           documentLineItemDetails = Nil
+        ),
+        SchemeFSDetail(
+          index = 1,
+          chargeReference = "XY002610150185",
+          chargeType = PSS_OTC_AFT_RETURN,
+          dueDate = Some(LocalDate.parse("2020-08-15")),
+          totalAmount = 564.00,
+          outstandingAmount = 0.00,
+          stoodOverAmount = 0.00,
+          amountDue = 0.00,
+          accruedInterestTotal = 24.00,
+          periodStartDate = Some(LocalDate.parse("2020-04-01")),
+          periodEndDate = Some(LocalDate.parse("2020-06-30")),
+          formBundleNumber = None,
+          version = None,
+          receiptDate = None,
+          sourceChargeRefForInterest = None,
+          sourceChargeInfo = None,
+          documentLineItemDetails = Seq(DocumentLineItemDetail(
+            clearedAmountItem = 588.00,
+            clearingDate = Some(LocalDate.parse("2020-05-13")),
+            clearingReason = Some(FSClearingReason.CLEARED_WITH_DELTA_CREDIT),
+            paymDateOrCredDueDate = Some(LocalDate.parse("2020-05-13"))
+          ))
         )
       )
     )
@@ -539,6 +572,36 @@ object SampleData {
       )
     )
 
+  val schemeFSResponseWithClearedPayments: SchemeFS =
+    SchemeFS(
+      seqSchemeFSDetail = Seq(
+        SchemeFSDetail(
+          index = 0,
+          chargeReference = "XY002610150184",
+          chargeType = PSS_AFT_RETURN,
+          dueDate = Some(LocalDate.parse("2020-06-30")),
+          totalAmount = 80.00,
+          outstandingAmount = 0.00,
+          stoodOverAmount = 0.00,
+          amountDue = 0.00,
+          accruedInterestTotal = 0.00,
+          periodStartDate = Some(LocalDate.parse("2020-04-01")),
+          periodEndDate = Some(LocalDate.parse("2020-06-30")),
+          formBundleNumber = None,
+          version = None,
+          receiptDate = None,
+          sourceChargeRefForInterest = None,
+          sourceChargeInfo = None,
+          documentLineItemDetails = Seq(DocumentLineItemDetail(
+            clearedAmountItem = 80.00,
+            clearingDate = Some(LocalDate.parse("2020-05-13")),
+            clearingReason = Some(FSClearingReason.CLEARED_WITH_DELTA_CREDIT),
+            paymDateOrCredDueDate = Some(LocalDate.parse("2020-05-13"))
+          ))
+        )
+      )
+    )
+
   val psaFsSeq: Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
       index = 1,
@@ -566,6 +629,38 @@ object SampleData {
       accruedInterestTotal = 0.00,
       stoodOverAmount = 25089.08,
       amountDue = 100.00,
+      periodStartDate = LocalDate.parse("2020-10-01"),
+      periodEndDate = LocalDate.parse("2020-12-31"),
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
+    ),
+    PsaFSDetail(
+      index = 2,
+      chargeReference = "XY002610150185",
+      chargeType = PAYMENT_ON_ACCOUNT,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 90000.00,
+      outstandingAmount = 2345.00,
+      accruedInterestTotal = 0.00,
+      stoodOverAmount = 25089.08,
+      amountDue = 1000.00,
+      periodStartDate = LocalDate.parse("2020-10-01"),
+      periodEndDate = LocalDate.parse("2020-12-31"),
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
+    ),
+    PsaFSDetail(
+      index = 2,
+      chargeReference = "XY002610150184",
+      chargeType = OTC_6_MONTH_LPP,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 10000.00,
+      outstandingAmount = 0.00,
+      accruedInterestTotal = 0.00,
+      stoodOverAmount = 0.00,
+      amountDue = 0.00,
       periodStartDate = LocalDate.parse("2020-10-01"),
       periodEndDate = LocalDate.parse("2020-12-31"),
       pstr = "24000041IN",
@@ -609,5 +704,60 @@ object SampleData {
     )
   )
 
+  val psaFsSeqWithCleared: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
+      index = 1,
+      chargeReference = "XY002610150184",
+      chargeType = AFT_INITIAL_LFP,
+      dueDate = Some(LocalDate.parse("2020-11-15")),
+      totalAmount = 80.00,
+      outstandingAmount = 0.00,
+      accruedInterestTotal = 0.00,
+      stoodOverAmount = 0.00,
+      amountDue = 0.00,
+      periodStartDate = LocalDate.parse("2020-07-01"),
+      periodEndDate = LocalDate.parse("2020-09-30"),
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearedAmountItem = 80.00,
+        clearingDate = Some(LocalDate.parse("2020-08-13")),
+        clearingReason = Some(FSClearingReason.CLEARED_WITH_DELTA_CREDIT),
+        paymDateOrCredDueDate = Some(LocalDate.parse("2020-08-13"))
+      ))
+    ),
+    PsaFSDetail(
+      index = 1,
+      chargeReference = "XY002610150184",
+      chargeType = AFT_DAILY_LFP,
+      dueDate = Some(LocalDate.parse("2020-11-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 0.00,
+      accruedInterestTotal = 0.00,
+      stoodOverAmount = 0.00,
+      amountDue = 0.00,
+      periodStartDate = LocalDate.parse("2020-07-01"),
+      periodEndDate = LocalDate.parse("2020-09-30"),
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
+    ),
+    PsaFSDetail(
+      index = 2,
+      chargeReference = "XY002610150184",
+      chargeType = CONTRACT_SETTLEMENT,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 0.00,
+      accruedInterestTotal = 0.00,
+      stoodOverAmount = 0.00,
+      amountDue = 0.00,
+      periodStartDate = LocalDate.parse("2020-10-01"),
+      periodEndDate = LocalDate.parse("2020-12-31"),
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
+    )
+  )
 
 }

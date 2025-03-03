@@ -21,7 +21,6 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{SchemeDetails, UserAnswers}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
@@ -29,18 +28,16 @@ import org.scalatestplus.mockito.MockitoSugar
 import pages.SchemeNameQuery
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
+import views.html.AFTReturnLockedView
 
 import scala.concurrent.Future
 
-class AFTReturnLockedControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport
+class AFTReturnLockedControllerSpec extends ControllerSpecBase with MockitoSugar
   with JsonMatchers with OptionValues with TryValues {
   private val srn = "test-srn"
   val startDate = QUARTER_START_DATE
@@ -62,29 +59,22 @@ class AFTReturnLockedControllerSpec extends ControllerSpecBase with MockitoSugar
   "AFT return locked controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
 
       val application = applicationBuilder(userAnswers = data, extraModules).overrides().build()
       val request = FakeRequest(GET, getRoute)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[AFTReturnLockedView].apply(
+        controllers.routes.AFTLoginController.onPageLoad(srn).url,
+        controllers.routes.AFTReturnLockedController.onClick(srn, startDate).url,
+        schemeName
+      )(request, messages)
 
-      val expectedJson = Json.obj(
-        "schemeName" -> schemeName,
-        "selectAnotherUrl" -> controllers.routes.AFTLoginController.onPageLoad(srn).url,
-        "returnUrl" -> controllers.routes.AFTReturnLockedController.onClick(srn, startDate).url
-      )
-
-      templateCaptor.getValue mustEqual "aftReturnLocked.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
-
+      compareResultAndView(result, view)
       application.stop()
     }
 

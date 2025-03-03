@@ -21,28 +21,25 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.JsObject
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.{PsaSchemePartialService, SchemeService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
+import views.html.partials.SchemePaymentsAndChargesPartialView
 
 import scala.concurrent.Future
 
 class PsaSchemeDashboardPartialsControllerSpec
   extends ControllerSpecBase
-    with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
     with Enumerable.Implicits
@@ -63,15 +60,10 @@ class PsaSchemeDashboardPartialsControllerSpec
     )
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-  private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPsaSchemePartialService)
-    reset(mockRenderer)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
@@ -89,13 +81,17 @@ class PsaSchemeDashboardPartialsControllerSpec
           .thenReturn(allTypesMultipleReturnsModel)
         when(mockPsaSchemePartialService.paymentsAndCharges(any(), any(), any())(any()))
           .thenReturn(allTypesMultipleReturnsModel)
-        val result = route(application, httpGETRequest(getPartial)).value
+
+        val request = httpGETRequest(getPartial)
+
+        val view = application.injector.instanceOf[SchemePaymentsAndChargesPartialView].apply(
+          allTypesMultipleReturnsModel)(messages)
+
+        val result = route(application, request).value
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual "partials/psaSchemeDashboardPartial.njk"
+        compareResultAndView(result, view)
       }
 
     }
@@ -124,13 +120,13 @@ class PsaSchemeDashboardPartialsControllerSpec
   private def multipleInProgressLink = Link(
     id = "aftContinueInProgressLink",
     url = continueUrl,
-    linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
-    hiddenText = Some(msg"aftPartial.view.hidden")
+    linkText = Text(Messages("pspDashboardAftReturnsCard.inProgressReturns.link")),
+    hiddenText = Some(Text(Messages("aftPartial.view.hidden")))
   )
 
-  private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = msg"aftPartial.start.link")
+  private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = Text(Messages("aftPartial.start.link")))
 
-  private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = msg"aftPartial.view.change.past")
+  private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = Text(Messages("aftPartial.view.change.past")))
 
   private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
   private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"

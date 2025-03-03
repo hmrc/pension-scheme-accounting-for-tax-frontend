@@ -23,7 +23,7 @@ import controllers.actions._
 import forms.chargeE.ChargeDetailsFormProvider
 import models.LocalDateBinder._
 import models.chargeE.ChargeEDetails
-import models.{AccessType, ChargeType, CommonQuarters, GenericViewModel, Index, Mode}
+import models.{AccessType, ChargeType, CommonQuarters, Index, Mode}
 import navigators.CompoundNavigator
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
@@ -73,12 +73,6 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           case None => form(mininimumChargeValue, startDate)
         }
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName = schemeName
-        )
-
         val submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index)
         val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
 
@@ -102,12 +96,6 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              val viewModel = GenericViewModel(
-                submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
               val submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index)
               val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
 

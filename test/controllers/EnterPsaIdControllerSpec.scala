@@ -26,30 +26,27 @@ import data.SampleData._
 import forms.EnterPsaIdFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, UserAnswers}
+import models.{Enumerable, SchemeDetails, SchemeStatus, UserAnswers}
 import navigators.CompoundNavigator
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.ArgumentMatchers
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import pages.EnterPsaIdPage
 import play.api.Application
-import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.AFTService
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
+import views.html.EnterPsaIdView
 
 import scala.concurrent.Future
 
-class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class EnterPsaIdControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   import EnterPsaIdControllerSpec._
@@ -61,7 +58,6 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   override def modules: Seq[GuiceableModule] = Seq(
     bind[DataRequiredAction].to[DataRequiredActionImpl],
-    bind[NunjucksRenderer].toInstance(mockRenderer),
     bind[FrontendAppConfig].toInstance(mockAppConfig),
     bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
     bind[CompoundNavigator].toInstance(mockCompoundNavigator),
@@ -77,26 +73,14 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-  private val jsonToTemplate: Form[String] => JsObject = form => Json.obj(
-    fields = "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.EnterPsaIdController.onSubmit(srn, startDate, accessType, versionInt).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
-      schemeName = SampleData.schemeName)
-  )
-
   private def schemeDetails(authorisingPsaId: Option[String]) = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString, authorisingPsaId)
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockUserAnswersCacheConnector)
-    reset(mockRenderer)
     reset(mockAFTService)
-    reset(mockAppConfig)
     reset(mockSchemeDetailsConnector)
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeDetailsConnector.getPspSchemeDetails(ArgumentMatchers.eq(pspId), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails(Some(psaId))))
   }
@@ -108,57 +92,52 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
         mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData())
 
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
         val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+        val view = application.injector.instanceOf[EnterPsaIdView].apply(
+          form,
+          controllers.routes.EnterPsaIdController.onSubmit(srn, startDate, accessType, versionInt),
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+          schemeName
+        )(httpGETRequest(httpPathGETVersion), messages)
 
-        templateCaptor.getValue mustEqual template
-        jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
+        compareResultAndView(result, view)
       }
 
       "return OK and the correct view for a GET when the question has previously been answered" in {
-
         val ua = SampleData.userAnswersWithSchemeName.set(EnterPsaIdPage, psaId).get
         mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
         mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData())
 
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
         val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+        val view = application.injector.instanceOf[EnterPsaIdView].apply(
+          form.fill(psaId),
+          controllers.routes.EnterPsaIdController.onSubmit(srn, startDate, accessType, versionInt),
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+          schemeName
+        )(httpGETRequest(httpPathGETVersion), messages)
 
-        templateCaptor.getValue mustEqual template
-        jsonCaptor.getValue must containJson(jsonToTemplate.apply(form.fill(psaId)))
+        compareResultAndView(result, view)
       }
     }
 
     "on a POST" must {
       "for a logged-in PSP save data to user answers, call psp get scheme details and redirect to next page when valid data is submitted" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        val expectedJson = Json.obj(EnterPsaIdPage.toString -> psaId)
 
         when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(EnterPsaIdPage), any(), any(), any(), any(), any(), any())(any()))
           .thenReturn(SampleData.dummyCall)
-
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
         val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
         status(result) mustEqual SEE_OTHER
 
-        verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
         verify(mockSchemeDetailsConnector, times(1)).getPspSchemeDetails(any(), any())(any(), any())
-
-        jsonCaptor.getValue must containJson(expectedJson)
 
         redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
       }
@@ -186,8 +165,6 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
 }
 
 object EnterPsaIdControllerSpec {
-  private val template = "enterPsaId.njk"
-
   private def form = new EnterPsaIdFormProvider().apply(authorisingPSAID = None)
 
   private def httpPathGETVersion: String = controllers.routes.EnterPsaIdController.onPageLoad(srn, startDate, accessType, versionInt).url

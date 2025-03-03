@@ -36,7 +36,6 @@ import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import viewmodels.TwirlRadios
 import views.html.mccloud.WasAnotherPensionScheme
 
@@ -87,7 +86,6 @@ class WasAnotherPensionSchemeControllerSpec
   "WasAnotherPensionScheme Controller" must {
 
     "return OK and the correct view for a GET for AnnualAllowance" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETAnnualAllowance)
@@ -110,7 +108,6 @@ class WasAnotherPensionSchemeControllerSpec
 
 
     "return OK and the correct view for a GET for LifetimeAllowance" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETLifetimeAllowance)

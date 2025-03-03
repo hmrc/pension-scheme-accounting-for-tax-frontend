@@ -24,27 +24,25 @@ import helpers.FormatHelper
 import matchers.JsonMatchers
 import models.Enumerable
 import models.PenaltiesFilter.All
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.AFTPartialService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.Text.Message
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 import viewmodels._
+import views.html.partials.SchemePaymentsAndChargesPartialView
 
 import scala.concurrent.Future
 
-class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class PenaltiesPartialControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   private def httpPathGET: String = controllers.financialStatement.penalties.routes.PenaltiesPartialController.penaltiesPartial.url
@@ -77,7 +75,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
     val links = Seq(
       Link(id = "aft-penalties-id",
         url = routes.PenaltiesLogicController.onPageLoad(All).url,
-        linkText = Message("psaPenaltiesCard.viewPenalties"),
+        linkText = Text(Messages("psaPenaltiesCard.viewPenalties")),
         hiddenText = None)
     )
     DashboardAftViewModel(subHeadings = subheadings, links = links)
@@ -86,11 +84,9 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockFSConnector)
-    reset(mockRenderer)
     when(mockFSConnector.getPsaFS(any())(any(), any()))
       .thenReturn(Future.successful(psaFs))
     when(mockAppConfig.viewPenaltiesUrl).thenReturn(frontendAppConfig.viewPenaltiesUrl)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
   "PenaltiesPartial Controller" when {
@@ -100,16 +96,16 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
         when(mockAFTPartialService.penaltiesAndCharges(any())(any()))
           .thenReturn(allTypesMultipleReturnsModel)
 
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+        val request = httpGETRequest(httpPathGET)
 
-        val result = route(application, httpGETRequest(httpPathGET)).value
+        val view = application.injector.instanceOf[SchemePaymentsAndChargesPartialView].apply(
+          allTypesMultipleReturnsModel)(messages)
+
+        val result = route(application, request).value
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual "partials/psaSchemeDashboardPartial.njk"
+        compareResultAndView(result, view)
       }
     }
   }
@@ -144,7 +140,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
     Link(
       id = "view-your-financial-overview",
       url = overviewurl,
-      linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
+      linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.financialOverview")),
       hiddenText = None
     )
 
@@ -152,7 +148,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
     Link(
       id = "past-payments-and-charges",
       url = chargesurl,
-      linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+      linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges")),
       hiddenText = None
     )
 

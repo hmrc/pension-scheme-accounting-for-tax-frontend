@@ -54,7 +54,7 @@ class ChargeDetailsController @Inject()(
             val psaFS = penaltiesCache.penalties
             val fs = penaltyOpt.head
             if (identifier.matches(srnRegex)) {
-                  schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") flatMap {
+                  schemeService.retrieveSchemeDetails(request.idOrException, identifier) flatMap {
                     schemeDetails =>
                       Future.successful(Ok(chargeDetailsView(
                         heading(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString),

@@ -36,11 +36,10 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class AFTAmendControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class AFTAmendControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   private def httpPathGET: String = controllers.amend.routes.AFTAmendController.onPageLoad(srn).url
@@ -63,10 +62,9 @@ class AFTAmendControllerSpec extends ControllerSpecBase with NunjucksSupport wit
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockSchemeService)
-    reset(mockRenderer)
     reset(mockAppConfig)
     reset(mockAuditService)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     mutableFakeDataRetrievalAction.setViewOnly(false)

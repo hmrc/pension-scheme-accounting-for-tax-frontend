@@ -64,8 +64,7 @@
 }
 
 @scripts = {
-    <script @CSPNonce.attr src="@routes.Assets.versioned("javascripts/application.min.js").url"></script>
-    <script @CSPNonce.attr>window.GOVUKFrontend.initAll();window.HMRCFrontend.initAll();</script>
+    <script @CSPNonce.attr src="@routes.Assets.versioned("javascripts/application.js").url"></script>
 }
 
 @mainContentWithGetHelp = {
@@ -73,7 +72,6 @@
     <div class="govuk-!-margin-top-8">
         @hmrcReportTechnicalIssueHelper()
     </div>
-    <div style="color:red"><b>DEV ONLY: TWIRL MIGRATION</b></div>
 }
 
 @titlePrefix = @{if(formHasErrors) { messages("error.title.prefix") + " " } else { "" } }

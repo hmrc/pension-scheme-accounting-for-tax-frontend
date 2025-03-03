@@ -29,7 +29,9 @@ trait Constraints {
   val addressLineRegex = """^[A-Za-z0-9 \-,.&'\/]{1,35}$"""
   val psaIdRegex = "^A[0-9]{7}$"
   val pstrRegx = """^[0-9]{8}[Rr][A-Za-z]{1}$"""
-
+  val regexTightText = """^[a-zA-ZàÀ-ÿ '&.^-]{1,160}$"""
+  val regexTightTextWithNumber = """^[a-zA-Z0-9àÀ-ÿ '&.^-]{1,160}$"""
+  val qropsRegex = """^(qrops|QROPS)?\d{6}$"""
 
   protected def year(minYear: Int,
                      maxYear: Int,
@@ -240,4 +242,8 @@ trait Constraints {
     case _ =>
       Invalid(invalidKey, addressLineRegex)
   }
+
+  protected def tightText(errorKey: String): Constraint[String] = regexp(regexTightText, errorKey)
+
+  protected def tightTextWithNumber(errorKey: String): Constraint[String] = regexp(regexTightTextWithNumber, errorKey)
 }

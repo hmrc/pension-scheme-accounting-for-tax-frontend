@@ -41,7 +41,6 @@ import services.{PenaltiesCache, SchemeService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
-import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
@@ -87,7 +86,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   private def row(chargeType: String,
                   chargeReference: String,
                   amountDue: String,
-                  status: Html,
+                  status: HtmlContent,
                   redirectUrl: String,
                   visuallyHiddenText: String,
                   paymentAndChargeStatus: PaymentAndChargeStatus = NoStatus
@@ -134,7 +133,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                 chargeType = chargeType.toString,
                 chargeReference = "AYU3494534632",
                 amountDue = FormatHelper.formatCurrencyAmountAsString(1029.05),
-                status = Html(s"<span class='govuk-tag govuk-tag--red'>${PaymentAndChargeStatus.PaymentOverdue.toString}</span>"),
+                status = HtmlContent(s"<span class='govuk-tag govuk-tag--red'>${PaymentAndChargeStatus.PaymentOverdue.toString}</span>"),
                 redirectUrl = chargeLink,
                 visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632"),
                 paymentAndChargeStatus = PaymentAndChargeStatus.PaymentOverdue
@@ -143,7 +142,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                 chargeType = if (chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST.toString else PSS_OTC_AFT_RETURN_INTEREST.toString,
                 chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
                 amountDue = FormatHelper.formatCurrencyAmountAsString(153.00),
-                status = Html(s"<span class='govuk-tag govuk-tag--blue'>${PaymentAndChargeStatus.InterestIsAccruing.toString}</span>"),
+                status = HtmlContent(s"<span class='govuk-tag govuk-tag--blue'>${PaymentAndChargeStatus.InterestIsAccruing.toString}</span>"),
                 redirectUrl = interestLink,
                 visuallyHiddenText = messages(s"paymentsAndCharges.interest.visuallyHiddenText"),
                 paymentAndChargeStatus = PaymentAndChargeStatus.InterestIsAccruing
@@ -201,7 +200,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
               chargeType = PSS_OTC_AFT_RETURN.toString,
               chargeReference = "AYU3494534632",
               amountDue = FormatHelper.formatCurrencyAmountAsString(0.00),
-              status = Html(""),
+              status = HtmlContent(""),
               redirectUrl = controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
                 .onPageLoad(srn, QUARTER_START_DATE.toString, index = "0", AccountingForTaxCharges, All)
                 .url,
@@ -305,7 +304,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
     "call FS API and save to cache if srn does not match the retrieved payload from cache" in {
       when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(paymentsCache.copy(srn = "wrong-srn")))))
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq(chargeWithCredit))))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {
@@ -315,7 +314,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
     "call FS API and save to cache if logged in id does not match the retrieved payload from cache" in {
       when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(paymentsCache.copy(loggedInId = "wrong-id")))))
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq(chargeWithCredit))))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {
@@ -325,7 +324,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
     "call FS API and save to cache if retrieved payload from cache is not in Payments format" in {
       when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(PenaltiesCache(psaId, "name", Nil)))))
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {
@@ -335,7 +334,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
     "call FS API and save to cache if there is no existing payload stored in cache" in {
       when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(None))
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {

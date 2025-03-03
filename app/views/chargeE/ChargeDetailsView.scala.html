@@ -15,7 +15,6 @@
  *@
 
 @import viewmodels.govuk.date.DateViewModel
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.{HmrcCurrencyInput, CurrencyInput}
 
 @this(
     layout: templates.Layout,
@@ -23,8 +22,8 @@
     govukErrorSummary: GovukErrorSummary,
     govukDateInput: GovukDateInput,
     govukButton: GovukButton,
-    hmrcCurrencyInput: HmrcCurrencyInput,
-    govukRadios: GovukRadios
+    govukRadios: GovukRadios,
+    govukInput: GovukInput
 )
 @(form: Form[_], schemeName: String, submitUrl: play.api.mvc.Call, returnUrl: String, memberName: String, radios: Seq[RadioItem])(implicit request: Request[_], messages: Messages)
 
@@ -36,44 +35,42 @@
 
 @formHelper(action = submitUrl, Symbol("autoComplete") -> "off", Symbol("novalidate") -> "true") {
 
-@hmrcCurrencyInput(
-CurrencyInput(
-    id = "chargeAmount",
-    name = "chargeAmount",
-    value = form("chargeAmount").value,
-    classes = "govuk-input--width-10",
-    errorMessage = form("chargeAmount").error.map(err => ErrorMessage(content = Text(messages(err.message, err.args: _*)))),
-    label = Label(content = Text(messages("chargeEDetails.chargeAmount.label")), classes = "govuk-label--s"),
-    autocomplete= Some("off")
-))
+    @govukInput(
+        InputViewModel(
+            field = form("chargeAmount"),
+            label = Label(content = Text(messages("chargeEDetails.chargeAmount.label")), classes = "govuk-label--s"),
+        )
+        .withPrefix(PrefixOrSuffix(content = Text("£")))
+        .withCssClass("govuk-input--width-10")
+    )
 
-@govukDateInput(
-    DateViewModel(
-        field  = form("dateNoticeReceived"),
-        legend = Legend(
-        content = Text(messages("chargeEDetails.dateNoticeReceived.label")),
-        classes = "govuk-fieldset__legend--s",
-        isPageHeading = false
+    @govukDateInput(
+        DateViewModel(
+            field  = form("dateNoticeReceived"),
+            legend = Legend(
+            content = Text(messages("chargeEDetails.dateNoticeReceived.label")),
+            classes = "govuk-fieldset__legend--s",
+            isPageHeading = false
+            )
         )
     )
-)
 
-@govukRadios(
-    RadiosViewModel(
-        classes = "govuk-radios--inline",
-        field = form("isPaymentMandatory"),
-        items = radios,
-        fieldset =Fieldset(
-            legend = Some(Legend(content = Text(messages("chargeEDetails.isPaymentMandatory.label")),
-            isPageHeading = false,
-            classes = "govuk-fieldset__legend--s"))
+    @govukRadios(
+        RadiosViewModel(
+            classes = "govuk-radios--inline",
+            field = form("isPaymentMandatory"),
+            items = radios,
+            fieldset =Fieldset(
+                legend = Some(Legend(content = Text(messages("chargeEDetails.isPaymentMandatory.label")),
+                isPageHeading = false,
+                classes = "govuk-fieldset__legend--s"))
+            )
         )
     )
-)
 
 
-@govukButton(ButtonViewModel(
-    Text(messages("site.continue"))).withAttribute(("id", "submit"): (String, String)))
-}
-@templates.ReturnLink(schemeName, returnUrl)
+    @govukButton(ButtonViewModel(
+        Text(messages("site.continue"))).withAttribute(("id", "submit"): (String, String)))
+    }
+    @templates.ReturnLink(schemeName, returnUrl)
 }

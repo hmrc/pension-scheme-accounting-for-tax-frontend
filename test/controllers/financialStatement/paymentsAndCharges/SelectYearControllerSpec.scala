@@ -37,11 +37,9 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
+import play.api.test.Helpers._
 import services.paymentsAndCharges.PaymentsAndChargesService
 import utils.AFTConstants.QUARTER_START_DATE
-import utils.TwirlMigration
 import views.html.financialStatement.paymentsAndCharges.SelectYearView
 
 import java.time.LocalDate
@@ -75,7 +73,6 @@ class SelectYearControllerSpec extends ControllerSpecBase with JsonMatchers
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
@@ -89,7 +86,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with JsonMatchers
       val view = application.injector.instanceOf[SelectYearView].apply(
         form,
         "Which year do you want to view null for?",
-        TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form, years)),
+        FSYears.radios(form, years),
         routes.SelectYearController.onSubmit(srn, AccountingForTaxCharges, All),
         dummyCall.url,
         schemeName

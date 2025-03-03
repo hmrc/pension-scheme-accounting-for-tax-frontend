@@ -27,7 +27,7 @@ import views.html.fileUpload.error.{InvalidHeaderOrBodyView, QuarantineView, Rej
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class UpscanErrorController @Inject()(
                                        val controllerComponents: MessagesControllerComponents,
@@ -40,7 +40,7 @@ class UpscanErrorController @Inject()(
                                        quarantineView: QuarantineView,
                                        rejectedView: RejectedView,
                                        unknownView: UnknownView
-                                      )(implicit ec: ExecutionContext)
+                                      )
                                       extends FrontendBaseController
                                       with I18nSupport {
 

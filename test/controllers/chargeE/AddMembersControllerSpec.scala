@@ -38,7 +38,6 @@ import services.{ChargePaginationService, PaginatedMembersInfo, PaginationStats}
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
-import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
 import viewmodels.Link
@@ -148,7 +147,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
     bind[ChargePaginationService].toInstance(mockMemberPaginationService)
   )
 
-  private val dummyPagerNavSeq = Seq(Link(id = s"test-id", url = "test-target", linkText = Literal("test-text"), hiddenText = None))
+  private val dummyPagerNavSeq = Seq(Link(id = s"test-id", url = "test-target", linkText = Text("test-text"), hiddenText = None))
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -159,7 +158,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
     when(mockMemberPaginationService
       .getItemsPaginated(any(), any(), any(), any(), any()))
       .thenReturn(expectedPaginatedMembersInfo)
-    when(mockMemberPaginationService.pagerNavSeq(any(), any()))
+    when(mockMemberPaginationService.pagerNavSeq(any(), any())(any()))
       .thenReturn(dummyPagerNavSeq)
   }
 

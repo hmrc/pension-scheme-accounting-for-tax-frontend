@@ -1,0 +1,103 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.FrontendAppConfig
+@import views.html.components._
+
+@this(
+layout: templates.Layout,
+hmrcPageHeading: HmrcPageHeading,
+govukTable: GovukTable,
+config: FrontendAppConfig
+)
+
+@(
+    journeyType: String,
+    schemeName: String,
+    titleMessage: String,
+    pstr: String,
+    reflectChargeText: String,
+    totalOverdue: String,
+    totalInterestAccruing: String,
+    totalUpcoming: String,
+    totalDue: String,
+    penaltiesTable: Table,
+    paymentAndChargesTable: Table,
+    returnUrl: String
+)(implicit request: Request[_], messages: Messages)
+
+@layout(messages(titleMessage), fullWidthLayout = true) {
+
+<div>
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <span class="hmrc-caption govuk-caption-xl">@schemeName</span>
+            <h1 class="govuk-heading-xl">@titleMessage</h1>
+        </div>
+    </div>
+
+       <p class="govuk-body">@reflectChargeText</p>
+
+        <div class="govuk-grid-row govuk-!-margin-top-7 govuk-!-margin-bottom-7">
+            @if(journeyType == "overdue") {
+            <div class="govuk-grid-column-one-half">
+                <h2 class="govuk-heading-m govuk-!-font-weight-regular">
+                    @messages("schemeFinancial.h2.overduePayments.new")
+                </h2>
+                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalOverdue</p>
+            </div>
+            <div class="govuk-grid-column-one-half">
+                <h2 class="govuk-heading-m govuk-!-font-weight-regular">
+                    @messages("schemeFinancial.h2.totalInterestAccruing.new2")
+                </h2>
+                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalInterestAccruing</p>
+            </div>
+            }
+            @if(journeyType == "upcoming") {
+            <div class="govuk-grid-column-one-half">
+                <h2 class="govuk-heading-m govuk-!-font-weight-regular">
+                    @messages("schemeFinancial.h2.totalDuePayment.v2")
+                </h2>
+                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalUpcoming</p>
+            </div>
+            }
+            @if(journeyType == "all") {
+            <div class="govuk-grid-column-one-half">
+                <h2 class="govuk-heading-m govuk-!-font-weight-regular">
+                    @messages("schemeFinancial.h2.totalOutstandingPayment")
+                </h2>
+                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalDue</p>
+            </div>
+            }
+        </div>
+
+
+        @if(paymentAndChargesTable.rows.nonEmpty) {
+        <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">messages(titleMessage)</span>
+        <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
+            @govukTable(paymentAndChargesTable)
+        </div>
+        }
+</div>
+
+<p class="govuk-body">
+    <a id="return" href="@returnUrl" class="govuk-link">
+        @messages("return.to.link", schemeName)
+    </a>
+</p>
+
+}

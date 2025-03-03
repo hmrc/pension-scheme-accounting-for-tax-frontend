@@ -32,18 +32,16 @@ class SchemeDetailsConnectorSpec
 
   private implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
   private val psaId = "0000"
-  private val srn = "test srn"
-  private val idNumber = "00000000AA"
+  private val srn = "S24000006IN"
 
   "getSchemeDetails" must {
-    val schemeDetailsUrl = s"/pensions-scheme/scheme"
+    val schemeDetailsUrl = s"/pensions-scheme/scheme/$srn"
     "return the SchemeDetails for a valid request/response" in {
       val jsonResponse = """{"schemeName":"test scheme", "pstr": "test pstr", "schemeStatus": "test status"}"""
       server.stubFor(
         get(urlEqualTo(schemeDetailsUrl))
-          .withHeader("idNumber", equalTo(idNumber))
+          .withHeader("idNumber", equalTo(srn))
           .withHeader("psaId", equalTo(psaId))
-          .withHeader("schemeIdType", equalTo("pstr"))
           .willReturn(ok(jsonResponse)
             .withHeader("Content-Type", "application/json")
           )
@@ -51,7 +49,7 @@ class SchemeDetailsConnectorSpec
 
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
-      connector.getSchemeDetails(psaId, idNumber, "pstr").map(schemeDetails =>
+      connector.getSchemeDetails(psaId, srn).map(schemeDetails =>
         schemeDetails mustBe SchemeDetails("test scheme", "test pstr", "test status", None)
       )
     }
@@ -59,7 +57,7 @@ class SchemeDetailsConnectorSpec
     "throw BadRequestException for a 400 Bad Request response" in {
       server.stubFor(
         get(urlEqualTo(schemeDetailsUrl))
-          .withHeader("idNumber", equalTo(idNumber))
+          .withHeader("idNumber", equalTo(srn))
           .withHeader("psaId", equalTo(psaId))
           .willReturn(
             badRequest
@@ -70,7 +68,7 @@ class SchemeDetailsConnectorSpec
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
       recoverToSucceededIf[BadRequestException] {
-        connector.getSchemeDetails(psaId, idNumber, "srn")
+        connector.getSchemeDetails(psaId, srn)
       }
     }
   }

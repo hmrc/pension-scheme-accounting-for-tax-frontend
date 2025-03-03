@@ -22,31 +22,28 @@ import models.AFTQuarter.formatForDisplayOneYear
 import models.viewModels.PastAftReturnsViewModel
 import models.{AFTOverview, PastAftReturnGroup, Quarters, ReportLink}
 import play.api.i18n.I18nSupport
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.PastAFTReturnsView
 
 class PastAftReturnsController @Inject()(aftConnector: AFTConnector,
                                          allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                          val controllerComponents: MessagesControllerComponents,
                                          identify: IdentifierAction,
-                                         renderer: Renderer,
+                                         pastAFTReturnsView: PastAFTReturnsView,
                                          schemeService: SchemeService
                                    )
                                         (implicit ec: ExecutionContext) extends FrontendBaseController
-  with I18nSupport
-  with NunjucksSupport {
+  with I18nSupport {
 
   def onPageLoad(srn: String, page: Int): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
-        schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
+        schemeService.retrieveSchemeDetails(request.idOrException, srn).flatMap { schemeDetails =>
           aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
             val schemeName = schemeDetails.schemeName
 
@@ -56,12 +53,28 @@ class PastAftReturnsController @Inject()(aftConnector: AFTConnector,
 
             val groupedReturns = getGroupedReturns(srn, startDateRange, aftOverview)
 
-            val ctxValues = getCtx(groupedReturns, page, schemeName, srn)
+            val (pageNo, viewModel) = if (groupedReturns.size > 4) {
+              val splitReturns = groupedReturns.splitAt(4)
+              val firstPageReturns = splitReturns._1
+              val secondPageReturns = splitReturns._2
 
-            renderer.render(
-              "past_aft_returns.njk",
-              ctx = ctxValues
-            ).map(Ok(_))
+              if (page == 2) {
+                (2, PastAftReturnsViewModel(secondPageReturns))
+              } else {
+                (1, PastAftReturnsViewModel(firstPageReturns))
+              }
+            } else {
+              (0, PastAftReturnsViewModel(groupedReturns))
+            }
+
+            Future.successful(Ok(pastAFTReturnsView(
+              schemeName,
+              viewModel,
+              pageNo,
+              controllers.routes.PastAftReturnsController.onPageLoad(srn, 1).url,
+              controllers.routes.PastAftReturnsController.onPageLoad(srn, 2).url,
+              controllers.routes.AFTOverviewController.onPageLoad(srn).url
+            )))
           }
         }
   }
@@ -86,28 +99,4 @@ class PastAftReturnsController @Inject()(aftConnector: AFTConnector,
     groupedReturns.filter(pastReturn => pastReturn.reports.nonEmpty)
   }
 
-  private def getCtx(groupedReturns: List[PastAftReturnGroup], page: Int, schemeName: String, srn: String): JsObject = {
-    val (pageNo, viewModel) = if (groupedReturns.size > 4) {
-      val splitReturns = groupedReturns.splitAt(4)
-      val firstPageReturns = splitReturns._1
-      val secondPageReturns = splitReturns._2
-
-      if (page == 2) {
-        (2, PastAftReturnsViewModel(secondPageReturns))
-      } else {
-        (1, PastAftReturnsViewModel(firstPageReturns))
-      }
-    } else {
-      (0, PastAftReturnsViewModel(groupedReturns))
-    }
-
-    Json.obj(
-      "page" -> pageNo,
-      "schemeName" -> schemeName,
-      "returnLink" -> controllers.routes.AFTOverviewController.onPageLoad(srn).url,
-      "viewModel" -> viewModel,
-      "firstPageLink" -> controllers.routes.PastAftReturnsController.onPageLoad(srn, 1).url,
-      "secondPageLink" -> controllers.routes.PastAftReturnsController.onPageLoad(srn, 2).url
-    )
-  }
 }

@@ -1,0 +1,81 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@this(
+    layout: templates.Layout,
+    formHelper: FormWithCSRF,
+    hmrcPageHeading: HmrcPageHeading,
+    govukButton: GovukButton,
+    govukInput: GovukInput,
+)
+
+@(chargeName: String,
+    form: Form[_],
+    submitCall: Call,
+    returnUrl: String,
+    schemeName: String)(implicit request: Request[_], messages: Messages)
+
+@layout(messages("memberDetails.title", messages(chargeName).toLowerCase())) {
+    <div>
+        @formHelper(action = submitCall, Symbol("autoComplete") -> "on", Symbol("novalidate") -> "true") {
+
+            <h1 class="govuk-heading-xl">
+                @messages("memberDetails.heading")
+            </h1>
+
+            @govukInput(
+                InputViewModel(
+                    field = form("firstName"),
+                    label = Label(
+                        content = Text(messages("memberDetails.firstName")),
+                        classes = "govuk-label govuk-!-font-weight-bold"
+                    ),
+                    classes = "govuk-input--width-20"
+                )
+            )
+
+            @govukInput(
+                InputViewModel(
+                    field = form("lastName"),
+                    label = Label(
+                        content = Text(messages("memberDetails.lastName")),
+                        classes = "govuk-label govuk-!-font-weight-bold"
+                    ),
+                    classes = "govuk-input--width-20"
+                )
+            )
+
+            @govukInput(
+                InputViewModel(
+                    field = form("nino"),
+                    label = Label(
+                        content = Text(messages("memberDetails.nino")),
+                        classes = "govuk-label govuk-!-font-weight-bold"
+                    ),
+                    classes = "govuk-input--width-10",
+                    hint = Some(Hint(content = Text(messages("memberDetails.nino.hint"))))
+                )
+            )
+
+            @govukButton(
+                ButtonViewModel(Text(messages("site.continue")))
+                    .withAttribute(("id", "submit"))
+            )
+        }
+
+        @templates.ReturnLink(schemeName, returnUrl)
+    </div>
+}

@@ -21,14 +21,13 @@ import connectors.ListOfSchemesConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import controllers.financialOverview.psa.SelectSchemeControllerSpec.penaltySchemes
-import data.SampleData.{dummyCall, multiplePenalties, psaId}
+import data.SampleData.{dummyCall, multiplePenalties, psaFsSeqWithCleared, psaId}
 import forms.financialStatement.PenaltyTypeFormProvider
 import matchers.JsonMatchers
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges}
 import models.financialStatement.{DisplayPenaltyType, PenaltyType}
 import models.requests.IdentifierRequest
-import models.{Enumerable, ListOfSchemes, ListSchemeDetails, PaymentOverdue}
-import org.mockito.ArgumentCaptor
+import models.{ChargeDetailsFilter, Enumerable, ListOfSchemes, ListSchemeDetails, PaymentOverdue}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -38,16 +37,16 @@ import play.api.data.Form
 import play.api.http.Status.{BAD_REQUEST, OK, SEE_OTHER}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
-import play.twirl.api.Html
+import services.AFTPartialService
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.financialOverview.psa.PenaltyTypeView
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
@@ -55,9 +54,11 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
   private val mockNavigationService = mock[PenaltiesNavigationService]
   private val mockListOfSchemesConn = mock[ListOfSchemesConnector]
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
+  private val mockAFTPartialService = mock[AFTPartialService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
-    bind[ListOfSchemesConnector].toInstance(mockListOfSchemesConn)
+    bind[ListOfSchemesConnector].toInstance(mockListOfSchemesConn),
+    bind[AFTPartialService].toInstance(mockAFTPartialService)
   )
 
   private val displayPenalties: Seq[DisplayPenaltyType] = Seq(
@@ -72,13 +73,8 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
   val penaltyTypes: Seq[PenaltyType] = PenaltyType.values
   val pstr = "24000041IN"
 
-  lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad().url
-  lazy val httpPathPOST: String = routes.PenaltyTypeController.onSubmit().url
-
-  private val jsonToPassToTemplate: Form[PenaltyType] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
-  )
+  lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad(ChargeDetailsFilter.All).url
+  lazy val httpPathPOST: String = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.All).url
 
   private val year = "2020"
   val listOfSchemes: ListOfSchemes = ListOfSchemes("", "", Some(List(
@@ -90,11 +86,12 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", multiplePenalties)))
+    when(mockAFTPartialService.retrievePaidPenaltiesAndCharges(any()))
+      .thenReturn(psaFsSeqWithCleared)
     when(mockNavigationService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).
       thenReturn(Future.successful(penaltySchemes))
     when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
@@ -103,22 +100,49 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
   "PenaltyTypeController" must {
     "return OK and the correct view for a GET with penalty types" in {
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val req = httpGETRequest(httpPathGET)
+      val result = route(application, req).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[PenaltyTypeView].apply(
+        form = form,
+        title = messages("penaltyType.title"),
+        psaName = "psa-name",
+        submitCall = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.All),
+        buttonText = messages("site.save_and_continue"),
+        returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
+        radios = PenaltyType.radiosWithHint(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
+        journeyType = ChargeDetailsFilter.All
+      )(req, messages)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
+      compareResultAndView(result, view)
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+    }
+    "return OK and the correct view for a GET with penalty types for charge history" in {
+      lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad(ChargeDetailsFilter.History).url
+      val req = httpGETRequest(httpPathGET)
+      val result = route(application, req).value
+
+      status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[PenaltyTypeView].apply(
+        form = form,
+        title = messages("financial.overview.historyChargeType.title"),
+        psaName = "psa-name",
+        submitCall = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.History),
+        buttonText = messages("site.continue"),
+        returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
+        radios = PenaltyType.radios(form, displayPenalties, areLabelsBold = false),
+        journeyType = ChargeDetailsFilter.History
+      )(req, messages)
+
+      compareResultAndView(result, view)
+
     }
 
     "redirect to next page when valid data is submitted" in {
-      when(mockNavigationService.navFromPenaltiesTypePage(any(), any(), any())(any(), any()))
+      when(mockNavigationService.navFromPenaltiesTypePage(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(year))))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value

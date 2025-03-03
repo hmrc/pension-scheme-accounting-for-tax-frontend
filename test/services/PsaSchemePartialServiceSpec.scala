@@ -22,15 +22,15 @@ import connectors.cache.UserAnswersCacheConnector
 import helpers.FormatHelper
 import models._
 import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.mockito.ArgumentMatchers
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import services.paymentsAndCharges.PaymentsAndChargesService
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels._
@@ -129,7 +129,7 @@ class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with Before
       DateHelper.setDate(Some(LocalDate.of(2021, 1, 1)))
       when(paymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => upcomingChargesMultiple)
 
-      service.upcomingAftChargesModel(upcomingChargesMultiple, srn) mustBe upcomingChargesMultipleModel()
+      service.upcomingAftChargesModel(upcomingChargesMultiple, srn) mustBe upcomingChargesMultipleModel(pastLink = upcomingPastChargesLink())
     }
 
     "return the correct model when there is a single upcoming charge and no past charges" in {
@@ -222,26 +222,26 @@ object PsaSchemePartialServiceSpec {
   private val upcomingChargesSingle: Seq[SchemeFSDetail] = Seq(charge1)
   private val upcomingChargesMultipleNegative: Seq[SchemeFSDetail] = Seq(charge1, charge2, charge3)
   private val outstandingAmountOverdue: Seq[SchemeFSDetail]= Seq(charge5, charge4)
-  private val upcomingPastChargesLink: Seq[Link] = Seq(Link(
+  private def upcomingPastChargesLink()(implicit messages: Messages): Seq[Link] = Seq(Link(
     id = "past-payments-and-charges",
     url = viewPastChargesUrl,
-    linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+    linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges")),
     hiddenText = None
   ))
 
   private def upcomingChargesSingleModel(implicit messages: Messages): Seq[CardViewModel] = upcomingChargesMultipleModel(
-    messages("pspDashboardUpcomingAftChargesCard.span.singleDueDate", LocalDate.parse(dueDate).format(dateFormatterDMY)),
-    msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single".withArgs(
+    Messages("pspDashboardUpcomingAftChargesCard.span.singleDueDate", LocalDate.parse(dueDate).format(dateFormatterDMY)),
+    Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single", Seq(
       LocalDate.parse(startDate).format(smallDatePattern),
-      LocalDate.parse(endDate).format(smallDatePattern)),
+      LocalDate.parse(endDate).format(smallDatePattern))),
     Nil,
     "£100.00",
     viewUpcomingChargesUrl
   )
 
   private def upcomingChargesMultipleModel(upcomingChargesSubHeading: String = "pspDashboardUpcomingAftChargesCard.span.multipleDueDate",
-                                   upcomingLinkText: Text = msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
-                                   pastLink: Seq[Link] = upcomingPastChargesLink,
+                                   upcomingLinkText: String = "pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
+                                   pastLink: Seq[Link],
                                    amount: String = "£300.00",
                                    upcomingLink: String = viewUpcomingChargesUrl)
                                   (implicit messages: Messages): Seq[CardViewModel] = Seq(CardViewModel(
@@ -258,7 +258,7 @@ object PsaSchemePartialServiceSpec {
     Seq(Link(
       id = "upcoming-payments-and-charges",
       url = upcomingLink,
-      linkText = upcomingLinkText,
+      linkText = Text(Messages(upcomingLinkText)),
       hiddenText = None
     )) ++ pastLink)
   )
@@ -290,19 +290,19 @@ object PsaSchemePartialServiceSpec {
       ))
     )
 
-  private def viewFinancialOverviewLink(): Link =
+  private def viewFinancialOverviewLink()(implicit messages: Messages): Link =
     Link(
       id = "view-your-financial-overview",
       url = overviewurl,
-      linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
+      linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.financialOverview")),
       hiddenText = None
     )
 
-  private def viewAllPaymentsAndChargesLink(): Link =
+  private def viewAllPaymentsAndChargesLink()(implicit messages: Messages): Link =
        Link(
       id = "past-payments-and-charges",
       url = viewFinancialInfoPastChargesUrl,
-      linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+      linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges")),
       hiddenText = None
     )
 
@@ -316,15 +316,15 @@ object PsaSchemePartialServiceSpec {
 
   private def overdueChargesSingleModel(implicit messages: Messages): Seq[CardViewModel] = overdueChargesModel(
     BigDecimal(100.00), BigDecimal(100.00),
-    msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
-      .withArgs(LocalDate.parse(startDate).format(smallDatePattern),
+    Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
+      , Seq(LocalDate.parse(startDate).format(smallDatePattern),
         LocalDate.parse(endDate).format(smallDatePattern)
-      ),
+      )),
     viewOverdueChargesUrl)
 
 
   private def overdueChargesModel(totalOverdue: BigDecimal = BigDecimal(300.00), totalInterestAccruing: BigDecimal = BigDecimal(300.00),
-                          overdueLinkText: Text = msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
+                          overdueLinkText: String = "pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
                           link: String = viewOverdueChargesUrl)
                          (implicit messages: Messages): Seq[CardViewModel] = Seq(CardViewModel(
     id = "aft-overdue-charges",
@@ -355,7 +355,7 @@ object PsaSchemePartialServiceSpec {
     links = Seq(Link(
       id = "overdue-payments-and-charges",
       url = link,
-      linkText = overdueLinkText,
+      linkText = Text(Messages(overdueLinkText)),
       hiddenText = None
     ))
   ))
@@ -421,19 +421,19 @@ object PsaSchemePartialServiceSpec {
 
   private def oneInProgressModelLocked(implicit messages: Messages): Seq[CardViewModel] =
     Seq(aftModel(Seq(oneInProgressSubHead(messages("aftPartial.status.lockDetail", name))),
-      Seq(oneInProgressLink(msg"pspDashboardAftReturnsCard.inProgressReturns.link.single.locked"), startLink, pastReturnsLink)))
+      Seq(oneInProgressLink(Text(Messages("pspDashboardAftReturnsCard.inProgressReturns.link.single.locked"))), startLink, pastReturnsLink)))
 
   private def oneInProgressModelNotLocked(implicit messages: Messages): Seq[CardViewModel] =
     Seq(aftModel(Seq(oneInProgressSubHead(messages("aftPartial.status.inProgress"))),
-      Seq(oneInProgressLink(msg"pspDashboardAftReturnsCard.inProgressReturns.link.single"), startLink, pastReturnsLink)))
+      Seq(oneInProgressLink(Text(Messages("pspDashboardAftReturnsCard.inProgressReturns.link.single"))), startLink, pastReturnsLink)))
 
   private def oneCompileZeroedOutModel(implicit messages: Messages): Seq[CardViewModel] =
     Seq(aftModel(Seq(multipleInProgressSubHead()), Seq(multipleInProgressLink, startLink)))
 
 
-  private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = msg"aftPartial.start.link")
+  private def startLink(implicit messages: Messages): Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = Text(Messages("aftPartial.start.link")))
 
-  private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = msg"aftPartial.view.change.past")
+  private def pastReturnsLink(implicit messages: Messages): Link = Link(id = "aftAmendLink", url = amendUrl, linkText = Text(Messages("aftPartial.view.change.past")))
 
   private def oneInProgressSubHead(subHeadingParam: String)(implicit messages: Messages): CardSubHeading = {
 
@@ -446,11 +446,11 @@ object PsaSchemePartialServiceSpec {
       )))
   }
 
-  private def oneInProgressLink(linkText: Text): Link = Link(
+  private def oneInProgressLink(linkText: Text)(implicit messages: Messages): Link = Link(
     id = "aftSummaryLink",
     url = aftSummaryUrl,
     linkText = linkText,
-    hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDt, endDt))
+    hiddenText = Some(Text(Messages("aftPartial.view.hidden.forPeriod", Seq(startDt, endDt))))
   )
 
   private def multipleInProgressSubHead(count: Int = 2)(implicit messages: Messages): CardSubHeading =
@@ -462,11 +462,11 @@ object PsaSchemePartialServiceSpec {
         subHeadingParamClasses = "font-small bold"
       )))
 
-  private def multipleInProgressLink = Link(
+  private def multipleInProgressLink(implicit messages: Messages) = Link(
     id = "aftContinueInProgressLink",
     url = continueUrl,
-    linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
-    hiddenText = Some(msg"aftPartial.view.hidden")
+    linkText = Text(Messages("pspDashboardAftReturnsCard.inProgressReturns.link")),
+    hiddenText = Some(Text(Messages("aftPartial.view.hidden")))
   )
 
   private def oneCompileZeroedOut: Seq[AFTOverview] =

@@ -29,7 +29,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -63,7 +62,7 @@ class SelectSchemeController @Inject()(
             Future.successful(Ok(selectSchemeView(
               form(penaltySchemes, typeParam),
               typeParam,
-              TwirlMigration.toTwirlRadios(PenaltySchemes.radios(form(penaltySchemes, typeParam), penaltySchemes)),
+              PenaltySchemes.radios(form(penaltySchemes, typeParam), penaltySchemes),
               routes.SelectSchemeController.onSubmit(penaltyType, period, journeyType),
               config.managePensionsSchemeOverviewUrl,
               penaltiesCache.psaName
@@ -90,7 +89,7 @@ class SelectSchemeController @Inject()(
               Future.successful(BadRequest(selectSchemeView(
                 formWithErrors,
                 typeParam,
-                TwirlMigration.toTwirlRadios(PenaltySchemes.radios(formWithErrors, penaltySchemes)),
+                PenaltySchemes.radios(formWithErrors, penaltySchemes),
                 routes.SelectSchemeController.onSubmit(penaltyType, period, journeyType),
                 config.managePensionsSchemeOverviewUrl,
                 penaltiesCache.psaName

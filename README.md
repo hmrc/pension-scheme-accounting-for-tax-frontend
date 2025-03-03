@@ -20,8 +20,6 @@ This service has a corresponding back-end microservice, namely pension-scheme-ac
 
 **Stubs:** https://github.com/hmrc/pensions-scheme-stubs
 
-
-
 ## Requirements
 This service is written in Scala and Play, so needs at least a [JRE] to run.
 

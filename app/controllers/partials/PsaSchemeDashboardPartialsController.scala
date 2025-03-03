@@ -24,14 +24,13 @@ import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.{PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import viewmodels.CardViewModel
+import views.html.partials.SchemePaymentsAndChargesPartialView
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class PsaSchemeDashboardPartialsController @Inject()(
     identify: IdentifierAction,
@@ -40,26 +39,20 @@ class PsaSchemeDashboardPartialsController @Inject()(
     schemeService: SchemeService,
     financialStatementConnector: FinancialStatementConnector,
     service: PsaSchemePartialService,
-    renderer: Renderer,
-    allowAccess: AllowAccessActionProviderForIdentifierRequest
+    allowAccess: AllowAccessActionProviderForIdentifierRequest,
+    view: SchemePaymentsAndChargesPartialView
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val logger = Logger(classOf[PsaSchemeDashboardPartialsController])
 
 
   def psaSchemeDashboardAFTTilePartial(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
-          schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
+          schemeService.retrieveSchemeDetails(request.idOrException, srn).flatMap { schemeDetails =>
               service.aftCardModel(schemeDetails, srn).flatMap { cards =>
-              renderer
-                .render(
-                  template = "partials/psaSchemeDashboardPartial.njk",
-                  ctx = Json.obj("cards" -> Json.toJson(cards))
-                )
-                .map(Ok(_))
+                Future.successful(Ok(view(cards)))
             }
         }
   }
@@ -67,14 +60,9 @@ class PsaSchemeDashboardPartialsController @Inject()(
 
   def psaSchemeDashboardFinInfoPartial(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
-      schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
+      schemeService.retrieveSchemeDetails(request.idOrException, srn).flatMap { schemeDetails =>
           getFinancialOverviewTile(srn, schemeDetails).flatMap { cards =>
-          renderer
-            .render(
-              template = "partials/psaSchemeDashboardPartial.njk",
-              ctx = Json.obj("cards" -> Json.toJson(cards))
-            )
-            .map(Ok(_))
+            Future.successful(Ok(view(cards)))
         }
       }
   }

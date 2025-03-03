@@ -33,8 +33,8 @@ import pages.chargeE.{AnnualAllowanceMembersQuery, AnnualAllowanceYearPage}
 import play.api.Application
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{route, status, _}
-import utils.{DateHelper, TwirlMigration}
+import play.api.test.Helpers._
+import utils.DateHelper
 import views.html.chargeE.AnnualAllowanceYearView
 
 import java.time.LocalDate
@@ -84,7 +84,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with JsonMatc
 
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswersWithSchemeNamePstrQuarter))
-      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       val request = httpGETRequest(httpPathGET)
 
       val view = application.injector.instanceOf[AnnualAllowanceYearView].apply(
@@ -92,7 +92,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with JsonMatc
         schemeName,
         submitUrl,
         returnUrl,
-        TwirlMigration.toTwirlRadios(YearRange.radios(form))
+        YearRange.radios(form)
       )(request, messages)
 
       val result = route(application, request).value
@@ -108,7 +108,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with JsonMatc
         writes(YearRange.enumerable)
       ).get
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       val request = httpGETRequest(httpPathGET)
 
       val view = application.injector.instanceOf[AnnualAllowanceYearView].apply(
@@ -116,7 +116,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with JsonMatc
         schemeName,
         submitUrl,
         returnUrl,
-        TwirlMigration.toTwirlRadios(YearRange.radios(form))
+        YearRange.radios(form)
       )(request, messages)
 
       val result = route(application, request).value

@@ -28,24 +28,25 @@ import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel}
+import models.viewModels.ConfirmationViewModel
+import models.AccessType
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import play.twirl.api.Html
-import renderer.Renderer
 import services.SchemeService
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{SummaryList, _}
 import utils.DateHelper.formatSubmittedDate
 
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.ConfirmationView
+import views.html.ConfirmationAmendDecreaseView
+import views.html.ConfirmationAmendIncreaseView
+import views.html.ConfirmationNoChargeView
 
 class ConfirmationController @Inject()(
                                         override val messagesApi: MessagesApi,
@@ -56,7 +57,10 @@ class ConfirmationController @Inject()(
                                         allowSubmission: AllowSubmissionAction,
                                         val controllerComponents: MessagesControllerComponents,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
-                                        renderer: Renderer,
+                                        confirmationView: ConfirmationView,
+                                        confirmationAmendDecreaseView: ConfirmationAmendDecreaseView,
+                                        confirmationAmendIncreaseView: ConfirmationAmendIncreaseView,
+                                        confirmationNoChargeView: ConfirmationNoChargeView,
                                         config: FrontendAppConfig,
                                         fsConnector: FinancialStatementConnector,
                                         schemeService: SchemeService
@@ -70,8 +74,7 @@ class ConfirmationController @Inject()(
                                                  (implicit request: DataRequest[AnyContent]): Future[Boolean] = {
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
+      srn = srn
     ) flatMap { schemeDetails =>
       fsConnector.getSchemeFS(schemeDetails.pstr).map(_.seqSchemeFSDetail.exists(_.periodStartDate.contains(startDate)))
     } recover { case e =>
@@ -99,30 +102,31 @@ class ConfirmationController @Inject()(
             checkIfFinancialInfoLinkDisplayable(srn, startDate).flatMap { isFinancialInfoLinkDisplayable =>
               val optViewPaymentsUrl =
                 if (isFinancialInfoLinkDisplayable) {
-                  Json.obj(
-                    "viewPaymentsUrl" -> PaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges, All).url
-                  )
+                  Some(PaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges, All).url)
                 } else {
-                  Json.obj()
+                  None
                 }
 
-              val json = Json.obj(
-                fields = "srn" -> srn,
-                "panelHtml" -> confirmationPanelText.toString(),
-                "email" -> email,
-                "isAmendment" -> isAmendment,
-                "list" -> rows,
-                "pensionSchemesUrl" -> listSchemesUrl,
-                "viewModel" -> GenericViewModel(
-                  submitUrl = SignOutController.signOut(Some(srn), Some(localDateToString(startDate))).url,
-                  returnUrl = ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                  schemeName = schemeName
-                )
-              ) ++ optViewPaymentsUrl
+              val panelH1 = if (isAmendment) Messages("confirmation.aft.amendment.panel.h1") else Messages("confirmation.aft.return.panel.h1")
 
-              renderer.render(getView, json).flatMap { viewHtml =>
-                userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
-                  Ok(viewHtml)
+              val viewModel = ConfirmationViewModel(
+                  panelH1,
+                  confirmationPanelText,
+                  email,
+                  rows,
+                  optViewPaymentsUrl,
+                  ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                  schemeName,
+                  listSchemesUrl,
+                  SignOutController.signOut(Some(srn), Some(localDateToString(startDate))).url
+              )
+
+              userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
+                (request.isAmendment, request.userAnswers.get(ConfirmSubmitAFTAmendmentValueChangeTypePage)) match {
+                  case (true, Some(ChangeTypeDecrease)) => Ok(confirmationAmendDecreaseView(viewModel))
+                  case (true, Some(ChangeTypeIncrease)) => Ok(confirmationAmendIncreaseView(viewModel))
+                  case (true, Some(ChangeTypeSame)) => Ok(confirmationNoChargeView(viewModel))
+                  case _ => Ok(confirmationView(viewModel))
                 }
               }
             }
@@ -135,44 +139,31 @@ class ConfirmationController @Inject()(
   }
 
   private[controllers] def getRows(schemeName: String, quarterStartDate: String, quarterEndDate: String,
-                                   submittedDate: String, amendedVersion: Option[Int]): Seq[SummaryList.Row] = {
-    Seq(Row(
-      key = Key(msg"confirmation.table.scheme.label", classes = Seq("govuk-!-font-weight-regular")),
-      value = Value(Literal(schemeName), classes = Nil),
-      actions = Nil
+                                   submittedDate: String, amendedVersion: Option[Int])(implicit messages: Messages): Seq[SummaryListRow] = {
+    Seq(SummaryListRow(
+      key = Key(Text(messages("confirmation.table.scheme.label")), classes = "govuk-!-font-weight-regular"),
+      value = Value(Text(schemeName))
     ),
-      Row(
-        key = Key(msg"confirmation.table.accounting.period.label", classes = Seq("govuk-!-font-weight-regular")),
-        value = Value(msg"confirmation.table.accounting.period.value".withArgs(quarterStartDate, quarterEndDate), classes = Nil),
-        actions = Nil
+      SummaryListRow(
+        key = Key(Text(messages("confirmation.table.accounting.period.label")), classes = "govuk-!-font-weight-regular"),
+        value = Value(Text(messages("confirmation.table.accounting.period.value", quarterStartDate, quarterEndDate)))
       ),
-      Row(
-        key = Key(msg"confirmation.table.data.submitted.label", classes = Seq("govuk-!-font-weight-regular")),
-        value = Value(Literal(submittedDate), classes = Nil),
-        actions = Nil
+      SummaryListRow(
+        key = Key(Text(messages("confirmation.table.data.submitted.label")), classes = "govuk-!-font-weight-regular"),
+        value = Value(Text(submittedDate))
       )
     ) ++ amendedVersion.map { vn =>
       Seq(
-        Row(
-          key = Key(msg"confirmation.table.submission.number.label", classes = Seq("govuk-!-font-weight-regular")),
-          value = Value(Literal(s"$vn"), classes = Nil),
-          actions = Nil
+        SummaryListRow(
+          key = Key(Text(messages("confirmation.table.submission.number.label")), classes = "govuk-!-font-weight-regular"),
+          value = Value(Text(s"$vn"))
         )
       )
     }.getOrElse(Nil)
   }
 
-  private def confirmationPanelText(implicit messages: Messages): Html = {
-    Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
-  }
-
-  private def getView(implicit request: DataRequest[AnyContent]): String = {
-    (request.isAmendment, request.userAnswers.get(ConfirmSubmitAFTAmendmentValueChangeTypePage)) match {
-      case (true, Some(ChangeTypeDecrease)) => "confirmationAmendDecrease.njk"
-      case (true, Some(ChangeTypeIncrease)) => "confirmationAmendIncrease.njk"
-      case (true, Some(ChangeTypeSame)) => "confirmationNoChange.njk"
-      case _ => "confirmation.njk"
-    }
+  private def confirmationPanelText(implicit messages: Messages): HtmlContent = {
+    HtmlContent(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
   }
 
 }

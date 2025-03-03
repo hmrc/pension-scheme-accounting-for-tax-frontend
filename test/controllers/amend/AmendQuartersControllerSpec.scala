@@ -33,10 +33,8 @@ import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
+import play.api.test.Helpers._
 import services.{QuartersService, SchemeService}
-import utils.TwirlMigration
 import views.html.amend.AmendQuartersView
 
 import scala.concurrent.Future
@@ -77,9 +75,8 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq(aftOverviewQ22020, aftOverviewQ32020, aftOverviewQ42020)))
     when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
   }
 
@@ -93,7 +90,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with JsonMatchers
 
       val view = application.injector.instanceOf[AmendQuartersView].apply(
         quartersForm,
-        TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(quartersForm, displayQuarters)),
+        Quarters.radios(quartersForm, displayQuarters),
         submitCall,
         dummyCall.url,
         schemeName

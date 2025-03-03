@@ -19,32 +19,31 @@ package controllers
 import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.CommonQuarters
-import play.api.libs.json.Json
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Results.Ok
 import play.api.mvc.{Action, AnyContent}
-import renderer.Renderer
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import views.html.NotSubmissionTimeView
 
-class NotSubmissionTimeController  @Inject()(renderer: Renderer,
+class NotSubmissionTimeController  @Inject()(override val messagesApi: MessagesApi,
+                                             notSubmissionTimeView: NotSubmissionTimeView,
                                              identify: IdentifierAction,
                                              appConfig: FrontendAppConfig,
                                              allowAccess: AllowAccessActionProviderForIdentifierRequest
-                                            )(implicit val executionContext: ExecutionContext) extends CommonQuarters {
+                                            )(implicit val executionContext: ExecutionContext)
+  extends CommonQuarters with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = {
     (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
-
-        val json = Json.obj(
-          "continueLink" ->  appConfig.schemeDashboardUrl(request).format(srn),
-          "date" -> getNextQuarterDateAndFormat(startDate)
-        )
-
-        renderer.render("notSubmissionTime.njk", json).map(Ok(_))
+        Future.successful(Ok(notSubmissionTimeView(
+          appConfig.schemeDashboardUrl(request).format(srn),
+          getNextQuarterDateAndFormat(startDate)
+        )))
     }
   }
 

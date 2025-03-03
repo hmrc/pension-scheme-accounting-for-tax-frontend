@@ -26,7 +26,6 @@ import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import models.{AFTQuarter, DisplayQuarter, Enumerable, PaymentOverdue, Quarters}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -35,16 +34,15 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
+import play.api.libs.json.Json
+import play.api.mvc.{Call, Results}
+import play.api.test.Helpers._
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.financialOverview.scheme.SelectQuarterView
 
 import scala.concurrent.Future
 
-class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class SelectQuarterControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -62,20 +60,13 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialOverview/scheme/selectQuarter.njk"
   val formProvider = new QuartersFormProvider()
   val form: Form[AFTQuarter] = formProvider("selectChargesQuarter.error", quarters)
 
   lazy val httpPathGET: String = routes.SelectQuarterController.onPageLoad(srn, year).url
   lazy val httpPathPOST: String = routes.SelectQuarterController.onSubmit(srn, year).url
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
-
-  private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
-    "schemeName" -> schemeName,
-    "year" -> year
-  )
+  private val submitCall: Call = routes.SelectQuarterController.onSubmit(srn, year)
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q22020.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
@@ -83,7 +74,6 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
@@ -93,18 +83,30 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
   "SelectQuarter Controller" must {
     "return OK and the correct view for a GET" in {
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC.seqSchemeFSDetail)))
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val request = httpGETRequest(httpPathGET)
+      val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[SelectQuarterView].apply(
+        form = form,
+        submitCall = submitCall,
+        schemeName = schemeName,
+        returnUrl = dummyCall.url,
+        radios = Quarters.radios(
+            form,
+            displayQuarters,
+            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"),
+            areLabelsBold = false),
+        year
+      )(request, messages)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
+      status(result) mustEqual OK
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+      compareResultAndView(result, view)
     }
 
     "redirect to next page when valid data is submitted" in {

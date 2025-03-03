@@ -20,15 +20,14 @@ import config.FrontendAppConfig
 import connectors.ListOfSchemesConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData.{dummyCall, psaId}
+import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
 import models.StartYears.enumerable
 import models.financialStatement.PenaltyType
 import models.financialStatement.PenaltyType.{ContractSettlementCharges, EventReportingCharges}
 import models.requests.IdentifierRequest
-import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
-import org.mockito.ArgumentCaptor
+import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -38,18 +37,17 @@ import play.api.data.Form
 import play.api.http.Status.{BAD_REQUEST, OK, SEE_OTHER}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
-import play.twirl.api.Html
-import services.PenaltiesServiceSpec.listOfSchemes
+import services.PenaltiesServiceSpec.{listOfSchemes, penaltiesCache}
 import services.financialOverview.psa.PsaPenaltiesAndChargesServiceSpec.{psaFsERSeq, psaFsSeq, pstr}
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.financialOverview.psa.SelectYearView
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
@@ -66,20 +64,17 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialOverview/psa/selectYear.njk"
   val formProvider = new YearsFormProvider()
   val form: Form[Year] = formProvider()
   val penaltyType: PenaltyType = ContractSettlementCharges
+  val typeParam: String = mockPsaPenaltiesAndChargesService.getTypeParam(penaltyType)
 
-  lazy val httpPathGET: String = routes.SelectPenaltiesYearController.onPageLoad(penaltyType).url
-  lazy val httpPathPOST: String = routes.SelectPenaltiesYearController.onSubmit(penaltyType).url
+  lazy val httpPathGET: String = routes.SelectPenaltiesYearController.onPageLoad(penaltyType, ChargeDetailsFilter.All).url
+  lazy val httpPathPOST: String = routes.SelectPenaltiesYearController.onSubmit(penaltyType, ChargeDetailsFilter.All).url
 
-  lazy val erHttpPathPOST: String = routes.SelectPenaltiesYearController.onSubmit(EventReportingCharges).url
+  lazy val erHttpPathPOST: String = routes.SelectPenaltiesYearController.onSubmit(EventReportingCharges, ChargeDetailsFilter.All).url
 
-  private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> FSYears.radios(form, years)
-  )
+  private val submitCall = controllers.financialOverview.psa.routes.SelectPenaltiesYearController.onSubmit(penaltyType, ChargeDetailsFilter.All)
 
   private val year = "2020"
 
@@ -89,31 +84,64 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(_ => true)
   }
 
   "SelectYearController" must {
     "return OK and the correct view for a GET with the select option for Year" in {
-      when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
-        thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
+      when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any()))
+        .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
       when(mockPsaPenaltiesAndChargesService.getTypeParam(ContractSettlementCharges)).
         thenReturn(ContractSettlementCharges.toString)
       when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
+      val request = httpGETRequest(httpPathGET)
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      templateCaptor.getValue mustEqual templateToBeRendered
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
-    }
+      val view = application.injector.instanceOf[SelectYearView].apply(
+        form = form,
+        title =  messages("selectPenaltiesYear.title", typeParam),
+        submitCall = submitCall,
+        psaName = penaltiesCache.psaName,
+        penaltyType = typeParam,
+        returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
+        radios = FSYears.radios(form, years),
+        journeyType = ChargeDetailsFilter.All
+      )(request, messages)
 
+      compareResultAndView(result, view)
+    }
+    "return OK and the correct view for a GET to select the charge history year" in {
+      lazy val httpPathGET: String = routes.SelectPenaltiesYearController.onPageLoad(penaltyType, ChargeDetailsFilter.History).url
+      val submitCall = controllers.financialOverview.psa.routes.SelectPenaltiesYearController.onSubmit(penaltyType, ChargeDetailsFilter.History)
+
+      when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any()))
+        .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
+      when(mockPsaPenaltiesAndChargesService.getTypeParam(ContractSettlementCharges)).
+        thenReturn(ContractSettlementCharges.toString)
+      when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
+
+      val request = httpGETRequest(httpPathGET)
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[SelectYearView].apply(
+        form = form,
+        title =  messages("psa.financial.overview.chargeHistoryYear.title"),
+        submitCall = submitCall,
+        psaName = penaltiesCache.psaName,
+        penaltyType = typeParam,
+        returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
+        radios = FSYears.radios(form, years),
+        journeyType = ChargeDetailsFilter.History
+      )(request, messages)
+
+      compareResultAndView(result, view)
+    }
     "redirect to next page when valid data is submitted for AFT" in {
       when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
         thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
@@ -145,7 +173,7 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
         thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
       when(mockPsaPenaltiesAndChargesService.getTypeParam(ContractSettlementCharges)).
         thenReturn(ContractSettlementCharges.toString)
-      
+
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
       status(result) mustEqual BAD_REQUEST
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())

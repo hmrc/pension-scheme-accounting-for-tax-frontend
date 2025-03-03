@@ -23,13 +23,11 @@ import models.AdministratorOrPractitioner.Administrator
 import models.CreditAccessType
 import models.CreditAccessType.{AccessedByLoggedInPsaOrPsp, AccessedByOtherPsa, AccessedByOtherPsp}
 import models.requests.IdentifierRequest
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc._
-import renderer.Renderer
 import services.{PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.financialOverview.RequestRefundView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -38,7 +36,7 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
                                         identify: IdentifierAction,
                                         override val messagesApi: MessagesApi,
                                         val controllerComponents: MessagesControllerComponents,
-                                        renderer: Renderer,
+                                        requestRefundView: RequestRefundView,
                                         financialStatementConnector: FinancialStatementConnector,
                                         psaSchemePartialService: PsaSchemePartialService,
                                         schemeService: SchemeService,
@@ -47,8 +45,7 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
                                         allowAccess: AllowAccessActionProviderForIdentifierRequest
                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def creditAccess(srn: String)(implicit request: IdentifierRequest[AnyContent]): Future[Option[CreditAccessType]] = {
     val id = request.idOrException
@@ -61,7 +58,7 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
   private def requestRefundURL(srn: String)(implicit request: IdentifierRequest[AnyContent]): Future[String] = {
     for {
       psaOrPspName <- minimalConnector.getPsaOrPspName
-      schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
+      schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn)
       creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
     } yield {
       if (creditSchemeFS.inhibitRefundSignal) {
@@ -88,7 +85,7 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
     }
   }
 
-  private def renderPage(creditAccessType: CreditAccessType, continueUrl: String)(implicit request: IdentifierRequest[AnyContent]): Future[Result] = {
+  private def renderPage(creditAccessType: CreditAccessType, continueUrl: String)(implicit request: IdentifierRequest[AnyContent], messages: Messages): Future[Result] = {
     val (heading, p1) = creditAccessType match {
       case AccessedByLoggedInPsaOrPsp =>
         Tuple2("requestRefund.youAlready.h1", "requestRefund.youAlready.p1")
@@ -98,13 +95,11 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
         Tuple2("requestRefund.pspAlready.h1", "requestRefund.pspAlready.p1")
     }
 
-    val json = Json.obj(
-      "heading" -> heading,
-      "p1" -> p1,
-      "continueUrl" -> continueUrl
-    )
-
-    renderer.render("financialOverview/requestRefund.njk", json).map(Ok(_))
+    Future.successful(Ok(requestRefundView(
+      heading = heading,
+      p1 = p1,
+      continueUrl = continueUrl
+    )(request, messages)))
 
   }
 }

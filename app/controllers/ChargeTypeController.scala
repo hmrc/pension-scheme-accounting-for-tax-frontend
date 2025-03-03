@@ -16,25 +16,22 @@
 
 package controllers
 
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.{AccessType, ChargeType, NormalMode}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.ChargeTypeView
 
 class ChargeTypeController @Inject()(
                                       override val messagesApi: MessagesApi,
@@ -47,13 +44,11 @@ class ChargeTypeController @Inject()(
                                       requireData: DataRequiredAction,
                                       formProvider: ChargeTypeFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
-                                      renderer: Renderer,
-                                      config: FrontendAppConfig,
+                                      chargeTypeView: ChargeTypeView,
                                       schemeService: SchemeService
                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val form = formProvider()
 
@@ -62,18 +57,16 @@ class ChargeTypeController @Inject()(
       requireData andThen allowAccess(srn, startDate, optionPage = Some(ChargeTypePage), version, accessType)).async { implicit request =>
       schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
-        srn = srn,
-        schemeIdType = "srn"
+        srn = srn
       ) flatMap { schemeDetails =>
         val preparedForm = request.userAnswers.get(ChargeTypePage).fold(form)(form.fill)
-        val json = Json.obj(
-          fields = "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "radios" -> ChargeType.radios(preparedForm),
-          "viewModel" -> viewModel(schemeDetails.schemeName, srn, startDate, accessType, version)
-        )
-        renderer.render(template = "chargeType.njk", json).map(Ok(_))
+        Future.successful(Ok(chargeTypeView(
+          preparedForm,
+          ChargeType.radios(preparedForm),
+          routes.ChargeTypeController.onSubmit(srn, startDate, accessType, version),
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeDetails.schemeName
+        )))
       }
     }
 
@@ -86,14 +79,13 @@ class ChargeTypeController @Inject()(
             .bindFromRequest()
             .fold(
               formWithErrors => {
-                val json = Json.obj(
-                  fields = "srn" -> srn,
-                  "startDate" -> Some(localDateToString(startDate)),
-                  "form" -> formWithErrors,
-                  "radios" -> ChargeType.radios(formWithErrors),
-                  "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version)
-                )
-                renderer.render(template = "chargeType.njk", json).map(BadRequest(_))
+                Future.successful(BadRequest(chargeTypeView(
+                  formWithErrors,
+                  ChargeType.radios(formWithErrors),
+                  routes.ChargeTypeController.onSubmit(srn, startDate, accessType, version),
+                  controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                  schemeName
+                )))
               },
               value =>
                 for {
@@ -104,12 +96,4 @@ class ChargeTypeController @Inject()(
             )
         }
     }
-
-  private def viewModel(schemeName: String, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): GenericViewModel = {
-    GenericViewModel(
-      submitUrl = routes.ChargeTypeController.onSubmit(srn, startDate, accessType, version).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-      schemeName = schemeName
-    )
-  }
 }

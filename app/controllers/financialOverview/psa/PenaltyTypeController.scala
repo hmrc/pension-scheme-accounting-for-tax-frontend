@@ -16,65 +16,104 @@
 
 package controllers.financialOverview.psa
 
+import config.FrontendAppConfig
 import controllers.actions._
 import forms.financialStatement.PenaltyTypeFormProvider
 import models.financialStatement.PenaltyType.getPenaltyType
 import models.financialStatement.{DisplayPenaltyType, PenaltyType, PsaFSDetail}
 import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
+import services.AFTPartialService
 import services.financialOverview.psa.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.financialOverview.psa.PenaltyTypeView
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
                                       identify: IdentifierAction,
+                                      appConfig: FrontendAppConfig,
                                       allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                       formProvider: PenaltyTypeFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
-                                      renderer: Renderer,
+                                      penaltyTypeView: PenaltyTypeView,
                                       psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                      navService: PenaltiesNavigationService)
+                                      penaltiesNavService: PenaltiesNavigationService,
+                                      aftPartialService: AFTPartialService)
                                      (implicit ec: ExecutionContext) extends FrontendBaseController
-  with I18nSupport
-  with NunjucksSupport {
+  with I18nSupport {
 
   private def form: Form[PenaltyType] = formProvider()
 
   def onPageLoad(journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
-      val penaltyTypes = getPenaltyTypes(penaltiesCache.penalties.toSeq)
-       val json = Json.obj(
-         "psaName" -> penaltiesCache.psaName,
-         "form" -> form,
-         "radios" -> PenaltyType.radios(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
-         "submitUrl" -> routes.PenaltyTypeController.onSubmit().url
-       )
-       renderer.render(template = "financialOverview/psa/penaltyType.njk", json).map(Ok(_))
+        val penaltyTypes = getPenaltyTypes(penaltiesCache.penalties.toSeq)
+
+        val (title, buttonText) = getParameters(journeyType)
+
+        val historyChargeTypes = getHistoryChargeTypes(penaltiesCache.penalties.toSeq)
+
+        val radios = if (journeyType == ChargeDetailsFilter.History) {
+            PenaltyType.radios(form, historyChargeTypes, areLabelsBold = false)
+        } else {
+            PenaltyType.radiosWithHint(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
+        }
+
+        Future.successful(Ok(
+          penaltyTypeView(
+            form = form,
+            title = title,
+            psaName = penaltiesCache.psaName,
+            radios = radios,
+            buttonText = buttonText,
+            submitCall = routes.PenaltyTypeController.onSubmit(journeyType),
+            returnUrl = appConfig.managePensionsSchemeOverviewUrl,
+            journeyType = journeyType
+          )
+        ))
+      }
     }
-  }
 
   def onSubmit(journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
       form.bindFromRequest().fold(
         formWithErrors => {
-          val json = Json.obj(
-            "psaName" -> penaltiesCache.psaName,
-            "form" -> formWithErrors,
-            "radios" -> PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties.toSeq)),
-            "submitUrl" -> routes.PenaltyTypeController.onSubmit().url
-          )
-          renderer.render(template = "financialOverview/psa/penaltyType.njk", json).map(BadRequest(_))
+          val (title, buttonText) = getParameters(journeyType)
+          val historyChargeTypes = getHistoryChargeTypes(penaltiesCache.penalties.toSeq)
+
+          val radios = if (journeyType == ChargeDetailsFilter.History) {
+            PenaltyType.radios(formWithErrors, historyChargeTypes, areLabelsBold = false)
+          } else {
+            PenaltyType.radiosWithHint(formWithErrors, getPenaltyTypes(penaltiesCache.penalties.toSeq))
+          }
+
+          Future.successful(BadRequest(
+            penaltyTypeView(
+              formWithErrors,
+              title = title,
+              psaName = penaltiesCache.psaName,
+              radios = radios,
+              buttonText = buttonText,
+              submitCall = routes.PenaltyTypeController.onSubmit(journeyType),
+              returnUrl = appConfig.managePensionsSchemeOverviewUrl,
+              journeyType = journeyType
+            )
+          ))
         },
-        value => navService.navFromPenaltiesTypePage(penaltiesCache.penalties, request.psaIdOrException.id, value)
+        value => penaltiesNavService.navFromPenaltiesTypePage(penaltiesCache.penalties, request.psaIdOrException.id, value, journeyType)
       )
     }
+  }
+
+  private def getHistoryChargeTypes(psaFs: Seq[PsaFSDetail]) = {
+    val historyChargeTypes = aftPartialService.retrievePaidPenaltiesAndCharges(psaFs)
+      .map(psaFSDetail => {
+        getPenaltyType(psaFSDetail.chargeType)
+      }).distinct.sortBy(_.toString)
+    historyChargeTypes.map(chargeType => DisplayPenaltyType(chargeType, None))
   }
 
   private def getPenaltyTypes(penalties: Seq[PsaFSDetail]): Seq[DisplayPenaltyType] =
@@ -84,5 +123,14 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
       val hint: Option[DisplayHint] = if (isOverdue) Some(PaymentOverdue) else None
 
       DisplayPenaltyType(category, hint)
+
     }
+
+  private def getParameters(journeyType: ChargeDetailsFilter)(implicit messages: Messages) = {
+    if (journeyType == ChargeDetailsFilter.History) {
+        (messages("financial.overview.historyChargeType.title"), messages("site.continue"))
+    } else {
+        (messages("penaltyType.title"), messages("site.save_and_continue"))
+    }
+  }
 }

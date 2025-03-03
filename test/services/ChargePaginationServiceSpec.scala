@@ -27,9 +27,10 @@ import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
+import play.api.i18n.Messages
 import play.api.libs.json.JsArray
 import play.api.mvc.Call
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 import viewmodels.Link
 
 class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -85,10 +86,10 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
   private val url: Int => Call = i => Call("GET", s"dummy/$i")
 
   private def prev(pageNo: Int): Link =
-    Link(id = "nav-prev", url = url(pageNo).url, linkText = Message("paginationPreviousPage"), hiddenText = None)
+    Link(id = "nav-prev", url = url(pageNo).url, linkText = Text(Messages("paginationPreviousPage")), hiddenText = None)
 
   private def next(pageNo: Int): Link =
-    Link(id = "nav-next", url = url(pageNo).url, linkText = Message("paginationNextPage"), hiddenText = None)
+    Link(id = "nav-next", url = url(pageNo).url, linkText = Text(Messages("paginationNextPage")), hiddenText = None)
 
   private def number(pageNo: Int, includeTarget: Boolean = true): Link = {
     val u = if (includeTarget) {
@@ -96,7 +97,7 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
     } else {
       ""
     }
-    Link(id = s"nav-$pageNo", url = u, linkText = Literal(s"$pageNo"), hiddenText = None)
+    Link(id = s"nav-$pageNo", url = u, linkText = Text(s"$pageNo"), hiddenText = None)
   }
 
   "toEitherSeq" must {

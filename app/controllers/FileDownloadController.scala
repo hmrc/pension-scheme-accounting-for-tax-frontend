@@ -22,7 +22,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.FileProviderService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,8 +34,7 @@ class FileDownloadController @Inject()(override val messagesApi: MessagesApi,
                                        val controllerComponents: MessagesControllerComponents
                                       )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   def templateFile(chargeType: ChargeType, psr: Option[Boolean]): Action[AnyContent] = {
     (identify andThen allowAccess()).async { _ =>

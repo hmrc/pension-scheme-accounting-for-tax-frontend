@@ -27,8 +27,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.TwirlMigration
 import views.html.amend.ContinueQuartersView
 
 import javax.inject.Inject
@@ -47,8 +45,7 @@ class ContinueQuartersController @Inject()(
                                             continueQuartersView: ContinueQuartersView
                                           )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def form(quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("continueQuarters.error.required"), quarters)
@@ -56,8 +53,7 @@ class ContinueQuartersController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
+      srn = srn
     ) flatMap { schemeDetails =>
       quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
         if (displayQuarters.nonEmpty) {
@@ -66,7 +62,7 @@ class ContinueQuartersController @Inject()(
 
           Future.successful(Ok(continueQuartersView(
             form(quarters),
-            TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(form(quarters), displayQuarters)),
+            Quarters.radios(form(quarters), displayQuarters),
             routes.ContinueQuartersController.onSubmit(srn),
             config.schemeDashboardUrl(request).format(srn),
             schemeDetails.schemeName
@@ -81,8 +77,7 @@ class ContinueQuartersController @Inject()(
   def onSubmit(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
+      srn = srn
     ) flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
         quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
@@ -96,7 +91,7 @@ class ContinueQuartersController @Inject()(
                 formWithErrors => {
                   Future.successful(BadRequest(continueQuartersView(
                     formWithErrors,
-                    TwirlMigration.toTwirlRadios(Quarters.radios(formWithErrors, displayQuarters)),
+                    Quarters.radios(formWithErrors, displayQuarters),
                     routes.ContinueQuartersController.onSubmit(srn),
                     config.schemeDashboardUrl(request).format(srn),
                     schemeDetails.schemeName

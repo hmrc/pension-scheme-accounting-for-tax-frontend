@@ -1,0 +1,78 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import viewmodels.ChargeDetailsViewModel
+
+@this(
+    layout: templates.Layout,
+    govukButton: GovukButton,
+    govukSummaryList: GovukSummaryList,
+    govukTable: GovukTable,
+    govukInsetText: GovukInsetText
+)
+
+@(model: ChargeDetailsViewModel)(implicit messages: Messages, request: Request[_])
+
+@layout(messages({model.chargeType})) {
+
+<div>
+
+        <h1 class="hmrc-caption govuk-caption-xl">@{model.schemeName}</h1>
+        <h1 class="govuk-heading-xl">@{model.chargeType}</h1>
+
+        @if(model.isPaymentOverdue) {
+        <p class="govuk-body govuk-tag govuk-tag--red">
+            @messages("paymentsAndCharges.status.PaymentOverdue")
+        </p>
+        }
+
+        @if(model.chargeDetailsList.nonEmpty) {
+        <h2 id="paymentAndChargeDetails" class="govuk-heading-m">@{model.tableHeader}</h2>
+            @govukSummaryList(
+                SummaryList(
+                    rows = model.chargeDetailsList
+                )
+            )
+        }
+
+    @if(model.insetText.nonEmpty) {
+        @govukInsetText(
+            InsetText(
+                content = model.insetText
+            )
+        )
+    }
+
+        @model.hintText.map { text =>
+        <p class="govuk-body">@text</p>
+        }
+
+</div>
+
+@if(model.returnHistoryUrl.nonEmpty && model.versionValue.nonEmpty) {
+<p class="govuk-body">
+    <a id="return-history" href="@model.returnHistoryUrl" class="govuk-link">
+        @messages("financialPaymentsAndCharges.viewReturnHistory", model.versionValue)
+    </a>
+</p>
+}
+
+<p class="govuk-body">
+    <a id="return" href="@model.returnUrl" class="govuk-link">
+        @messages("return.to.link", model.returnLinkBasedOnJourney)
+    </a>
+</p>
+}

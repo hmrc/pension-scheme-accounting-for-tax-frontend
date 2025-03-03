@@ -24,7 +24,7 @@ import play.api.http.Status._
 import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -48,7 +48,7 @@ class ListOfSchemesConnectorImpl @Inject()(
 
   override def getListOfSchemes(psaId: String)
                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
-      val (url, schemeHc) = (config.listOfSchemesUrl, hc.withExtraHeaders("idType" -> "psaid", "idValue" -> psaId))
+      val (url, schemeHc) = (config.listOfSchemesUrl, hc.withExtraHeaders("idType" -> "PSA", "idValue" -> psaId))
       listOfSchemes(url)(schemeHc, ec)
   }
 

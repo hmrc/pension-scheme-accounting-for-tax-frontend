@@ -28,7 +28,7 @@ govukInput: GovukInput
 @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
 }
 
-@formHelper(action = submitUrl, Symbol("autoComplete") -> "off", Symbol("novalidate") -> "true") {
+@formHelper(action = submitUrl, Symbol("autoComplete") -> "on", Symbol("novalidate") -> "true") {
 @govukInput(
     InputViewModel(
         field = form("value"),

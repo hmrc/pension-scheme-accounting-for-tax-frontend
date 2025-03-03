@@ -20,17 +20,15 @@ import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions._
 import models.LocalDateBinder._
-import models.{AccessType, CheckMode, GenericViewModel, Index}
+import models.{AccessType, CheckMode, Index}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.RemoveLastChargeView
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class RemoveLastChargeController @Inject()(override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
@@ -39,29 +37,19 @@ class RemoveLastChargeController @Inject()(override val messagesApi: MessagesApi
                                            requireData: DataRequiredAction,
                                            val controllerComponents: MessagesControllerComponents,
                                            config: FrontendAppConfig,
-                                           renderer: Renderer)(implicit ec: ExecutionContext)
+                                           view: RemoveLastChargeView)(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
 
-          val viewModel = GenericViewModel(
-            submitUrl = routes.ChargeDetailsController.onSubmit(CheckMode, srn, startDate,accessType, version, index).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-            schemeName = schemeName
-          )
+          val submitUrl = routes.ChargeDetailsController.onSubmit(CheckMode, srn, startDate, accessType, version, index).url
+          val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
 
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(localDateToString(startDate)),
-            "viewModel" -> viewModel
-          )
-
-          renderer.render("removeLastCharge.njk", json).map(Ok(_))
+          Future.successful(Ok(view(submitUrl, returnUrl, schemeName )))
         }
     }
 }

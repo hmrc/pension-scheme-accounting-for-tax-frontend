@@ -21,15 +21,14 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, DataRetrievalAction, IdentifierAction}
 import models.LocalDateBinder._
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import views.html.CannotSubmitAFTView
 
 class CannotSubmitAFTController @Inject()(appConfig: FrontendAppConfig,
                                                     override val messagesApi: MessagesApi,
@@ -38,7 +37,7 @@ class CannotSubmitAFTController @Inject()(appConfig: FrontendAppConfig,
                                                     identify: IdentifierAction,
                                                     getData: DataRetrievalAction,
                                                     schemeService: SchemeService,
-                                                    renderer: Renderer,
+                                                    cannotSubmitAFTView: CannotSubmitAFTView,
                                                     allowAccess: AllowAccessActionProviderForIdentifierRequest
                                                    )(implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
@@ -46,12 +45,11 @@ class CannotSubmitAFTController @Inject()(appConfig: FrontendAppConfig,
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
-        schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
-          val json = Json.obj(
-            "schemeName" -> schemeDetails.schemeName,
-            "returnUrl" -> controllers.routes.CannotSubmitAFTController.onClick(srn, startDate).url
-          )
-          renderer.render("cannotSubmitAFT.njk", json).map(Ok(_))
+        schemeService.retrieveSchemeDetails(request.idOrException, srn).flatMap { schemeDetails =>
+          Future.successful(Ok(cannotSubmitAFTView(
+            schemeDetails.schemeName,
+            controllers.routes.CannotSubmitAFTController.onClick(srn, startDate).url
+          )))
         }
     }
 
