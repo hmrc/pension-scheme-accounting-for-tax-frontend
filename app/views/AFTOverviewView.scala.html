@@ -45,19 +45,19 @@
         </p>
 
         @if(outstandingAmount != messages("aftOverview.totalOutstandingNotAvailable")) {
-            <h3 class="govuk-caption-l govuk-!-margin-top-8 govuk-!-margin-bottom-2">
+            <p class="govuk-caption-l govuk-!-margin-top-8 govuk-!-margin-bottom-2">
                 @messages("aftOverview.totalOutstanding")
-            </h3>
+            </p>
 
-            <p class="govuk-heading-l">
+            <p class="govuk-body govuk-!-font-size-36 gov-!-font-weight-bold">
                 <strong>
                     @outstandingAmount
                 </strong>
             </p>
         } else {
-            <h3 class="govuk-caption-l govuk-!-margin-top-8 govuk-!-margin-bottom-2">
+            <p class="govuk-caption-l govuk-!-margin-top-8 govuk-!-margin-bottom-2">
                 @messages("aftOverview.totalOutstandingNotAvailable")
-            </h3>
+            </p>
         }
 
         <p class="govuk-body govuk-!-margin-bottom-6">
