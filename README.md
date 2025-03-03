@@ -6,8 +6,6 @@
 - [Enrolments](#enrolments)
 - [Compile & Test](#compile--test)
 - [Navigation and Dependent Services](#navigation-and-dependent-services)
-- [Service Documentation](#service-documentation)
-- [Endpoints](#endpoints)
 - [License](#license)
 
 ## Overview
