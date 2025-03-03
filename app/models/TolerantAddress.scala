@@ -76,7 +76,7 @@ case class TolerantAddress(addressLine1: Option[String],
   def equalsAddress(address: SponsoringEmployerAddress): Boolean =
     address.line1 == addressLine1.getOrElse("") &&
       address.line2 == addressLine2 &&
-      address.townOrCity == townOrCity &&
+      address.townOrCity == townOrCity.getOrElse("") &&
       address.county == county &&
       address.country == country.getOrElse("") &&
       address.postcode == postcode
