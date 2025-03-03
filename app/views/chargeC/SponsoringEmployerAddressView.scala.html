@@ -14,6 +14,7 @@
  * limitations under the License.
  *@
 
+@import viewmodels.InputWidth._
 @import views.html.helper.CSPNonce
 
 @this(
@@ -36,92 +37,78 @@ govukFieldset: GovukFieldset
 
 @formHelper(action = submitUrl, Symbol("autoComplete") -> "on", Symbol("novalidate") -> "true") {
 
-@govukFieldset(
-    Fieldset(
-        legend = Some(Legend(
-            content = Text(messages("chargeC.sponsoringEmployerAddress.heading", sponsorName)),
-            classes = "govuk-fieldset__legend--l govuk-!-margin-bottom-4",
-            isPageHeading = true
-    )))
-)
-
-@govukInput(
-    InputViewModel(
-        field = form("line1"),
-        label = Label(
-            content = Text(messages("chargeC.sponsoringEmployerAddress.line1.title")),
-            isPageHeading = false,
-            classes = "govuk-label--s"
-        ),
-        classes = "govuk-input--width-20"
+    @govukFieldset(
+        Fieldset(
+            legend = Some(Legend(
+                content = Text(messages("chargeC.sponsoringEmployerAddress.heading", sponsorName)),
+                classes = "govuk-fieldset__legend--l govuk-!-margin-bottom-4",
+                isPageHeading = true
+        )))
     )
-)
 
-@govukInput(
-    InputViewModel(
-        field = form("line2"),
-        label = Label(
-            content = Text(messages("chargeC.sponsoringEmployerAddress.line2.title")),
-            isPageHeading = false,
-            classes = "govuk-label--s"
-        ),
-        classes = "govuk-input--width-20"
+    @govukInput(
+        InputViewModel(
+            field = form("line1"),
+            label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.line1.title")))
+        )
+        .withWidth(TwoThirds)
+        .withAutocomplete("line1")
     )
-)
 
 
-@govukInput(
-    InputViewModel(
-        field = form("line3"),
-        label = Label(
-            content = Text(messages("chargeC.sponsoringEmployerAddress.line3.title")),
-            isPageHeading = false,
-            classes = "govuk-label--s"
-        ),
-        classes = "govuk-input--width-20"
+    @govukInput(
+        InputViewModel(
+            field = form("line2"),
+            label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.line2.title")))
+        )
+        .withWidth(TwoThirds)
+        .withAutocomplete("line1")
     )
-)
 
-@govukInput(
-    InputViewModel(
-        field = form("line4"),
-        label = Label(
-            content = Text(messages("chargeC.sponsoringEmployerAddress.line4.title")),
-            isPageHeading = false,
-            classes = "govuk-label--s"
-        ),
-        classes = "govuk-input--width-20"
+
+    @govukInput(
+        InputViewModel(
+            field = form("townOrCity"),
+            label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.townOrCity.title")))
+        )
+        .withWidth(OneHalf)
+        .withAutocomplete("townOrCity")
     )
-)
 
-<div class="govuk-form-group autocomplete-wrapper govuk-body govuk-input--width-20">
-    @govukSelect(
-        Select(
-            id = "country",
-            name = "country",
-            items = countries,
-            errorMessage = form("country").error.map(err => ErrorMessage(content = Text(messages("address.country.error.required", sponsorName)))),
-            value = form("country").value,
-            label = Label(
-                content = Text(messages("Country")),
-                classes = "govuk-label--s"
+    @govukInput(
+        InputViewModel(
+            field = form("county"),
+            label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.county.title")))
+        )
+        .withWidth(OneHalf)
+        .withAutocomplete("county")
+    )
+
+
+    @govukInput(
+        InputViewModel(
+            field = form("postCode"),
+            label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.postcode.title")))
+        )
+        .withWidth(OneQuarter)
+        .withAutocomplete("postCode")
+    )
+
+    <div class="govuk-form-group autocomplete-wrapper govuk-body govuk-!-width-two-thirds">
+        @govukSelect(
+            Select(
+                id = "country",
+                name = "country",
+                items = countries,
+                classes = "govuk-!-width-two-thirds country",
+                errorMessage = form("country").error.map(err => ErrorMessage(content = Text(messages("address.country.error.required", sponsorName)))),
+                value = form("country").value,
+                label = Label(
+                    content = Text(messages("Country"))
+                )
             )
         )
-    )
-</div>
-
-@govukInput(
-    InputViewModel(
-        field = form("postcode"),
-        label = Label(
-            content = Text(messages("chargeC.sponsoringEmployerAddress.postcode.title")),
-            isPageHeading = false,
-            classes = "govuk-label--s"
-        ),
-        classes = "govuk-input--width-10"
-    )
-)
-
+    </div>
 
 @govukButton(ButtonViewModel(Text(messages("site.continue"))).withAttribute(("id", "submit"): (String, String)))
 }

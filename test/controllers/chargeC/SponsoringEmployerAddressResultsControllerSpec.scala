@@ -50,12 +50,12 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val form = new SponsoringEmployerAddressResultsFormProvider()()
   private val index = 0
-  private val firstAddress = TolerantAddress(Some("first1"), Some("first2"), Some("first3"), Some("first4"), Some("firstpost"), Some("UK"))
+  private val firstAddress = TolerantAddress(Some("first1"), Some("first2"), Some("town"), Some("county"), Some("firstpost"), Some("UK"))
   private val secondAddress = TolerantAddress(
     Some(sponsoringEmployerAddress.line1),
-    Some(sponsoringEmployerAddress.line2),
-    sponsoringEmployerAddress.line3,
-    sponsoringEmployerAddress.line4,
+    sponsoringEmployerAddress.line2,
+    Some(sponsoringEmployerAddress.townOrCity),
+    sponsoringEmployerAddress.county,
     sponsoringEmployerAddress.postcode,
     Some(sponsoringEmployerAddress.country)
   )
