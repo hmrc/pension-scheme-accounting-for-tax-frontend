@@ -29,11 +29,11 @@ govukFieldset: GovukFieldset
 @(form: Form[_], schemeName: String, submitUrl: play.api.mvc.Call, returnUrl: String, sponsorName: String, employerType: String, countries: Seq[SelectItem])(implicit request: Request[_], messages: Messages)
 
 @layout(messages("chargeC.sponsoringEmployerAddress.title", employerType), formHasErrors = form.hasErrors) {
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    }
 <link href="@routes.Assets.versioned("stylesheets/location-autocomplete.min.css")" media="screen" rel="stylesheet" type="text/css" />
 <div>
-    @if(form.errors.nonEmpty) {
-    @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
-    }
 
 @formHelper(action = submitUrl, Symbol("autoComplete") -> "on", Symbol("novalidate") -> "true") {
 
@@ -87,11 +87,11 @@ govukFieldset: GovukFieldset
 
     @govukInput(
         InputViewModel(
-            field = form("postCode"),
+            field = form("postcode"),
             label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.postcode.title")))
         )
         .withWidth(OneQuarter)
-        .withAutocomplete("postCode")
+        .withAutocomplete("postcode")
     )
 
     <div class="govuk-form-group autocomplete-wrapper govuk-body govuk-!-width-two-thirds">

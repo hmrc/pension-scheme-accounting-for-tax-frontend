@@ -34,6 +34,10 @@
 )(implicit request: Request[_], messages: Messages)
 
 @layout(messages("chargeG.chargeDetails.title"), formHasErrors = form.hasErrors) {
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    }
+
     <div>
         <h1 class="govuk-heading-xl">@messages("chargeG.chargeDetails.heading", memberName)</h1>
 

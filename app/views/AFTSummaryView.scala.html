@@ -53,6 +53,9 @@
 }
 
 @layout((summarySearchHeadingText + messages("aft.summary.heading", quarterStartDate, quarterEndDate)), formHasErrors = form.hasErrors) {
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    }
     <div>
         @hmrcPageHeading(
             PageHeading(
