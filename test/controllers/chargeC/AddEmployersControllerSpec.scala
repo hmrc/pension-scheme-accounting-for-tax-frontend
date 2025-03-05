@@ -211,6 +211,31 @@ class AddEmployersControllerSpec extends ControllerSpecBase with JsonMatchers {
 
     }
 
+    "return OK and the correct view for a GET with onPageLoadWithPageNo" in {
+      when(mockMemberPaginationService
+        .getItemsPaginated(pageCaptor.capture(), any(), any(), any(), any()))
+        .thenReturn(expectedPaginatedEmployersInfo)
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      def httpPathGET: String = controllers.chargeC.routes.AddEmployersController.onPageLoadWithPageNo(srn, startDate, accessType, versionInt, 2).url
+      val request = httpGETRequest(httpPathGET)
+
+      val  viewModel = getAddEmployersViewModel(2)
+      val view = application.injector.instanceOf[AddEmployersView].apply(
+        form,
+        viewModel,
+        controllers.chargeC.routes.AddEmployersController.onSubmit(srn, startDate, accessType, versionInt, 2),
+        table = tableTemp, pageLinksSeq = dummyPagerNavSeq
+      )(request, messages)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      compareResultAndView(result, view)
+
+    }
+
     "return NOT_FOUND when paginated info not available" in {
       when(mockMemberPaginationService
         .getItemsPaginated(any(), any(), any(), any(), any()))
