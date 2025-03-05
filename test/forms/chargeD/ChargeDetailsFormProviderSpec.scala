@@ -19,7 +19,9 @@ package forms.chargeD
 import base.SpecBase
 import forms.behaviours._
 import play.api.data.FormError
+import play.api.i18n.Messages
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.DateHelper.formatDateDMY
 
 import java.time.LocalDate
 
@@ -29,7 +31,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
   private val dateKey = "dateOfEvent"
   private val tax25PercentKey = "taxAt25Percent"
   private val tax55PercentKey = "taxAt55Percent"
-  private val futureDateMsg: List[String] = List("dateOfEvent.error.future")
+  private val outOfRangeMessage: List[String] = List(Messages("dateOfEvent.error.outsideRelevantTaxYear", formatDateDMY(QUARTER_START_DATE), formatDateDMY(QUARTER_END_DATE)))
 
   private def chargeDetails(
                              date: LocalDate = QUARTER_START_DATE,
@@ -48,11 +50,11 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
 
   "dateOfEvent" must {
 
-    "fail to bind future dates" in {
-      val futureDate = LocalDate.now().plusYears(1)
-      val result = form.bind(chargeDetails(date = futureDate))
+    "fail to bind date outside of range" in {
+      val outOfRangeDate = QUARTER_START_DATE.minusDays(1)
+      val result = form.bind(chargeDetails(date = outOfRangeDate))
 
-      result.errors must contain(FormError(dateKey, futureDateMsg, List()))
+      result.errors must contain(FormError(dateKey, outOfRangeMessage, List()))
     }
 
     "fail to bind empty date" in {

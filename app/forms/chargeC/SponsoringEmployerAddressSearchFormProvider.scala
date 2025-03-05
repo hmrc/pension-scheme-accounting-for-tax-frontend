@@ -25,7 +25,7 @@ class SponsoringEmployerAddressSearchFormProvider @Inject() extends Mappings {
 
   def apply(): Form[String] =
     Form(
-      "value" -> postCodeMapping(
+      "value" -> postcodeMapping(
         "chargeC.employerAddressSearch.error.required",
         "chargeC.employerAddressSearch.error.invalid",
         "chargeC.employerAddressSearch.error.invalid"

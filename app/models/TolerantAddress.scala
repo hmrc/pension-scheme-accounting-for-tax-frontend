@@ -24,8 +24,8 @@ import scala.language.implicitConversions
 
 case class TolerantAddress(addressLine1: Option[String],
                            addressLine2: Option[String],
-                           addressLine3: Option[String],
-                           addressLine4: Option[String],
+                           townOrCity: Option[String],
+                           county: Option[String],
                            postcode: Option[String],
                            country: Option[String]) {
 
@@ -33,8 +33,8 @@ case class TolerantAddress(addressLine1: Option[String],
     Seq(
       this.addressLine1,
       this.addressLine2,
-      this.addressLine3,
-      this.addressLine4,
+      this.townOrCity,
+      this.county,
       this.country,
       this.postcode
     ).flatten(s => s)
@@ -44,9 +44,9 @@ case class TolerantAddress(addressLine1: Option[String],
   private def prepopAddress: SponsoringEmployerAddress = {
     SponsoringEmployerAddress(
       addressLine1.getOrElse(""),
-      addressLine2.getOrElse(""),
-      addressLine3,
-      addressLine4,
+      addressLine2,
+      townOrCity.getOrElse(""),
+      county,
       country.getOrElse(""),
       postcode
     )
@@ -54,42 +54,42 @@ case class TolerantAddress(addressLine1: Option[String],
 
   def toPrepopAddress: SponsoringEmployerAddress = toAddress.getOrElse(prepopAddress)
 
-  def toAddress: Option[SponsoringEmployerAddress] = (addressLine1, addressLine2, country) match {
-    case (Some(line1), Some(line2), Some(country)) => Some(SponsoringEmployerAddress(line1, line2, addressLine3, addressLine4, country, postcode))
+  def toAddress: Option[SponsoringEmployerAddress] = (addressLine1, townOrCity, country) match {
+    case (Some(line1), Some(townOrCity), Some(country)) => Some(SponsoringEmployerAddress(line1, addressLine2, townOrCity, county, country, postcode))
     case (_, _, None) => None
-    case (None, None, _) if addressLine3.nonEmpty && addressLine4.nonEmpty => shuffle
-    case (Some(_), None, _) if addressLine3.nonEmpty || addressLine4.nonEmpty => shuffle
-    case (None, Some(_), _) if addressLine3.nonEmpty || addressLine4.nonEmpty => shuffle
+    case (None, None, _) if townOrCity.nonEmpty && county.nonEmpty => shuffle
+    case (Some(_), None, _) if townOrCity.nonEmpty || county.nonEmpty => shuffle
+    case (None, Some(_), _) if townOrCity.nonEmpty || county.nonEmpty => shuffle
     case _ => None
   }
 
-  private def shuffle: Option[SponsoringEmployerAddress] = (addressLine1, addressLine2, addressLine3, addressLine4) match {
-    case (None, None, Some(line3), Some(line4)) => Some(SponsoringEmployerAddress(line3, line4, None, None, country.get, postcode))
-    case (Some(line1), None, Some(line3), al4) => Some(SponsoringEmployerAddress(line1, line3, al4, None, country.get, postcode))
-    case (Some(line1), None, None, Some(line4)) => Some(SponsoringEmployerAddress(line1, line4, None, None, country.get, postcode))
-    case (None, Some(line2), Some(line3), al4) => Some(SponsoringEmployerAddress(line2, line3, al4, None, country.get, postcode))
-    case (None, Some(line2), None, Some(line4)) => Some(SponsoringEmployerAddress(line2, line4, None, None, country.get, postcode))
+  private def shuffle: Option[SponsoringEmployerAddress] = (addressLine1, addressLine2, townOrCity, county) match {
+    case (None, None, Some(line3), Some(line4)) => Some(SponsoringEmployerAddress(line3, None, line4, None, country.get, postcode))
+    case (Some(line1), None, Some(line3), al4) => Some(SponsoringEmployerAddress(line1, None, line3, al4, country.get, postcode))
+    case (Some(line1), None, None, Some(line4)) => Some(SponsoringEmployerAddress(line1, None, line4, None, country.get, postcode))
+    case (None, Some(line2), Some(line3), al4) => Some(SponsoringEmployerAddress(line2, None, line3, al4, country.get, postcode))
+    case (None, Some(line2), None, Some(line4)) => Some(SponsoringEmployerAddress(line2, None, line4, None, country.get, postcode))
     case _ => None
   }
 
 
   def equalsAddress(address: SponsoringEmployerAddress): Boolean =
     address.line1 == addressLine1.getOrElse("") &&
-      address.line2 == addressLine2.getOrElse("") &&
-      address.line3 == addressLine3 &&
-      address.line4 == addressLine4 &&
+      address.line2 == addressLine2 &&
+      address.townOrCity == townOrCity.getOrElse("") &&
+      address.county == county &&
       address.country == country.getOrElse("") &&
       address.postcode == postcode
 }
 
 object TolerantAddress {
-  val postCodeLookupAddressReads: Reads[TolerantAddress] = (
+  val postcodeLookupAddressReads: Reads[TolerantAddress] = (
     (JsPath \ "address" \ "lines").read[List[String]] and
       (JsPath \ "address" \ "postcode").read[String] and
       (JsPath \ "address" \ "country" \ "code").read[String] and
       (JsPath \ "address" \ "town").readNullable[String] and
       (JsPath \ "address" \ "county").readNullable[String]
-    ) ((lines, postCode, countryCode, town, county) => {
+    ) ((lines, postcode, countryCode, town, county) => {
     val addressLines: (Option[String], Option[String], Option[String], Option[String]) = {
       lines.size match {
         case 0 =>
@@ -107,7 +107,7 @@ object TolerantAddress {
         case numberOfLines if numberOfLines >= 4 => (Some(lines.head), Some(lines(1)), Some(lines(2)), Some(lines(3)))
       }
     }
-    TolerantAddress(addressLines._1, addressLines._2, addressLines._3, addressLines._4, Some(postCode), Some(countryCode))
+    TolerantAddress(addressLines._1, addressLines._2, addressLines._3, addressLines._4, Some(postcode), Some(countryCode))
   })
 
 
@@ -133,14 +133,14 @@ object TolerantAddress {
     }
   }
 
-  val postCodeLookupReads: Reads[Seq[TolerantAddress]] = Reads {
+  val postcodeLookupReads: Reads[Seq[TolerantAddress]] = Reads {
     json =>
       json.validate[Seq[JsValue]].flatMap(addresses => {
         addresses.foldLeft[JsResult[List[TolerantAddress]]](JsSuccess(List.empty)) {
           (addresses, currentAddress) => {
             for {
               sequenceOfAddressess <- addresses
-              address <- currentAddress.validate[TolerantAddress](postCodeLookupAddressReads)
+              address <- currentAddress.validate[TolerantAddress](postcodeLookupAddressReads)
             } yield sequenceOfAddressess :+ address
           }
         }
@@ -150,8 +150,8 @@ object TolerantAddress {
   implicit lazy val formatsTolerantAddress: Format[TolerantAddress] = (
     (JsPath \ "addressLine1").formatNullable[String] and
       (JsPath \ "addressLine2").formatNullable[String] and
-      (JsPath \ "addressLine3").formatNullable[String] and
-      (JsPath \ "addressLine4").formatNullable[String] and
+      (JsPath \ "townOrCity").formatNullable[String] and
+      (JsPath \ "county").formatNullable[String] and
       (JsPath \ "postalCode").formatNullable[String] and
       (JsPath \ "countryCode").formatNullable[String]
     ) (TolerantAddress.apply, unlift(TolerantAddress.unapply))
@@ -159,14 +159,14 @@ object TolerantAddress {
   implicit def convert(tolerant: TolerantAddress): Option[SponsoringEmployerAddress] =
     for {
       addressLine1 <- tolerant.addressLine1
-      addressLine2 <- tolerant.addressLine2
+      townOrCity <- tolerant.townOrCity
       country <- tolerant.country
     } yield {
       SponsoringEmployerAddress(
         addressLine1,
-        addressLine2,
-        tolerant.addressLine3,
-        tolerant.addressLine4,
+        tolerant.addressLine2,
+        townOrCity,
+        tolerant.county,
         country,
         tolerant.postcode
       )

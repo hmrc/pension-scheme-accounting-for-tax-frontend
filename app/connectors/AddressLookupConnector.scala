@@ -30,20 +30,20 @@ import scala.concurrent.{ExecutionContext, Future}
 class AddressLookupConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
   private val logger = Logger(classOf[AddressLookupConnector])
 
-  def addressLookupByPostCode(postCode: String)
+  def addressLookupByPostCode(postcode: String)
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TolerantAddress]] = {
     val schemeHc = hc.withExtraHeaders("X-Hmrc-Origin" -> "PODS")
 
     val addressLookupUrl = s"${config.addressLookUp}/lookup"
 
-    implicit val reads: Reads[Seq[TolerantAddress]] = TolerantAddress.postCodeLookupReads
+    implicit val reads: Reads[Seq[TolerantAddress]] = TolerantAddress.postcodeLookupReads
 
-    val lookupAddressByPostcode =Json.obj("postcode"->postCode)
+    val lookupAddressByPostcode =Json.obj("postcode"->postcode)
     http.POST[JsObject , HttpResponse](addressLookupUrl , lookupAddressByPostcode)(implicitly , implicitly, schemeHc, implicitly) flatMap {
       case response if response.status equals OK => Future.successful {
         response.json.as[Seq[TolerantAddress]]
           .filterNot(
-            a => a.addressLine1.isEmpty && a.addressLine2.isEmpty && a.addressLine3.isEmpty && a.addressLine4.isEmpty
+            a => a.addressLine1.isEmpty && a.addressLine2.isEmpty && a.townOrCity.isEmpty && a.county.isEmpty
           )
       }
       case response =>

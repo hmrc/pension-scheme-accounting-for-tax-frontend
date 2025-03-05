@@ -160,9 +160,9 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
 
     HtmlContent(
       addrLineToHtml(addr.line1) +
-        addrLineToHtml(addr.line2) +
-        optionalAddrLineToHtml(addr.line3) +
-        optionalAddrLineToHtml(addr.line4) +
+        optionalAddrLineToHtml(addr.line2) +
+        addrLineToHtml(addr.townOrCity) +
+        optionalAddrLineToHtml(addr.county) +
         optionalAddrLineToHtml(addr.postcode) +
         addrLineToHtml(messages("country." + addr.country))
     )

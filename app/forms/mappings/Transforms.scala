@@ -44,15 +44,15 @@ trait Transforms {
   protected def standardiseText(s: String): String =
     s.replaceAll("""\s{1,}""", " ").trim
 
-  protected def postCodeDataTransform(value: Option[String]): Option[String] = {
-    value.map(postCodeTransform).filter(_.nonEmpty)
+  protected def postcodeDataTransform(value: Option[String]): Option[String] = {
+    value.map(postcodeTransform).filter(_.nonEmpty)
   }
 
-  private[mappings] def postCodeTransform(value: String): String = {
+  private[mappings] def postcodeTransform(value: String): String = {
     minimiseSpace(value.trim.toUpperCase)
   }
 
-  private[mappings] def postCodeValidTransform(value: String): String = {
+  private[mappings] def postcodeValidTransform(value: String): String = {
     if (value.matches(regexPostcode)) {
       if (value.contains(" ")) {
         value

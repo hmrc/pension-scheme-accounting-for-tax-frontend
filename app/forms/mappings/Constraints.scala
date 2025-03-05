@@ -21,6 +21,7 @@ import uk.gov.hmrc.domain.Nino
 import utils.DateHelper
 
 import java.time.LocalDate
+import scala.concurrent.duration.DurationInt
 
 trait Constraints {
   private val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
@@ -82,7 +83,7 @@ trait Constraints {
       case _ => Invalid(errorKey)
     }
 
-  protected def postCode(errorKey: String): Constraint[String] = regexp(regexPostcode, errorKey)
+  protected def postcode(errorKey: String): Constraint[String] = regexp(regexPostcode, errorKey)
 
   protected def minimumValue[A](minimum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
     Constraint {
@@ -210,6 +211,13 @@ trait Constraints {
   protected def yearHas4Digits(errorKey: String): Constraint[LocalDate] =
     Constraint {
       case date if date.getYear >= 1000 => Valid
+      case _ => Invalid(errorKey)
+    }
+
+  protected def withinDateRange(minDate:LocalDate, maxDate: LocalDate, errorKey: String): Constraint[LocalDate] =
+    Constraint {
+      case date if date.isAfter(minDate.minusDays(1)) && date.isBefore(maxDate.plusDays(1)) =>
+        Valid
       case _ => Invalid(errorKey)
     }
 

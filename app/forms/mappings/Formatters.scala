@@ -52,12 +52,12 @@ trait Formatters extends Transforms with Constraints {
                                                   countryFieldName: String): Formatter[Option[String]] = new Formatter[Option[String]] {
 
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
-      val postCode = postCodeDataTransform(data.get(key))
+      val postcode = postcodeDataTransform(data.get(key))
       val country = countryDataTransform(data.get(countryFieldName))
       val maxLengthNonUKPostcode = 10
 
-      (postCode, country) match {
-        case (Some(zip), Some("GB")) if zip.matches(postcodeRegexp) => Right(Some(postCodeValidTransform(zip)))
+      (postcode, country) match {
+        case (Some(zip), Some("GB")) if zip.matches(postcodeRegexp) => Right(Some(postcodeValidTransform(zip)))
         case (Some(_), Some("GB")) => Left(Seq(FormError(key, invalidKey)))
         case (Some(zip), Some(_)) if zip.length <= maxLengthNonUKPostcode => Right(Some(zip))
         case (Some(_), Some(_)) => Left(Seq(FormError(key, nonUkLengthKey)))
