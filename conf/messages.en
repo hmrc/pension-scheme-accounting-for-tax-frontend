@@ -1773,3 +1773,9 @@ pension.scheme.financialPaymentsAndCharges.clearingReason.c4.new = Written off
 pension.scheme.financialPaymentsAndCharges.clearingReason.c5.new = Transferred
 pension.scheme.financialPaymentsAndCharges.clearingReason.c6.new = Cleared
 pension.scheme.interest.dueAmount.new = Interest amount:
+
+generic.upload.error.required = Choose the file to upload
+generic.upload.error.format = File must be a .csv format
+generic.upload.error.size = The selected file must be smaller than 2 MB
+generic.upload.error.malicious = The file you have uploaded has been flagged as malicious
+generic.upload.error.unknown = The file you are trying to upload is invalid
