@@ -17,15 +17,17 @@
 package forms.chargeC
 
 import forms.behaviours.StringFieldBehaviours
+import forms.mappings.Constraints
 import play.api.data.FormError
 
-class SponsoringOrganisationDetailsFormProviderSpec extends StringFieldBehaviours {
+class SponsoringOrganisationDetailsFormProviderSpec extends StringFieldBehaviours with Constraints {
 
   private val nameKey = "name"
   private val crnKey = "crn"
 
   private val nameRequiredKey = "chargeC.sponsoringOrganisationDetails.name.error.required"
   private val nameLengthKey = "chargeC.sponsoringOrganisationDetails.name.error.length"
+  private val nameInvalidKey = "chargeC.sponsoringOrganisationDetails.name.error.invalid"
   private val nameMaxLength = 155
 
   private val crnRequiredKey = "chargeC.sponsoringOrganisationDetails.crn.error.required"
@@ -54,6 +56,13 @@ class SponsoringOrganisationDetailsFormProviderSpec extends StringFieldBehaviour
       nameKey,
       maxLength = nameMaxLength,
       lengthError = FormError(nameKey, nameLengthKey, Seq(nameKey))
+    )
+
+    behave like fieldWithRegex(
+      form,
+      nameKey,
+      invalidValues = Seq("{}", "%", "$", "£", "_", "@", "!"),
+      invalidError = FormError(nameKey, nameInvalidKey, Seq(regexTightText))
     )
   }
 

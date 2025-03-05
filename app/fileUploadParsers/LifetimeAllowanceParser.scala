@@ -59,8 +59,8 @@ trait LifetimeAllowanceParser extends Parser {
       Field(taxAt55Percent, chargeFields(fieldNoTaxAt55Percent), taxAt55Percent, fieldNoTaxAt55Percent)
     )
     val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
-      min = startDate,
-      max = Quarters.getQuarter(startDate).endDate,
+      minimumDate = startDate,
+      maximumDate = Quarters.getQuarter(startDate).endDate,
       minimumChargeValueAllowed = minChargeValueAllowed
     )
     chargeDetailsForm.bind(

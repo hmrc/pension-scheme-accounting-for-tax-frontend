@@ -29,19 +29,19 @@ trait Mappings extends Formatters with Constraints with Transforms {
   protected def optionalText(): FieldMapping[Option[String]] =
     of(optionalStringFormatter)
 
-  protected def postCodeMapping(keyRequired: String, keyLength: String, keyInvalid: String): Mapping[String] = {
+  protected def postcodeMapping(keyRequired: String, keyLength: String, keyInvalid: String): Mapping[String] = {
     text(keyRequired)
-      .transform(postCodeTransform, noTransform)
+      .transform(postcodeTransform, noTransform)
       .verifying(
         firstError(
           maxLength(
             maxPostCodeLength,
             keyLength
           ),
-          postCode(keyInvalid)
+          postcode(keyInvalid)
         )
       )
-      .transform(postCodeValidTransform, noTransform)
+      .transform(postcodeValidTransform, noTransform)
   }
 
   protected def optionalPostcode(requiredKey: String, invalidKey: String, nonUkLengthKey: String, countryFieldName: String): FieldMapping[Option[String]] =

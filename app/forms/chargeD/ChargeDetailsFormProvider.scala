@@ -23,6 +23,7 @@ import play.api.data.Forms.mapping
 import play.api.i18n.Messages
 import uk.gov.voa.play.form.Condition
 import uk.gov.voa.play.form.ConditionalMappings._
+import utils.DateHelper.formatDateDMY
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -55,7 +56,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
 
   implicit private val ignoredParam: Option[BigDecimal] = None
 
-  def apply(min: LocalDate, max: LocalDate, minimumChargeValueAllowed: BigDecimal)(implicit messages: Messages): Form[ChargeDDetails] =
+  def apply(minimumDate: LocalDate, maximumDate: LocalDate, minimumChargeValueAllowed: BigDecimal)(implicit messages: Messages): Form[ChargeDDetails] =
     Form(mapping(
       "dateOfEvent" -> localDate(
         invalidKey = "dateOfEvent.error.invalid",
@@ -63,7 +64,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
         twoRequiredKey = "dateOfEvent.error.incomplete",
         requiredKey = "dateOfEvent.error.required"
       ).verifying(
-        futureDate("dateOfEvent.error.future"),
+        withinDateRange(minimumDate, maximumDate, messages("dateOfEvent.error.outsideRelevantTaxYear", formatDateDMY(minimumDate), formatDateDMY(maximumDate))),
         yearHas4Digits("dateOfEvent.error.invalid")
       ),
       "taxAt25Percent" -> onlyIf[Option[BigDecimal]](
