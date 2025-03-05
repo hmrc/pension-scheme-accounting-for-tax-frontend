@@ -59,9 +59,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
         DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn, startDate, accessType, version) { (chargeDetails, schemeName) =>
           val helper = new CYAChargeAHelper(srn, startDate, accessType, version)
           val seqRows = Seq(
-            helper.chargeAMembers(chargeDetails),
-            helper.chargeAAmountLowerRate(chargeDetails),
-            helper.chargeAAmountHigherRate(chargeDetails),
+            helper.chargeADetails(chargeDetails),
             helper.total(chargeDetails.totalAmount)
           )
 

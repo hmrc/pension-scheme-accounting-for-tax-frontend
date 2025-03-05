@@ -28,8 +28,8 @@ trait CYAHelper {
     value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(total)}"))
   )
 
-  def yesOrNo(answer: Boolean)(implicit messages: Messages): Text =
-    if (answer) Text(messages("site.yes")) else Text(messages("site.no"))
+  def yesOrNo(answer: Boolean)(implicit messages: Messages): String =
+    if (answer) messages("site.yes") else messages("site.no")
 
   def rows(viewOnly: Boolean, rows: Seq[SummaryListRow]): Seq[SummaryListRow] = {
     if (viewOnly) rows.map(_.copy(actions = None)) else rows
