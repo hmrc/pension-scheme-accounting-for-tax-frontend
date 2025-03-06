@@ -97,7 +97,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(answers))
 
       val request =
@@ -116,12 +116,12 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
         .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
 
       verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(ArgumentMatchers.eq(pstr),
-        ArgumentMatchers.eq(expectedUA))(any(), any(), any())
+        ArgumentMatchers.eq(expectedUA), ArgumentMatchers.eq(srn))(any(), any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
@@ -174,7 +174,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
     "redirect to your action was not processed page for a POST if 5XX error is thrown" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any()))
         .thenReturn(Future.failed(UpstreamErrorResponse("serviceUnavailable", SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE)))
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", "true"))
 

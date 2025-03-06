@@ -98,7 +98,7 @@ class PspSchemeDashboardPartialsControllerSpec
     when(mockAppConfig.paymentsAndChargesUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
-    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
+    when(mockFinancialStatementConnector.getSchemeFS(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
   }
 
@@ -107,14 +107,6 @@ class PspSchemeDashboardPartialsControllerSpec
 
 
     "return the html with the information for upcoming charges" in {
-      when(mockAftPartialService.retrievePspDashboardAftReturnsModel(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
-
-      when(mockAftPartialService.retrievePspDashboardUpcomingAftChargesModel(any(), any())(any()))
-        .thenReturn(pspDashboardUpcomingAftChargesViewModel)
-
-      when(mockAftPartialService.retrievePspDashboardOverdueAftChargesModel(any(), any())(any()))
-        .thenReturn(pspDashboardOverdueAftChargesViewModel)
 
       when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any(), any())(any()))
         .thenReturn(pspDashboardSchemePaymentsAndChargesViewModel)

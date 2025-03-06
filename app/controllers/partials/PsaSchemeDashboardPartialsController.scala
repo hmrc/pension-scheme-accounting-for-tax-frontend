@@ -51,7 +51,7 @@ class PsaSchemeDashboardPartialsController @Inject()(
   def psaSchemeDashboardAFTTilePartial(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
           schemeService.retrieveSchemeDetails(request.idOrException, srn).flatMap { schemeDetails =>
-              service.aftCardModel(schemeDetails, srn).flatMap { cards =>
+              service.aftCardModel(schemeDetails, srn, request.isLoggedInAsPsa).flatMap { cards =>
                 Future.successful(Ok(view(cards)))
             }
         }
@@ -68,7 +68,7 @@ class PsaSchemeDashboardPartialsController @Inject()(
   }
 
   private def getFinancialOverviewTile(srn: String, schemeDetails: SchemeDetails)(implicit request: IdentifierRequest[AnyContent]) = {
-    financialStatementConnector.getSchemeFS(schemeDetails.pstr).map { schemeFSDetail =>
+    financialStatementConnector.getSchemeFS(schemeDetails.pstr, srn, request.isLoggedInAsPsa).map { schemeFSDetail =>
       val paymentsAndCharges: Seq[CardViewModel] = service.paymentsAndCharges(schemeFSDetail.seqSchemeFSDetail, srn, schemeDetails.pstr)
       logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(paymentsAndCharges)}")
       paymentsAndCharges

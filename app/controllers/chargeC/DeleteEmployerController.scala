@@ -94,7 +94,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
 
                   (for {
                     updatedAnswers <- Future.fromTry(removeCharge(index, srn, startDate, accessType, version))
-                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
+                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers, srn)
                   } yield {
                     Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
                   }) recoverWith recoverFrom5XX(srn, startDate)

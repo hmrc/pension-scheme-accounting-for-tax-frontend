@@ -85,7 +85,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
     (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        aftService.fileCompileReturn(pstr, request.userAnswers).map { _ =>
+        aftService.fileCompileReturn(pstr, request.userAnswers, srn).map { _ =>
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         } recoverWith recoverFrom5XX(srn, startDate)
       }

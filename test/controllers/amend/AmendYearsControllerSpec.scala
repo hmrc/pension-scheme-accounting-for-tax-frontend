@@ -67,7 +67,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with JsonMatchers
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockQuartersService.getPastYears(any())(any(), any())).thenReturn(Future.successful(displayYears))
+    when(mockQuartersService.getPastYears(any(), any(), any())(any(), any())).thenReturn(Future.successful(displayYears))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
@@ -95,7 +95,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with JsonMatchers
 
     "redirect to amend quarters page when only one year" in {
       val years = displayYears.filter(_ == 2020)
-      when(mockQuartersService.getPastYears(any())(any(), any())).thenReturn(Future.successful(years))
+      when(mockQuartersService.getPastYears(any(), any(), any())(any(), any())).thenReturn(Future.successful(years))
 
       val result = route(application, httpGETRequest(httpPathGET)).value
       status(result) mustEqual SEE_OTHER
@@ -103,7 +103,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "redirect to session expired page when there is no data returned from overview api for a GET" in {
-      when(mockQuartersService.getPastYears(any())(any(), any())).thenReturn(Future.successful(Nil))
+      when(mockQuartersService.getPastYears(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
@@ -128,7 +128,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "redirect to session expired page when there is no data returned from overview api for a POST" in {
-      when(mockQuartersService.getPastYears(any())(any(), any())).thenReturn(Future.successful(Nil))
+      when(mockQuartersService.getPastYears(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url

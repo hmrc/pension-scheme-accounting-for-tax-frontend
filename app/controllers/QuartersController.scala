@@ -55,7 +55,7 @@ class QuartersController @Inject()(
       psaId = request.idOrException,
       srn = srn
     ) flatMap { schemeDetails =>
-      quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
+      quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt, request.isLoggedInAsPsa).flatMap { displayQuarters =>
         if (displayQuarters.nonEmpty) {
           val quarters = displayQuarters.map(_.quarter)
 
@@ -76,8 +76,8 @@ class QuartersController @Inject()(
 
   def onSubmit(srn: String, year: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(request.idOrException, srn) flatMap { schemeDetails =>
-      aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
-        quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
+      aftConnector.getAftOverview(schemeDetails.pstr, srn, request.isLoggedInAsPsa).flatMap { aftOverview =>
+        quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt, request.isLoggedInAsPsa).flatMap { displayQuarters =>
           if (displayQuarters.nonEmpty) {
             val quarters = displayQuarters.map(_.quarter)
             form(year, quarters)

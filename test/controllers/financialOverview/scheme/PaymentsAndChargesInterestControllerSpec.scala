@@ -81,7 +81,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with J
   "PaymentsAndChargesInterestController" must {
 
     "return OK and the correct view for interest accrued for aft return charge if amount is due and interest is accruing for a GET" in {
-      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
       when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
 
@@ -113,7 +113,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with J
     }
 
     "redirect to Session Expired page when there is no data for the selected charge reference for a GET" in {
-      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq.empty)))
       val result = route(application, httpGETRequest(httpPathGET)).value
       status(result) mustEqual SEE_OTHER

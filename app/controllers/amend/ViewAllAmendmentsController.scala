@@ -58,8 +58,8 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
         val updatedVersion = if(request.isPrecompile) version - 1 else version
         val previousVersion = if(request.isPrecompile) version - 2 else version - 1
 
-        aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$previousVersion").flatMap { previousUaJsValue =>
-          aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$updatedVersion").flatMap { currentUaJsValue =>
+        aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$previousVersion", srn, request.isLoggedInAsPsa).flatMap { previousUaJsValue =>
+          aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$updatedVersion", srn, request.isLoggedInAsPsa).flatMap { currentUaJsValue =>
             val currentAnswers = UserAnswers(currentUaJsValue.as[JsObject])
             val previousAnswers = UserAnswers(previousUaJsValue.as[JsObject])
             val isDraft = request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile

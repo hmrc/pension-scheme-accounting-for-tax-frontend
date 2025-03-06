@@ -55,48 +55,48 @@ class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with Before
     "return the correct model when overview api returns multiple returns in " +
       "progress, multiple past returns and start link needs to be displayed" in {
       DateHelper.setDate(Some(LocalDate.of(2021, 4, 1)))
-      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
+      when(aftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any()))
         .thenReturn(Future.successful(allTypesMultipleReturnsPresent))
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
-      whenReady(service.aftCardModel(schemeDetails, srn)) {
+      whenReady(service.aftCardModel(schemeDetails, srn, true)) {
         _ mustBe allTypesMultipleReturnsModel
       }
     }
 
     "return the correct model when return no returns are in progress" in {
-      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
+      when(aftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any()))
         .thenReturn(Future.successful(noInProgress))
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
 
-      whenReady(service.aftCardModel(schemeDetails, srn)) {
+      whenReady(service.aftCardModel(schemeDetails, srn, true)) {
         _ mustBe noInProgressModel
       }
     }
 
     "return the correct model when return one return is in progress but not locked" in {
-      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
+      when(aftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any()))
         .thenReturn(Future.successful(oneInProgress))
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
       when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
         .thenReturn(Future.successful(None))
 
-      whenReady(service.aftCardModel(schemeDetails, srn)) {
+      whenReady(service.aftCardModel(schemeDetails, srn, true)) {
         _ mustBe oneInProgressModelNotLocked
       }
     }
 
     "return the correct model when one return is in progress and locked by another user" in {
-      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
+      when(aftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any()))
         .thenReturn(Future.successful(oneInProgress))
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
       when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
         .thenReturn(Future.successful(Some(LockDetail(name, psaId))))
 
-      whenReady(service.aftCardModel(schemeDetails, srn)) {
+      whenReady(service.aftCardModel(schemeDetails, srn, true)) {
         _ mustBe oneInProgressModelLocked
       }
     }
@@ -105,18 +105,18 @@ class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with Before
       "a scheme has 3 compiles in progress but one has been zeroed " +
         "out and all quarters have been initiated (ie no start link)" in {
         DateHelper.setDate(Some(LocalDate.of(2020, 12, 31)))
-        when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
+        when(aftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any()))
           .thenReturn(Future.successful(oneCompileZeroedOut))
         when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
         when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 12, 31))
         when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
           .thenReturn(Future.successful(None))
-        when(aftConnector.getIsAftNonZero(any(), ArgumentMatchers.eq("2020-07-01"), any())(any(), any()))
+        when(aftConnector.getIsAftNonZero(any(), ArgumentMatchers.eq("2020-07-01"), any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(false))
-        when(aftConnector.getIsAftNonZero(any(), ArgumentMatchers.eq("2020-04-01"), any())(any(), any()))
+        when(aftConnector.getIsAftNonZero(any(), ArgumentMatchers.eq("2020-04-01"), any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(true))
 
-        whenReady(service.aftCardModel(schemeDetails, srn)) {
+        whenReady(service.aftCardModel(schemeDetails, srn, true)) {
           _ mustBe oneCompileZeroedOutModel
         }
       }

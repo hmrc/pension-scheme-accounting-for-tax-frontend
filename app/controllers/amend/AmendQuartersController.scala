@@ -65,7 +65,9 @@ class AmendQuartersController @Inject()(
           schemeDetails =>
             quartersService.getPastQuarters(
               pstr = schemeDetails.pstr,
-              year = year.toInt
+              year = year.toInt,
+              srn  = srn,
+              request.isLoggedInAsPsa
             ) flatMap {
               case Nil =>
                 futureSessionExpiredPage
@@ -94,7 +96,9 @@ class AmendQuartersController @Inject()(
           schemeDetails =>
             quartersService.getPastQuarters(
               pstr = schemeDetails.pstr,
-              year = year.toInt
+              year = year.toInt,
+              srn = srn,
+              request.isLoggedInAsPsa
             ) flatMap {
               displayQuarters =>
                 if (displayQuarters.nonEmpty) {

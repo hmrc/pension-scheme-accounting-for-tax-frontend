@@ -54,4 +54,10 @@ case class IdentifierRequest[A](
     case (None, Some(_)) => Practitioner
     case _ => throw IdNotFound()
   }
+
+  def isLoggedInAsPsa:Boolean = (psaId, pspId) match {
+    case (Some(_), None) => true
+    case _ => false
+  }
+
 }

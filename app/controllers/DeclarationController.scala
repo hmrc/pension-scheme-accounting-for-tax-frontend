@@ -92,7 +92,7 @@ class DeclarationController @Inject()(
         (for {
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, declaration))
           _ <- userAnswersCacheConnector.savePartial(request.internalId, answersWithDeclaration.data)
-          _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration)
+          _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration, srn)
           _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))

@@ -83,7 +83,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
             chargeType = Some(ChargeType.ChargeTypeOverseasTransfer))
-          _ <- aftService.fileCompileReturn(pstr, updatedAnswers)
+          _ <- aftService.fileCompileReturn(pstr, updatedAnswers, srn)
         } yield {
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         }) recoverWith recoverFrom5XX(srn, startDate)

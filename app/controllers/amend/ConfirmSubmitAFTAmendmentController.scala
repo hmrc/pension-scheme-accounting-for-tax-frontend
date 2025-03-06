@@ -104,13 +104,14 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
       val amendedVersion = request.aftVersion
       val previousVersion = amendedVersion - 1
 
-      aftConnector.getAftOverview(pstr, Some(localDateToString(startDate)), Some(Quarters.getQuarter(startDate).endDate)).flatMap { seqOverview =>
+      aftConnector.getAftOverview(pstr, srn, request.isLoggedInAsPsa, Some(localDateToString(startDate)),
+        Some(Quarters.getQuarter(startDate).endDate)).flatMap { seqOverview =>
         val isCompilable = seqOverview.filter(_.versionDetails.isDefined).map(_.toPodsReport).exists(_.compiledVersionAvailable)
 
         if (accessType == Draft && !isCompilable) {
           Future.successful(Redirect(Call("GET", config.schemeDashboardUrl(request).format(srn))))
         } else {
-          aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$previousVersion").flatMap { previousVersionJsValue =>
+          aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$previousVersion", srn, request.isLoggedInAsPsa).flatMap { previousVersionJsValue =>
             val (currentTotalAmountUK, currentTotalAmountNonUK) = amendmentHelper.getTotalAmount(ua)
             val (previousTotalAmountUK, previousTotalAmountNonUK) = amendmentHelper.getTotalAmount(UserAnswers(previousVersionJsValue.as[JsObject]))
 

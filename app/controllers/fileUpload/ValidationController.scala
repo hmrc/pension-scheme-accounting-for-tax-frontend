@@ -135,7 +135,7 @@ class ValidationController @Inject()(
           Future.successful(processInvalid(chargeType, errors))
         case Valid(updatedUA) =>
           TimeLogger.logOperationTime(
-            processSuccessResult(chargeType, updatedUA)
+            processSuccessResult(chargeType, updatedUA, srn)
               .map(_ => FileUploadOutcome(status = Success, fileName = Some(fileName))),
             "processSuccessResult"
           )
@@ -209,12 +209,12 @@ class ValidationController @Inject()(
   }
 
 
-  private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
+  private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers, srn: String)
                                   (implicit request: DataRequest[AnyContent]): Future[UserAnswers] = {
 
     for {
       updatedAnswers <- fileUploadAftReturnService.preProcessAftReturn(chargeType, ua)
-      _ <- aftService.fileCompileReturn(ua.get(PSTRQuery).getOrElse("pstr"), updatedAnswers)
+      _ <- aftService.fileCompileReturn(ua.get(PSTRQuery).getOrElse("pstr"), updatedAnswers, srn)
     } yield {
       updatedAnswers
     }
