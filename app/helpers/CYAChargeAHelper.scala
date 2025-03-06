@@ -26,29 +26,17 @@ import java.time.LocalDate
 
 class CYAChargeAHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
-  def chargeAMembers(answer: models.chargeA.ChargeDetails): SummaryListRow = {
+  def chargeADetails(answer: models.chargeA.ChargeDetails): SummaryListRow = {
     SummaryListRow(
-      key = Key(Text(messages("chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
-      value = Value(Text(answer.numberOfMembers.toString), classes = "govuk-!-width-one-quarter"),
-      actions = Some(
-        Actions(
-          items = Seq(ActionItem(
-            content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-            visuallyHiddenText = Some(
-              messages("site.edit") + " " + messages("chargeA.chargeDetails.numberOfMembers.visuallyHidden.checkYourAnswersLabel")
-            )
-          ))
-
-        )
-      )
-    )
-  }
-
-  def chargeAAmountLowerRate(answer: models.chargeA.ChargeDetails): SummaryListRow = {
-    SummaryListRow(
-      key = Key(Text(messages("chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
-      value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)))}"),
+      key = Key(Text(messages("chargeA.shortServiceRefund.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
+      value = Value(HtmlContent(s"""<p class="govuk-body">${messages("chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel")}:</p>
+                                   |<p class="govuk-body">${answer.numberOfMembers.toString}</p>
+                                   |</br>
+                                   |<p class="govuk-body">${messages("chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel")}:</p>
+                                   |<p class="govuk-body">${FormatHelper.formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)))}</p>
+                                   |</br>
+                                   |<p class="govuk-body">${messages("chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel")}:</p>
+                                   |<p class="govuk-body">${FormatHelper.formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))}</p>""".stripMargin),
         classes = "govuk-!-width-one-quarter"),
       actions = Some(
         Actions(
@@ -56,29 +44,12 @@ class CYAChargeAHelper(srn: String, startDate: LocalDate, accessType: AccessType
             content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
             visuallyHiddenText = Some(
-              messages("site.edit") + " " + messages("chargeA.chargeDetails.amountLowerRate.visuallyHidden.checkYourAnswersLabel")
+              messages("site.edit") + " " + messages("chargeA.shortServiceRefund.visuallyHidden.checkYourAnswersLabel")
             )
           ))
+
         )
       )
-    )
-  }
-
-  def chargeAAmountHigherRate(answer: models.chargeA.ChargeDetails): SummaryListRow = {
-    SummaryListRow(
-      key = Key(Text(messages("chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
-      value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))}"),
-        classes = "govuk-!-width-one-quarter"),
-      actions = Some(
-        Actions(
-          items = Seq(ActionItem(
-          content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-          visuallyHiddenText = Some(
-            messages("site.edit") + " " + messages("chargeA.chargeDetails.amountHigherRate.visuallyHidden.checkYourAnswersLabel")
-          )
-        ))
-      ))
     )
   }
 

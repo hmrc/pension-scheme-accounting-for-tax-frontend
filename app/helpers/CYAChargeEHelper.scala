@@ -33,27 +33,15 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
   def chargeEMemberDetails(index: Int, answer: models.MemberDetails): Seq[SummaryListRow] = {
     Seq(
       SummaryListRow(
-        key = Key(Text(messages("cya.memberName.label")), classes = "govuk-!-width-one-half"),
-        value = Value(Text(answer.fullName), classes = "govuk-!-width-one-third"),
+        key = Key(Text(messages("cya.memberDetails.label")), classes = "govuk-!-width-one-half"),
+        value = Value(HtmlContent(s"""<p class="govuk-body">${answer.fullName}</p>
+                                     |<p class="govuk-body">${answer.nino}</p>""".stripMargin), classes = "govuk-!-width-one-third"),
         actions = Some(
           Actions(
             items = Seq(ActionItem(
               content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
               href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-              visuallyHiddenText = Some(messages("site.edit") + " " + messages("visuallyHidden.memberName.label"))
-            ))
-          )
-        )
-      ),
-      SummaryListRow(
-        key = Key(Text(messages("cya.nino.label", answer.fullName)), classes = "govuk-!-width-one-half"),
-        value = Value(Text(answer.nino), classes = "govuk-!-width-one-third"),
-        actions = Some(
-          Actions(
-            items = Seq(ActionItem(
-              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-              href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-              visuallyHiddenText = Some(messages("site.edit") + " " + messages("cya.nino.label", answer.fullName))
+              visuallyHiddenText = Some(messages("site.edit") + " " + messages("visuallyHidden.memberDetails.label"))
             ))
           )
         )
@@ -82,40 +70,21 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
   def chargeEDetails(index: Int, answer: ChargeEDetails): Seq[SummaryListRow] = {
     Seq(
       SummaryListRow(
-        key = Key(Text(messages("chargeEDetails.chargeAmount.label")), classes = "govuk-!-width-one-half"),
-        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(answer.chargeAmount)}"), classes = "govuk-!-width-one-third"),
+        key = Key(Text(messages("chargeEDetails.chargeDetails.label")), classes = "govuk-!-width-one-half"),
+        value = Value(HtmlContent(s"""<p class="govuk-body">${messages("chargeEDetails.chargeAmount.label")}:</p>
+                                     |<p class="govuk-body">${FormatHelper.formatCurrencyAmountAsString(answer.chargeAmount)}</p>
+                                     |</br>
+                                     |<p class="govuk-body">${messages("chargeEDetails.dateNoticeReceived.label")}:</p>
+                                     |<p class="govuk-body">${answer.dateNoticeReceived.format(FormatHelper.dateFormatter)}</p>
+                                     |</br>
+                                     |<p class="govuk-body">${messages("chargeE.cya.mandatoryPayment.label")}:</p>
+                                     |<p class="govuk-body">${yesOrNo(answer.isPaymentMandatory)}</p>""".stripMargin), classes = "govuk-!-width-one-third"),
         actions = Some(
           Actions(
             items = Seq(ActionItem(
               content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
               href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-              visuallyHiddenText = Some(messages("site.edit") + " " + messages("chargeE.visuallyHidden.chargeAmount.label"))
-            ))
-          )
-        )
-      ),
-      SummaryListRow(
-        key = Key(Text(messages("chargeEDetails.dateNoticeReceived.label")), classes = "govuk-!-width-one-half"),
-        value = Value(Text(answer.dateNoticeReceived.format(FormatHelper.dateFormatter)), classes = "govuk-!-width-one-third"),
-        actions = Some(
-          Actions(
-            items = Seq(ActionItem(
-              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-              href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-              visuallyHiddenText = Some(messages("site.edit") + " " + messages("chargeE.visuallyHidden.dateNoticeReceived.label"))
-            ))
-          )
-        )
-      ),
-      SummaryListRow(
-        key = Key(Text(messages("chargeE.cya.mandatoryPayment.label")), classes = "govuk-!-width-one-half"),
-        value = Value(yesOrNo(answer.isPaymentMandatory), classes = "govuk-!-width-one-third"),
-        actions = Some(
-          Actions(
-            items = Seq(ActionItem(
-              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-              href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-              visuallyHiddenText = Some(messages("site.edit") + " " + messages("chargeE.visuallyHidden.isPaymentMandatory.label"))
+              visuallyHiddenText = Some(messages("site.edit") + " " + messages("chargeE.visuallyHidden.chargeDetails.label"))
             ))
           )
         )

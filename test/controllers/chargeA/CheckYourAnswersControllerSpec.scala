@@ -36,9 +36,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatcher
   private val helper: CYAChargeAHelper = new CYAChargeAHelper(srn, startDate, accessType, versionInt)
 
   private val rows = Seq(
-    helper.chargeAMembers(chargeAChargeDetails),
-    helper.chargeAAmountLowerRate(chargeAChargeDetails),
-    helper.chargeAAmountHigherRate(chargeAChargeDetails),
+    helper.chargeADetails(chargeAChargeDetails),
     helper.total(ua.get(ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)))
   )
 

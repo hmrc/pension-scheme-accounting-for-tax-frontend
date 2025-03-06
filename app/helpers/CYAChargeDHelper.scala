@@ -32,27 +32,15 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
   def chargeDMemberDetails(index: Int, answer: models.MemberDetails): Seq[SummaryListRow] = {
     Seq(
       SummaryListRow(
-        key = Key(Text(messages("cya.memberName.label")), classes = "govuk-!-width-one-half"),
-        value = Value(Text(answer.fullName), classes = "govuk-!-width-one-third"),
+        key = Key(Text(messages("cya.memberDetails.label")), classes = "govuk-!-width-one-half"),
+        value = Value(HtmlContent(s"""<p class="govuk-body">${answer.fullName}</p>
+                                     |<p class="govuk-body">${answer.nino}</p>""".stripMargin), classes = "govuk-!-width-one-third"),
         actions = Some(
           Actions(
             items = Seq(ActionItem(
               content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
               href = controllers.chargeD.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-              visuallyHiddenText = Some(messages("site.edit") + " " + messages("visuallyHidden.memberName.label"))
-            ))
-          )
-        )
-      ),
-      SummaryListRow(
-        key = Key(Text(messages("cya.nino.label", answer.fullName)), classes = "govuk-!-width-one-half"),
-        value = Value(Text(answer.nino), classes = "govuk-!-width-one-third"),
-        actions = Some(
-          Actions(
-            items = Seq(ActionItem(
-              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-              href = controllers.chargeD.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-              visuallyHiddenText = Some(messages("site.edit") + " " + messages("cya.nino.label", answer.fullName))
+              visuallyHiddenText = Some(messages("site.edit") + " " + messages("visuallyHidden.memberDetails.label"))
             ))
           )
         )
@@ -63,44 +51,22 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
   def chargeDDetails(index: Int, answer: ChargeDDetails): Seq[SummaryListRow] = {
     Seq(
       SummaryListRow(
-        key = Key(Text(messages("chargeDDetails.dateOfEvent.label")), classes = "govuk-!-width-one-half"),
-        value = Value(Text(answer.dateOfEvent.format(FormatHelper.dateFormatter)), classes = "govuk-!-width-one-third"),
-        actions = Some(
-          Actions(
-            items = Seq(ActionItem(
-              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-              href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-              visuallyHiddenText = Some(messages("site.edit") + " " + messages("chargeDDetails.dateOfEvent.visuallyHidden.label"))
-            ))
-          )
-        )
-      ),
-      SummaryListRow(
-        key = Key(Text(messages("taxAt25Percent.label")), classes = "govuk-!-width-one-half"),
-        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(answer.taxAt25Percent.getOrElse(BigDecimal(0.00)))}"),
+        key = Key(Text(messages("chargeDDetails.chargeDetails.label")), classes = "govuk-!-width-one-half"),
+        value = Value(HtmlContent(s"""<p class="govuk-body">${messages("chargeDDetails.dateOfEvent.label")}:</p>
+                                     |<p class="govuk-body">${answer.dateOfEvent.format(FormatHelper.dateFormatter)}</p>
+                                     |</br>
+                                     |<p class="govuk-body">${messages("taxAt25Percent.label")}:</p>
+                                     |<p class="govuk-body">${FormatHelper.formatCurrencyAmountAsString(answer.taxAt25Percent.getOrElse(BigDecimal(0.00)))}</p>
+                                     |</br>
+                                     |<p class="govuk-body">${messages("taxAt55Percent.label")}:</p>
+                                     |<p class="govuk-body">${FormatHelper.formatCurrencyAmountAsString(answer.taxAt55Percent.getOrElse(BigDecimal(0.00)))}</p>""".stripMargin),
           classes = "govuk-!-width-one-third"),
         actions = Some(
           Actions(
             items = Seq(ActionItem(
               content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
               href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-              visuallyHiddenText = Some(messages("site.edit") + " " + messages("taxAt25Percent.visuallyHidden.label"))
-            ))
-          )
-        )
-      ),
-      SummaryListRow(
-        key = Key(Text(messages("taxAt55Percent.label")), classes = "govuk-!-width-one-half"),
-        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(answer.taxAt55Percent.getOrElse(BigDecimal(0.00)))}"),
-          classes = "govuk-!-width-one-third"),
-        actions = Some(
-          Actions(
-            items = Seq(ActionItem(
-              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-              href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-              visuallyHiddenText = Some(
-                messages("site.edit") + " " + messages("taxAt55Percent.visuallyHidden.label")
-              )
+              visuallyHiddenText = Some(messages("site.edit") + " " + messages("chargeDDetails.chargeDetails.visuallyHidden.label"))
             ))
           )
         )

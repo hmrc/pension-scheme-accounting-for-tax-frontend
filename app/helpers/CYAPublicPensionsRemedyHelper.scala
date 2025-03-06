@@ -286,7 +286,7 @@ class CYAPublicPensionsRemedyHelper(srn: String, startDate: LocalDate, accessTyp
   private def getOptionalValue(optionalVal: Option[Boolean]): Text = {
     optionalVal match {
       case None => Text(messages("mccloud.not.entered"))
-      case Some(booleanVal) => yesOrNo(booleanVal)
+      case Some(booleanVal) => Text(yesOrNo(booleanVal))
     }
   }
 

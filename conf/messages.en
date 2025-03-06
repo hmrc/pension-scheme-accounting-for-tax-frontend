@@ -193,7 +193,8 @@ chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum = The amount of tax due at 50
 chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum = The amount of tax due at 50% must be £{0} or more
 
 chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel = Number of members who received a short service refund lump sum in the quarter
-chargeA.chargeDetails.numberOfMembers.visuallyHidden.checkYourAnswersLabel =  the number of members who received a short service refund lump sum in the quarter
+chargeA.shortServiceRefund.checkYourAnswersLabel = Short service charge details
+chargeA.shortServiceRefund.visuallyHidden.checkYourAnswersLabel = the Short service charge details
 chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel = Total amount of tax due at 20%
 chargeA.chargeDetails.amountLowerRate.visuallyHidden.checkYourAnswersLabel = the total amount of tax due at 20%
 chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel = Total amount of tax due at 50%
@@ -222,7 +223,8 @@ chargeB.chargeDetails.heading = Special lump sum death benefits charge details
 chargeB.chargeDetails.numberOfDeceased.label = Number of deceased members for which payment of a lump sum death benefit was made in the quarter
 chargeB.chargeDetails.amount.label = Total amount of tax due
 chargeB.numberOfDeceased.checkYourAnswersLabel = Number of deceased members for which payment of a lump sum death benefit was made in the quarter
-chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel = the number of deceased members for which payment of a lump sum death benefit was made in the quarter
+chargeB.deathBenefits.checkYourAnswersLabel = Death benefits charge details
+chargeB.deathBenefits.visuallyHidden.checkYourAnswersLabel = the Death benefits charge details
 chargeB.totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the total amount of tax due
 
@@ -249,7 +251,6 @@ chargeC.sponsoringOrganisationDetails.title = Company or organisation’s detail
 chargeC.sponsoringOrganisationDetails.heading = Company or organisation’s details
 chargeC.sponsoringOrganisationDetails.name.label = Company or organisation name
 chargeC.sponsoringOrganisationDetails.crn.label = Company number
-chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel = Company or organisation’s details
 chargeC.sponsoringOrganisationDetails.name.error.required = Enter the company or organisation’s name
 chargeC.sponsoringOrganisationDetails.name.error.length = The company or organisation’s name must be 155 characters or fewer
 chargeC.sponsoringOrganisationDetails.name.error.invalid = The company or organisation’s name must only include letters, spaces, ampersands (&), grave accents (à), apostrophes, hyphens, full stops and carets (^)
@@ -399,12 +400,15 @@ chargeEDetails.heading = Annual allowance charge details for {0}
 chargeEDetails.chargeAmount.label = Charge amount
 chargeEDetails.dateNoticeReceived.label = Date you received notice to pay the charge
 chargeEDetails.isPaymentMandatory.label = Is the payment type mandatory?
+chargeEDetails.chargeDetails.label = Charge details
+chargeE.visuallyHidden.chargeDetails.label = the charge details
 
 cya.memberName.label = Member’s name
 cya.nino.label = {0}’s National Insurance number
+cya.memberDetails.label = Member’s name and National Insurance number
+visuallyHidden.memberDetails.label = the member’s name and National Insurance number
 chargeE.cya.taxYear.label = Tax year to which the annual allowance charge relates
 chargeE.cya.mandatoryPayment.label = Mandatory payment type
-visuallyHidden.memberName.label = the member’s name
 chargeE.visuallyHidden.taxYear.label = the tax year to which the annual allowance charge relates
 chargeE.visuallyHidden.chargeAmount.label = the charge amount
 chargeE.visuallyHidden.dateNoticeReceived.label = the date you received notice to pay the charge
@@ -479,6 +483,10 @@ aft.notSubmissionTime.p1 = You can only submit this AFT return on or after {0}
 
 chargeG.chargeDetails.title = Overseas transfer charge details for the member
 chargeG.chargeDetails.heading = Overseas transfer charge details for {0}
+chargeG.cya.MemberDetails.label = Member’s details
+chargeG.visuallyHidden.memberDetails.label = the Member’s details
+chargeG.chargeDetails.chargeDetails.label = QROPS details
+chargeGDetails.chargeDetails.visuallyHidden.label = the QROPS details
 chargeG.chargeDetails.qropsReferenceNumber.label = QROPS reference number
 chargeG.chargeDetails.qropsReferenceNumber.hint = The reference is ‘QROPS’ followed by 6 numbers
 chargeG.chargeDetails.qropsReferenceNumber.error.required = Enter a QROPS reference number
@@ -527,6 +535,9 @@ chargeDDetails.title = Lifetime allowance charge details for the member
 chargeDDetails.heading = Lifetime allowance charge details for {0}
 chargeDDetails.dateOfEvent.label = Date of benefit crystallisation event giving rise to the charge
 chargeDDetails.dateOfEvent.visuallyHidden.label = the date of the benefit crystallisation event giving rise to the charge
+chargeDDetails.chargeDetails.label = Benefit crystallisation details
+chargeDDetails.chargeDetails.visuallyHidden.label = the Benefit crystallisation details
+
 taxAt25Percent.label = Amount of tax due at 25%
 taxAt55Percent.label = Amount of tax due at 55%
 taxAt25Percent.visuallyHidden.label = the amount of tax due at 25%
@@ -555,6 +566,8 @@ chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to
 
 chargeG.chargeAmount.title = Overseas transfer charge amounts for the member
 chargeG.chargeAmount.heading = Overseas transfer charge amounts for {0}
+chargeG.chargeAmountDetails.transferred = QROPS transfer details
+chargeG.chargeAmountDetails.transferred.visuallyHidden.label = the QROPS transfer details
 chargeG.chargeAmount.transferred = Amount transferred into the QROPS
 chargeG.chargeAmount.taxDue = Amount of tax due
 chargeG.chargeAmount.transferred.visuallyHidden.label = how much was transferred into the QROPS
@@ -856,23 +869,20 @@ chargeC.amountTaxDue.label = Amount of tax due
 chargeC.chargeDetails.heading = Authorised surplus payment charge details for {0}
 chargeC.chargeDetails.title = Authorised surplus payment charge details for {0}
 
-chargeC.paymentDate.checkYourAnswersLabel = Date authorised surplus payment was made
-chargeC.paymentDate.visuallyHidden.checkYourAnswersLabel = the date when the authorised surplus payment was made
+chargeC.paymentDetails.checkYourAnswersLabel = Surplus payment details
+chargeC.paymentDetails.visuallyHidden.checkYourAnswersLabel = the Surplus payment details
 
 chargeC.totalTaxDue.checkYourAnswersLabel = Amount of tax due
 chargeC.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the amount of tax due
 
-chargeC.sponsoringIndividualName.checkYourAnswersLabel = Individual’s name
-chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel = the individual’s name
-
-chargeC.sponsoringIndividualNino.checkYourAnswersLabel = {0}’s National Insurance number
-chargeC.sponsoringIndividualNino.visuallyHidden.checkYourAnswersLabel = {0}’s National Insurance number
+chargeC.sponsoringIndividualDetails.checkYourAnswersLabel = Individual’s name and National Insurance number
+chargeC.sponsoringIndividualDetails.visuallyHidden.checkYourAnswersLabel = the Individual’s name and National Insurance number
 
 chargeC.sponsoringEmployerAddress.checkYourAnswersLabel = {0}’s address
 chargeC.sponsoringEmployerAddress.visuallyHidden.checkYourAnswersLabel = {0}’s address
 
-chargeC.sponsoringOrganisationName.checkYourAnswersLabel = Company or organisation’s name
-chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel = the company or organisation’s name
+chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel = Company or organisation details
+chargeC.sponsoringOrganisationDetails.visuallyHidden.checkYourAnswersLabel = the Company or organisation details
 
 chargeC.sponsoringOrganisationCrn.checkYourAnswersLabel = {0}’s company number
 chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel = {0}’s company number
