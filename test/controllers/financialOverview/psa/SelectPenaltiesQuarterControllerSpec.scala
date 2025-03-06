@@ -101,8 +101,7 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with JsonM
         radios = Quarters.radios(
             form,
             displayQuarters,
-            Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"),
-            areLabelsBold = false
+            Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block")
           ),
         year
       )(request, messages)

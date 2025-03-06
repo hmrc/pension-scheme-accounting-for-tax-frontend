@@ -87,7 +87,7 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with JsonMatchers
         form,
         "Which quarter of 2020 do you want to view the Accounting for Tax charges for?",
         year,
-        Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
+        Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
         routes.SelectQuarterController.onSubmit(srn, year, All),
         returnUrl = dummyCall.url,
         schemeName
