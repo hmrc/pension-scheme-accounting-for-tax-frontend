@@ -52,7 +52,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
         val penaltyTypes = getPenaltyTypes(penaltiesCache.penalties.toSeq)
 
-        val (title, buttonText) = getParameters(journeyType)
+        val title = getTitle(journeyType)
 
         val historyChargeTypes = getHistoryChargeTypes(penaltiesCache.penalties.toSeq)
 
@@ -68,7 +68,6 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
             title = title,
             psaName = penaltiesCache.psaName,
             radios = radios,
-            buttonText = buttonText,
             submitCall = routes.PenaltyTypeController.onSubmit(journeyType),
             returnUrl = appConfig.managePensionsSchemeOverviewUrl,
             journeyType = journeyType
@@ -81,13 +80,18 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
       form.bindFromRequest().fold(
         formWithErrors => {
-          val (title, buttonText) = getParameters(journeyType)
+          val title = getTitle(journeyType)
           val historyChargeTypes = getHistoryChargeTypes(penaltiesCache.penalties.toSeq)
 
           val radios = if (journeyType == ChargeDetailsFilter.History) {
             PenaltyType.radios(formWithErrors, historyChargeTypes, areLabelsBold = false)
           } else {
-            PenaltyType.radiosWithHint(formWithErrors, getPenaltyTypes(penaltiesCache.penalties.toSeq))
+            PenaltyType.radiosWithHint(
+              formWithErrors,
+              getPenaltyTypes(penaltiesCache.penalties.toSeq),
+              Seq("govuk-tag govuk-tag--red govuk-!-display-inline"),
+              areLabelsBold = false
+            )
           }
 
           Future.successful(BadRequest(
@@ -96,7 +100,6 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
               title = title,
               psaName = penaltiesCache.psaName,
               radios = radios,
-              buttonText = buttonText,
               submitCall = routes.PenaltyTypeController.onSubmit(journeyType),
               returnUrl = appConfig.managePensionsSchemeOverviewUrl,
               journeyType = journeyType
@@ -126,11 +129,11 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
 
     }
 
-  private def getParameters(journeyType: ChargeDetailsFilter)(implicit messages: Messages) = {
+  private def getTitle(journeyType: ChargeDetailsFilter)(implicit messages: Messages) = {
     if (journeyType == ChargeDetailsFilter.History) {
-        (messages("financial.overview.historyChargeType.title"), messages("site.continue"))
+        messages("financial.overview.historyChargeType.title")
     } else {
-        (messages("penaltyType.title"), messages("site.save_and_continue"))
+        messages("penaltyType.title")
     }
   }
 }
