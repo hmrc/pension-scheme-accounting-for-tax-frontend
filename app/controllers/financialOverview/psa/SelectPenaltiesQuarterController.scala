@@ -63,8 +63,7 @@ class SelectPenaltiesQuarterController @Inject()(
           appConfig.managePensionsSchemeOverviewUrl,
           Quarters.radios(form(quarters),
             getDisplayQuarters(filteredPenalties(penaltiesCache.penalties.toSeq, year.toInt)),
-            Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"),
-            areLabelsBold = false),
+            Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block")),
             year
           )))
       } else {
@@ -86,8 +85,7 @@ class SelectPenaltiesQuarterController @Inject()(
               appConfig.managePensionsSchemeOverviewUrl,
               Quarters.radios(formWithErrors,
                 getDisplayQuarters(filteredPenalties(penaltiesCache.penalties.toSeq, year.toInt)),
-                Seq("govuk-tag govuk-!-display-inline govuk-tag--red"),
-                areLabelsBold = false),
+                Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
               year
             )))
           },
