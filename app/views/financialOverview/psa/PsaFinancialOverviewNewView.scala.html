@@ -32,8 +32,6 @@
     allPaymentLink: String,
     creditBalanceFormatted: String,
     creditBalance: BigDecimal,
-    displayReceivedPayments: Boolean,
-    receivedPaymentsLink: String,
     displayHistory: Boolean,
     historyLink: String,
     returnUrl: String
@@ -130,26 +128,6 @@
             </div>
 
             <hr>
-
-            @if(displayReceivedPayments) {
-                <div class="govuk-grid-row">
-                    <div class="govuk-grid-column-full">
-                        <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
-                            @messages("psa.financial.overview.h2.receivedPayments.new")
-                        </h2>
-                        <p class="govuk-body">
-                            @messages("psa.financial.overview.due.receivedPayments.p1.new")
-                        </p>
-                        <p class="govuk-body-m">
-                            <a id="receivedPaymentsLink" class="govuk-link" href="@receivedPaymentsLink">
-                                @messages("psa.financial.overview.receivedPayments.link")
-                            </a>
-                        </p>
-                    </div>
-                </div>
-
-                <hr>
-            }
 
             @if(displayHistory) {
                 <div class="govuk-grid-row">
