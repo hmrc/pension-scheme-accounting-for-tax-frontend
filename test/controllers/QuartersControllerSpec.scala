@@ -106,6 +106,18 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
       compareResultAndView(result, view)
     }
 
+    "return OK and redirect to correct page if no display quarters" in {
+      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq()))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result) mustBe Some(controllers.routes.SessionExpiredController.onPageLoad.url)
+    }
+
     "redirect to next page when valid data is submitted" in {
       when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
 
