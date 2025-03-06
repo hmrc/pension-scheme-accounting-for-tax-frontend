@@ -85,7 +85,7 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with JsonM
       val view = application.injector.instanceOf[SelectQuarterView].apply(
         form,
         year,
-        Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"), areLabelsBold = false),
+        Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block")),
         routes.SelectPenaltiesQuarterController.onSubmit(year, All),
         "",
         "psa-name"

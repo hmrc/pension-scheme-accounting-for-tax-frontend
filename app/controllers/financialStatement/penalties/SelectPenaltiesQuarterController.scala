@@ -63,8 +63,7 @@ class SelectPenaltiesQuarterController @Inject()(
             year,
             Quarters.radios(form(quarters),
               getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt)),
-              Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"),
-              areLabelsBold = false),
+              Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block")),
             routes.SelectPenaltiesQuarterController.onSubmit(year, journeyType),
             config.managePensionsSchemeOverviewUrl,
             penaltiesCache.psaName
@@ -89,8 +88,7 @@ class SelectPenaltiesQuarterController @Inject()(
                   year,
                   Quarters.radios(formWithErrors,
                     getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt)),
-                    Seq("govuk-tag govuk-!-display-inline govuk-tag--red"),
-                    areLabelsBold = false),
+                    Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
                   routes.SelectPenaltiesQuarterController.onSubmit(year, journeyType),
                   config.managePensionsSchemeOverviewUrl,
                   penaltiesCache.psaName
