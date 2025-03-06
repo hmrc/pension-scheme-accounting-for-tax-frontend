@@ -99,8 +99,7 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with JsonMatchers
         radios = Quarters.radios(
             form,
             displayQuarters,
-            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"),
-            areLabelsBold = false),
+            Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
         year
       )(request, messages)
 

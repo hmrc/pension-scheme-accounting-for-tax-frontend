@@ -63,7 +63,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
           schemeName = paymentsCache.schemeDetails.schemeName,
           returnUrl = config.schemeDashboardUrl(request).format(srn),
           radios = Quarters.radios(form(quarters, year), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
-            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
+            Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
           Year = year
         )))
       } else {
@@ -88,7 +88,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
               schemeName = paymentsCache.schemeDetails.schemeName,
               returnUrl = config.schemeDashboardUrl(request).format(srn),
               radios = Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFSDetail),
-                Seq("govuk-tag govuk-!-display-inline govuk-tag--red"), areLabelsBold = false),
+                Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
               Year = year
             )))
           },
