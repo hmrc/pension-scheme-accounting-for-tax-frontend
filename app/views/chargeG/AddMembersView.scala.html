@@ -35,6 +35,10 @@
 @layout(messages("chargeG.addMembers.title", viewModel.quarterStart, viewModel.quarterEnd), formHasErrors = viewModel.form.hasErrors) {
     <div>
         @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
+            @if(viewModel.form.errors.nonEmpty) {
+                @govukErrorSummary(ErrorSummary().withFormErrorsAsText(viewModel.form))
+            }
+
             <h1 id="chargeG_h1" class="govuk-heading-xl">@messages("chargeG.addMembers.heading", viewModel.quarterStart, viewModel.quarterEnd)</h1>
 
             <form action="@submitCall" method="post" autocomplete="off" novalidate >

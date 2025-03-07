@@ -27,6 +27,10 @@
 @layout(messages("continueQuarters.title"), formHasErrors = form.hasErrors) {
     <div>
         @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
+            @if(form.errors.nonEmpty) {
+                @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+            }
+
             @govukRadios(
                 RadiosViewModel(
                     form("value"),

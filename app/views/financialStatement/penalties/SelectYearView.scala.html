@@ -24,6 +24,9 @@
 
 @(form: Form[_], typeParam: String, radios: Seq[RadioItem], submitCall: Call, returnUrl: String, psaName: String)(implicit request: Request[_], messages: Messages)
 @layout(messages("selectPenaltiesYear.title", messages(typeParam)), formHasErrors = form.hasErrors) {
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    }
     <div>
 
         @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {

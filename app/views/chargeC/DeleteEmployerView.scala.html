@@ -27,7 +27,7 @@ govukRadios: GovukRadios
 
 @layout(messages("deleteEmployer.chargeC.title", employerType), formHasErrors = form.hasErrors) {
 @if(form.errors.nonEmpty) {
-@govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
 }
 
 @formHelper(action = submitUrl, Symbol("autoComplete") -> "off", Symbol("novalidate") -> "true") {

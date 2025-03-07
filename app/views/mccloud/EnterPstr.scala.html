@@ -25,6 +25,9 @@
 @(form: Form[_], ordinal: String, chargeTypeDesc: String, submitCall: Call, returnUrl: String, schemeName: String)(implicit request: Request[_], messages: Messages)
 
 @layout(messages("enterPstr.title", ordinal, messages(chargeTypeDesc)), formHasErrors = form.hasErrors) {
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    }
     <div>
         @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
             @govukInput(

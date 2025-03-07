@@ -25,7 +25,7 @@ govukInput: GovukInput
 
 @layout(messages("chargeC.employerAddressSearch.title", employerType), formHasErrors = form.hasErrors) {
 @if(form.errors.nonEmpty) {
-@govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
 }
 
 @formHelper(action = submitUrl, Symbol("autoComplete") -> "on", Symbol("novalidate") -> "true") {
