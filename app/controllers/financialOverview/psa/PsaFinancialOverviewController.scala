@@ -91,9 +91,6 @@ class PsaFinancialOverviewController @Inject()(
       routes.PenaltyTypeController.onPageLoad("all").url
     }
 
-    // Below link will need to be updated when relevant page is created
-    val receivedPaymentsLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url
-
     val historyLink = routes.PenaltyTypeController.onPageLoad("history").url
 
     val returnUrl = config.managePensionsSchemeOverviewUrl
@@ -110,8 +107,6 @@ class PsaFinancialOverviewController @Inject()(
         allPaymentLink = allPaymentLink,
         creditBalanceFormatted = creditBalanceFormatted,
         creditBalance = creditBalance,
-        displayReceivedPayments = displayReceivedPayments,
-        receivedPaymentsLink = receivedPaymentsLink,
         displayHistory = displayHistory,
         historyLink = historyLink,
         returnUrl = returnUrl

@@ -140,8 +140,6 @@ class PsaFinancialOverviewControllerSpec
           allPaymentLink = routes.RefundsController.onPageLoad().url,
           creditBalanceFormatted = "£1,000.00",
           creditBalance = 1000,
-          displayReceivedPayments = true,
-          receivedPaymentsLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url,
           displayHistory = true,
           historyLink = routes.PenaltyTypeController.onPageLoad("history").url,
           returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
