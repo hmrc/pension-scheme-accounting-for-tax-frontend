@@ -379,7 +379,10 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
   private def getHeadingNew()(implicit messages: Messages): Seq[HeadCell] = {
     Seq(
-      HeadCell(Text(Messages("")), classes = "govuk-!-width-one-half"),
+      HeadCell(
+        HtmlContent(
+          s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penalty")}</span>"
+        )),
       HeadCell(Text(Messages("psa.financial.overview.dueDate")), classes = "govuk-!-font-weight-bold"),
       HeadCell(Text(Messages("psa.financial.overview.payment.amount.new")), classes = "govuk-!-font-weight-bold"),
       HeadCell(Text(Messages("psa.financial.overview.payment.due")), classes = "govuk-!-font-weight-bold,table-nowrap"),
@@ -696,13 +699,13 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
   def chargeAmountDetailsRows(data: PsaFSDetail, caption: Option[String] = None, captionClasses: String = "")(implicit messages: Messages): Table = {
 
-    val headRow = Seq(
-      HeadCell(Text(Messages("psa.pension.scheme.chargeAmount.label.new"))),
-      HeadCell(Text("")),
-      HeadCell(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"), classes = "govuk-!-font-weight-regular")
-    )
+    val chargeAmountRow = Seq(Seq(
+      TableRow(Text(Messages("psa.pension.scheme.chargeAmount.label.new")), classes = "govuk-!-font-weight-bold"),
+      TableRow(Text("")),
+      TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"), classes = "govuk-!-font-weight-regular")
+    ))
 
-    val rows = data.documentLineItemDetails.map { documentLineItemDetail =>
+    val paymentRecievedRow = data.documentLineItemDetails.map { documentLineItemDetail =>
       if (documentLineItemDetail.clearedAmountItem > 0) {
         getClearingDetailLabelNew(documentLineItemDetail) match {
           case Some(clearingDetailsValue) =>
@@ -729,8 +732,8 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       Seq(Seq())
     }
 
-    Table(head = Some(headRow),
-      rows = rows ++ stoodOverAmountRow,
+    Table(
+      rows = chargeAmountRow ++ paymentRecievedRow ++ stoodOverAmountRow,
       attributes = Map("role" -> "table"),
       caption = caption,
       captionClasses = captionClasses
