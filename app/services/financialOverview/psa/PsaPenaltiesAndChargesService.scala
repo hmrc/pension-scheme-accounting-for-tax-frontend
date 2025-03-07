@@ -529,18 +529,18 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               s"${data.redirectUrl}>" +
               s"${data.chargeType} " +
               s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span></a>" +
-              s"<p class=govuk-hint>" +
+              s"<span></br>" +
               s"${data.chargeReference}</br>" +
-              s"${data.period}</p>")
+              s"${data.period}</span>")
         case _ =>
           HtmlContent(
             s"<a id=$linkId class=govuk-link href=" +
               s"${data.redirectUrl}>" +
               s"${data.chargeType} " +
               s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span></a>" +
-              s"<p class=govuk-hint>" +
+              s"<span></br>" +
               s"${data.schemeName}</br>" +
-              s"${data.chargeReference}</p>")
+              s"${data.chargeReference}</span>")
       }
 
       Seq(

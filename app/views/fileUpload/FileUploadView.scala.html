@@ -22,7 +22,7 @@
     govukButton: GovukButton
 )
 
-@(schemeName: String, chargeType:String,  chargeTypeText: String, submitUrl: play.api.mvc.Call,returnUrl: String, errorCodes: Option[String], formFields: Map[String, String])(implicit request: Request[_], messages: Messages)
+@(schemeName: String, chargeType:String,  chargeTypeText: String, submitUrl: play.api.mvc.Call,returnUrl: String, errorMessage: Option[ErrorMessage], formFields: Map[String, String])(implicit request: Request[_], messages: Messages)
 
 @insetContent = {
         @if(chargeType.toString == "annualAllowance") {
@@ -60,20 +60,18 @@
 
 @layout(messages("fileupload.fileupload.title", chargeTypeText)) {
 
-
-@if(errorCodes.isDefined) {
+@errorMessage.map { message =>
     @govukErrorSummary(ErrorSummary(
-    title = Text(messages("error.summary.title")),
-    errorList =  Seq(
+        title = Text(messages("error.summary.title")),
+        errorList = Seq(
         ErrorLink(
-        href = Some("#file-input"),
-        content = Text(messages(errorCodes.get))
-        )
-)
+            href = Some("#file-input"),
+            content = message.content
+        ))
     ))
 }
 
-<form method="@submitUrl.method" action="@submitUrl.path" autocomplete="off" enctype="multipart/form-data">
+<form method="@submitUrl.method" action="@submitUrl.path" autocomplete="off" enctype="multipart/form-data" novalidate>
     @for(field <- formFields) {
         <input type="hidden" name="@field._1" value="@field._2"/>
     }
@@ -94,7 +92,7 @@
         id = "file-input",
         name = "file",
         label = Label(content = Text(messages("inputSelection.radio.fileUploadInput"))),
-        errorMessage = errorCodes.map(err => ErrorMessage(content = Text(messages(err)))),
+        errorMessage = errorMessage,
         attributes = Map("accept" -> ".csv,application/csv", "required" -> "required")
     ))
 
