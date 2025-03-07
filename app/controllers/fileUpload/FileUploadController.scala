@@ -27,9 +27,10 @@ import models.{AccessType, ChargeType, FileUploadDataCache, UploadId}
 import pages.fileUpload.UploadedFileName
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.Logger
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import services.fileUpload.{UploadProgressTracker, UpscanErrorHandlingService}
+import uk.gov.hmrc.govukfrontend.views.Aliases.{ErrorMessage, Text}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.fileUpload.FileUploadView
 
@@ -72,7 +73,7 @@ class FileUploadController @Inject()(
           Future.successful(Ok(view(
             schemeName = request.userAnswers.get(SchemeNameQuery).getOrElse("the scheme"),
             chargeType.toString,
-            ChargeType.fileUploadText(chargeType), submitUrl, returnUrl,getErrorCode(request),
+            ChargeType.fileUploadText(chargeType), submitUrl, returnUrl,collectErrors(),
             uir.formFields
           )))
         }
@@ -130,12 +131,23 @@ class FileUploadController @Inject()(
     ))
   }
 
-  private def getErrorCode(request: DataRequest[AnyContent]): Option[String] = {
-    if (request.queryString.contains("errorCode") && request.queryString("errorCode").nonEmpty) {
-      Some(request.queryString("errorCode").head)
-    } else {
-      None
+  private def collectErrors()(implicit request: DataRequest[AnyContent], messages: Messages): Option[ErrorMessage] = {
+    request.getQueryString("errorCode").zip(request.getQueryString("errorMessage")).flatMap {
+      case ("EntityTooLarge", _) =>
+        Some(ErrorMessage(content = Text(messages("generic.upload.error.size" , appConfig.maxUploadFileSize))))
+      case ("InvalidArgument", "'file' field not found") =>
+        Some(ErrorMessage(content = Text(messages("generic.upload.error.required"))))
+      case ("InvalidArgument", "'file' invalid file format") =>
+        Some(ErrorMessage(content = Text(messages("generic.upload.error.format"))))
+      case ("REJECTED", _) =>
+        Some(ErrorMessage(content = Text(messages("generic.upload.error.format"))))
+      case ("EntityTooSmall", _) =>
+        Some(ErrorMessage(content = Text(messages("generic.upload.error.required"))))
+      case ("QUARANTINE", _) =>
+        Some(ErrorMessage(content = Text(messages("generic.upload.error.malicious"))))
+      case ("UNKNOWN", _) =>
+        Some(ErrorMessage(content = Text(messages("generic.upload.error.unknown"))))
+      case _ => None
     }
   }
 }
-
