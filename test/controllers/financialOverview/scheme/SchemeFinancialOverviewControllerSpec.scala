@@ -73,11 +73,11 @@ class SchemeFinancialOverviewControllerSpec
     reset(mockPaymentsAndChargesService)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
-    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
+    when(mockFinancialStatementConnector.getSchemeFS(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
-    when(mockPaymentsAndChargesService.getPaymentsFromCache(any(),any())(any(),any())).
+    when(mockPaymentsAndChargesService.getPaymentsFromCache(any(),any(), any())(any(),any())).
       thenReturn(Future.successful(schemeToFinancial(schemeFSResponseAftAndOTC)))
-    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any())).
       thenReturn(Future.successful(schemeToFinancial(schemeFSResponseAftAndOTC)))
     when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
       any(), any(), any())(any())).thenReturn(Table())
@@ -90,13 +90,13 @@ class SchemeFinancialOverviewControllerSpec
     "schemeFinancialOverview" must {
 
       "return new html with information received from overview api" in {
-        when(mockPsaSchemePartialService.aftCardModel(any(), any())(any(), any()))
+        when(mockPsaSchemePartialService.aftCardModel(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(allTypesMultipleReturnsModel))
         when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
           .thenReturn(allTypesMultipleReturnsModel)
         when(mockPsaSchemePartialService.overdueAftChargesModel(any(), any())(any()))
           .thenReturn(allTypesMultipleReturnsModel)
-        when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any())(any(), any()))
+        when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
         when(mockPsaSchemePartialService.creditBalanceAmountFormatted(any()))
           .thenReturn("£1,000.00")
@@ -131,13 +131,13 @@ class SchemeFinancialOverviewControllerSpec
       }
 
       "return old html with information received from overview api" in {
-        when(mockPsaSchemePartialService.aftCardModel(any(), any())(any(), any()))
+        when(mockPsaSchemePartialService.aftCardModel(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(allTypesMultipleReturnsModel))
         when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
           .thenReturn(allTypesMultipleReturnsModel)
         when(mockPsaSchemePartialService.overdueAftChargesModel(any(), any())(any()))
           .thenReturn(allTypesMultipleReturnsModel)
-        when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any())(any(), any()))
+        when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
         when(mockPsaSchemePartialService.creditBalanceAmountFormatted(any()))
           .thenReturn("£1,000.00")

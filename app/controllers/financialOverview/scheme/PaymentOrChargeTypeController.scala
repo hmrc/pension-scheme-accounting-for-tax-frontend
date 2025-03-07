@@ -48,7 +48,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
   private def form(): Form[PaymentOrChargeType] = formProvider()
 
   def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
-    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { cache =>
+    service.getPaymentsForJourney(request.idOrException, srn, journeyType, request.isLoggedInAsPsa).flatMap { cache =>
 
         val (title, radios) = if (journeyType == History) {
           val clearedPayments = cache.schemeFSDetail.filter(_.outstandingAmount <= 0)
@@ -74,7 +74,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
     }
 
   def onSubmit(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
-    service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { cache =>
+    service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All, request.isLoggedInAsPsa).flatMap { cache =>
       form().bindFromRequest().fold(
         formWithErrors => {
 

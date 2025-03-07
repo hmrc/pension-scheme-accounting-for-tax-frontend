@@ -18,6 +18,7 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
+import data.SampleData.srn
 import models.LocalDateBinder._
 import models.SubmitterType.{PSA, PSP}
 import models.{AFTOverview, AFTOverviewVersion, AFTVersion, JourneyType, SubmitterDetails, UserAnswers, VersionsWithSubmitter}
@@ -38,11 +39,11 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
 
   private lazy val connector: AFTConnector = injector.instanceOf[AFTConnector]
   private val pstr = "test-pstr"
-  private val aftSubmitUrl = "/pension-scheme-accounting-for-tax/aft-file-return/AFTReturnSubmitted"
-  private val aftListOfVersionsUrl = "/pension-scheme-accounting-for-tax/get-versions-with-submitter"
-  private val getAftDetailsUrl = "/pension-scheme-accounting-for-tax/get-aft-details"
-  private val getIsAftNonZeroUrl = "/pension-scheme-accounting-for-tax/get-is-aft-non-zero"
-  private val aftOverview: String = "/pension-scheme-accounting-for-tax/get-aft-overview"
+  private val aftSubmitUrl = s"/pension-scheme-accounting-for-tax/aft-file-return/AFTReturnSubmitted/$srn?loggedInAsPsa=true"
+  private val aftListOfVersionsUrl = s"/pension-scheme-accounting-for-tax/get-versions-with-submitter/$srn?loggedInAsPsa=true"
+  private val getAftDetailsUrl = s"/pension-scheme-accounting-for-tax/get-aft-details/$srn?loggedInAsPsa=true"
+  private val getIsAftNonZeroUrl = s"/pension-scheme-accounting-for-tax/get-is-aft-non-zero/$srn?loggedInAsPsa=true"
+  private val aftOverview: String = s"/pension-scheme-accounting-for-tax/get-aft-overview/$srn?loggedInAsPsa=true"
 
   private val validAftOverviewResponse = Json.arr(
     Json.obj(
@@ -99,7 +100,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
           )
       )
 
-      connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN) map {
+      connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN, srn, true) map {
         _ => server.findAll(postRequestedFor(urlEqualTo(aftSubmitUrl))).size() mustBe 1
       }
     }
@@ -115,7 +116,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
       )
 
       recoverToExceptionIf[BadRequestException] {
-        connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)
+        connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN, srn, true)
       } map {
         _.responseCode mustEqual Status.BAD_REQUEST
       }
@@ -132,7 +133,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
       )
 
       recoverToExceptionIf[NotFoundException] {
-        connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)
+        connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN, srn, true)
       } map {
         _.responseCode mustEqual Status.NOT_FOUND
       }
@@ -148,7 +149,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
           )
       )
 
-      recoverToExceptionIf[ReturnAlreadySubmittedException](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)) map {
+      recoverToExceptionIf[ReturnAlreadySubmittedException](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN, srn, true)) map {
         _ => assert(true)
       }
     }
@@ -163,7 +164,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
           )
       )
 
-      recoverToExceptionIf[ReturnAlreadySubmittedException](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)) map {
+      recoverToExceptionIf[ReturnAlreadySubmittedException](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN, srn, true)) map {
         _ => assert(true)
       }
     }
@@ -185,7 +186,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
           )
       )
 
-      connector.getAFTDetails(pstr, startDate, aftVersion) map { response =>
+      connector.getAFTDetails(pstr, startDate, aftVersion, srn, true) map { response =>
         response mustBe data
       }
     }
@@ -202,7 +203,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
       )
 
       recoverToExceptionIf[BadRequestException] {
-        connector.getAFTDetails(pstr, startDate, aftVersion)
+        connector.getAFTDetails(pstr, startDate, aftVersion, srn, true)
       } map {
         _.responseCode mustEqual Status.BAD_REQUEST
       }
@@ -220,7 +221,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
       )
 
       recoverToExceptionIf[NotFoundException] {
-        connector.getAFTDetails(pstr, startDate, aftVersion)
+        connector.getAFTDetails(pstr, startDate, aftVersion, srn, true)
       } map { response =>
         response.responseCode mustEqual Status.NOT_FOUND
       }
@@ -237,7 +238,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
           )
       )
 
-      recoverToExceptionIf[UpstreamErrorResponse](connector.getAFTDetails(pstr, startDate, aftVersion)) map { response =>
+      recoverToExceptionIf[UpstreamErrorResponse](connector.getAFTDetails(pstr, startDate, aftVersion, srn, true)) map { response =>
         response.statusCode mustBe Status.INTERNAL_SERVER_ERROR
       }
     }
@@ -258,7 +259,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
           )
       )
 
-      connector.getIsAftNonZero(pstr, startDate, aftVersion) map { response =>
+      connector.getIsAftNonZero(pstr, startDate, aftVersion, srn, true) map { response =>
         response mustBe true
       }
     }
@@ -275,7 +276,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
       )
 
       recoverToExceptionIf[BadRequestException] {
-        connector.getIsAftNonZero(pstr, startDate, aftVersion)
+        connector.getIsAftNonZero(pstr, startDate, aftVersion, srn, true)
       } map {
         _.responseCode mustEqual Status.BAD_REQUEST
       }
@@ -303,7 +304,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
           )
       )
 
-      connector.getListOfVersions(pstr, SampleData.startDate) map { result =>
+      connector.getListOfVersions(pstr, SampleData.startDate, srn, true) map { result =>
         result mustBe versions
       }
     }
@@ -321,7 +322,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
           )
       )
 
-      connector.getListOfVersions(pstr, SampleData.startDate) map { result =>
+      connector.getListOfVersions(pstr, SampleData.startDate, srn, true) map { result =>
         result mustBe Seq.empty
       }
     }
@@ -337,7 +338,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
       )
 
       recoverToExceptionIf[BadRequestException] {
-        connector.getListOfVersions(pstr, SampleData.startDate)
+        connector.getListOfVersions(pstr, SampleData.startDate, srn, true)
       }.map {
         _.responseCode mustEqual Status.BAD_REQUEST
       }
@@ -353,7 +354,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
           .withHeader("endDate", equalTo("2028-06-30")).willReturn(
           aResponse().withStatus(Status.OK).withHeader("Content-Type", "application/json").withBody(validAftOverviewResponse)))
 
-      connector.getAftOverview(pstr).map(aftOverview => aftOverview mustBe aftOverviewModel)
+      connector.getAftOverview(pstr, srn, true).map(aftOverview => aftOverview mustBe aftOverviewModel)
 
     }
 
@@ -364,7 +365,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
           badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_PSTR"))))
 
       recoverToSucceededIf[BadRequestException] {
-        connector.getAftOverview(pstr)
+        connector.getAftOverview(pstr, srn, true)
       }
     }
 
@@ -375,7 +376,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
           badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_REPORT_TYPE"))))
 
       recoverToSucceededIf[BadRequestException] {
-        connector.getAftOverview(pstr)
+        connector.getAftOverview(pstr, srn, true)
       }
 
     }
@@ -385,7 +386,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
         badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_FROM_DATE"))))
 
       recoverToSucceededIf[BadRequestException] {
-        connector.getAftOverview(pstr)
+        connector.getAftOverview(pstr, srn, true)
       }
 
     }
@@ -396,7 +397,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
       val connector = injector.instanceOf[AFTConnector]
 
       recoverToSucceededIf[BadRequestException] {
-        connector.getAftOverview(pstr)
+        connector.getAftOverview(pstr, srn, true)
       }
 
     }

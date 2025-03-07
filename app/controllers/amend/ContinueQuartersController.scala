@@ -55,7 +55,7 @@ class ContinueQuartersController @Inject()(
       psaId = request.idOrException,
       srn = srn
     ) flatMap { schemeDetails =>
-      quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
+      quartersService.getInProgressQuarters(srn, schemeDetails.pstr, request.isLoggedInAsPsa).flatMap { displayQuarters =>
         if (displayQuarters.nonEmpty) {
 
           val quarters = displayQuarters.map(_.quarter)
@@ -79,8 +79,8 @@ class ContinueQuartersController @Inject()(
       psaId = request.idOrException,
       srn = srn
     ) flatMap { schemeDetails =>
-      aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
-        quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
+      aftConnector.getAftOverview(schemeDetails.pstr, srn, request.isLoggedInAsPsa).flatMap { aftOverview =>
+        quartersService.getInProgressQuarters(srn, schemeDetails.pstr, request.isLoggedInAsPsa).flatMap { displayQuarters =>
           if (displayQuarters.nonEmpty) {
 
             val quarters = displayQuarters.map(_.quarter)

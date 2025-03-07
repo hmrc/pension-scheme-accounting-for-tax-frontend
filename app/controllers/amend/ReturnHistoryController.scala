@@ -64,9 +64,10 @@ class ReturnHistoryController @Inject()(
 
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn)
-      schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
-      seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(localDateToString(startDate)), Some(endDate))
-      versions <- aftConnector.getListOfVersions(schemeDetails.pstr, startDate)
+      schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr, srn, request.isLoggedInAsPsa)
+      seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, srn, request.isLoggedInAsPsa,
+        Some(localDateToString(startDate)), Some(endDate))
+      versions <- aftConnector.getListOfVersions(schemeDetails.pstr, startDate, srn, request.isLoggedInAsPsa)
       _ <- userAnswersCacheConnector.removeAll(internalId)
       tableOfVersions <- tableOfVersions(srn, versions.sortBy(_.versionDetails.reportVersion).reverse, startDate, seqAFTOverview)
     } yield {

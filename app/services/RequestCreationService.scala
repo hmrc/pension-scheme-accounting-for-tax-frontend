@@ -85,10 +85,12 @@ class RequestCreationService @Inject()(
 
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(psaId, srn)
-      seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate))
+      seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, srn, request.isLoggedInAsPsa,
+        Some(startDate), Some(Quarters.getQuarter(startDate).endDate))
       uaWithMinPsaDetails <- updateMinimalDetailsInUa(ua.getOrElse(UserAnswers()), schemeDetails.schemeStatus)
       seqAFTOverviewPODS = seqAFTOverview.filter(_.versionDetails.isDefined).map(_.toPodsReport)
-      updatedUA <- updateUserAnswersWithAFTDetails(version, schemeDetails, startDate, accessType, uaWithMinPsaDetails, seqAFTOverviewPODS)
+      updatedUA <- updateUserAnswersWithAFTDetails(version, schemeDetails, startDate, accessType, uaWithMinPsaDetails,
+        seqAFTOverviewPODS, srn, request.isLoggedInAsPsa)
       sessionAccessData <- createSessionAccessData(version, seqAFTOverviewPODS, srn, startDate)
       userAnswers <- userAnswersCacheConnector.saveAndLock(
         id = id,
@@ -148,7 +150,7 @@ class RequestCreationService @Inject()(
 
   private def updateUserAnswersWithAFTDetails(version: Int, schemeDetails: SchemeDetails, startDate: LocalDate,
                                               accessType: AccessType, ua: UserAnswers,
-                                              seqAFTOverview: Seq[AFTOverviewOnPODS])(
+                                              seqAFTOverview: Seq[AFTOverviewOnPODS], srn: String, loggedInAsPsa: Boolean)(
                                                implicit hc: HeaderCarrier,
                                                ec: ExecutionContext): Future[UserAnswers] = {
 
@@ -175,7 +177,7 @@ class RequestCreationService @Inject()(
       }
       logger.info(s"seqAFTOverview non empty - getAftDetails will be called for version $updatedVersion")
       aftConnector
-        .getAFTDetails(schemeDetails.pstr, startDate, updatedVersion.toString)
+        .getAFTDetails(schemeDetails.pstr, startDate, updatedVersion.toString, srn, loggedInAsPsa)
         .map { aftDetails =>
           UserAnswers(ua.data ++ aftDetails.as[JsObject])
         }

@@ -103,7 +103,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     when(mockAllowAccessActionProvider.apply(any(), any(), any(), any(), any())).thenReturn(FakeActionFilter)
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
+    when(mockFinancialStatementConnector.getSchemeFS(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
 
   }
 
@@ -274,7 +274,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
         set(EmailQuery, email).getOrElse(UserAnswers())))
 
-      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
+      when(mockFinancialStatementConnector.getSchemeFS(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(schemeFSResponseWithDataForDifferentYear))
 
       val result = route(app, request).value

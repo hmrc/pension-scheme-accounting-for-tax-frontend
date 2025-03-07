@@ -55,10 +55,11 @@ class AFTOverviewController @Inject()(
       (for {
         outstandingAmount <- getOutstandingPaymentAmount(srn, AccountingForTaxCharges)
         schemeDetails <- schemeService.retrieveSchemeDetails(psaId = request.idOrException, srn)
-        quartersInProgress <- quartersService.getInProgressQuarters(srn = srn, pstr = schemeDetails.pstr)
-        allPastYears <- quartersService.getPastYears(pstr = schemeDetails.pstr)
+        quartersInProgress <- quartersService.getInProgressQuarters(srn = srn, pstr = schemeDetails.pstr, request.isLoggedInAsPsa)
+        allPastYears <- quartersService.getPastYears(pstr = schemeDetails.pstr, srn, request.isLoggedInAsPsa)
         pastYearsAndQuarters <- Future.traverse(displayYears(allPastYears))(
-          year => quartersService.getPastQuarters(pstr = schemeDetails.pstr, year = year).flatMap(quarters => Future.successful((year, quarters)))
+          year => quartersService.getPastQuarters(pstr = schemeDetails.pstr, year = year, srn = srn, request.isLoggedInAsPsa)
+            .flatMap(quarters => Future.successful((year, quarters)))
         )
       }
       yield OverviewInfo(schemeDetails, quartersInProgress, pastYearsAndQuarters, outstandingAmount)
@@ -76,8 +77,9 @@ class AFTOverviewController @Inject()(
       }
   }
 
-  private def getOutstandingPaymentAmount(srn: String, chargeTypeVal: PaymentOrChargeType)(implicit messages: Messages, request: IdentifierRequest[AnyContent]): Future[String] = {
-    paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyTypeAll).map { paymentsCache =>
+  private def getOutstandingPaymentAmount(srn: String, chargeTypeVal: PaymentOrChargeType)(implicit messages: Messages,
+                                                                                           request: IdentifierRequest[AnyContent]): Future[String] = {
+    paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyTypeAll, request.isLoggedInAsPsa).map { paymentsCache =>
       val filteredPayments: Seq[SchemeFSDetail] = paymentsCache.schemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == chargeTypeVal)
       val totalDueCharges: BigDecimal = paymentsAndChargesService.getDueCharges(filteredPayments).map(_.amountDue).sum
       val totalInterestCharges: BigDecimal = paymentsAndChargesService.getInterestCharges(filteredPayments).map(_.accruedInterestTotal).sum

@@ -44,12 +44,12 @@ class PsaSchemePartialService @Inject()(
                                          aftCacheConnector: UserAnswersCacheConnector
                                        )(implicit ec: ExecutionContext) {
 
-  def aftCardModel(schemeDetails: SchemeDetails, srn: String)
+  def aftCardModel(schemeDetails: SchemeDetails, srn: String, isLoggedInAsPsa: Boolean )
                   (implicit hc: HeaderCarrier, messages: Messages): Future[Seq[CardViewModel]] =
     for {
-      overview <- aftConnector.getAftOverview(schemeDetails.pstr)
-      startLink <- getStartReturnLink(overview, srn, schemeDetails.pstr)
-      (subHeadings, inProgressLink) <- getInProgressReturnsModel(overview, srn, schemeDetails.pstr)
+      overview <- aftConnector.getAftOverview(schemeDetails.pstr, srn, isLoggedInAsPsa)
+      startLink <- getStartReturnLink(overview, srn, schemeDetails.pstr, isLoggedInAsPsa)
+      (subHeadings, inProgressLink) <- getInProgressReturnsModel(overview, srn, schemeDetails.pstr, isLoggedInAsPsa)
     } yield Seq(CardViewModel(
       id = "aft-overview",
       heading = messages("aftPartial.head"),
@@ -62,7 +62,7 @@ class PsaSchemePartialService @Inject()(
       2. Any of the returns in their first compile have been zeroed out due to deletion of all charges
    */
 
-  private def getStartReturnLink(overview: Seq[AFTOverview], srn: String, pstr: String)
+  private def getStartReturnLink(overview: Seq[AFTOverview], srn: String, pstr: String, isLoggedInAsPsa: Boolean)
                                 (implicit hc: HeaderCarrier, messages: Messages): Future[Seq[Link]] = {
 
     val startLink: Link = Link(id = "aftLoginLink", url = appConfig.aftLoginUrl.format(srn),
@@ -81,7 +81,7 @@ class PsaSchemePartialService @Inject()(
       Future.successful(Seq(startLink))
     } else {
       val reportsOnPODS = overview.filter(_.versionDetails.isDefined).map(_.toPodsReport)
-      retrieveZeroedOutReturns(reportsOnPODS, pstr).map {
+      retrieveZeroedOutReturns(reportsOnPODS, pstr, srn, isLoggedInAsPsa).map {
         case zeroedReturns if zeroedReturns.nonEmpty => Seq(startLink) //if any returns in first compile are zeroed out, display start link
         case _ => Nil
       }
@@ -90,12 +90,12 @@ class PsaSchemePartialService @Inject()(
 
   /* Returns a seq of the aftReturns in their first compile that have been zeroed out due to deletion of all charges
   */
-  private def retrieveZeroedOutReturns(overview: Seq[AFTOverviewOnPODS], pstr: String)
+  private def retrieveZeroedOutReturns(overview: Seq[AFTOverviewOnPODS], pstr: String, srn: String, isLoggedInAsPsa: Boolean)
                                       (implicit hc: HeaderCarrier): Future[Seq[AFTOverviewOnPODS]] = {
     val firstCompileReturns = overview.filter(_.compiledVersionAvailable).filter(_.numberOfVersions == 1)
 
     Future.sequence(firstCompileReturns.map(aftReturn =>
-      aftConnector.getIsAftNonZero(pstr, aftReturn.periodStartDate.toString, "1"))).map {
+      aftConnector.getIsAftNonZero(pstr, aftReturn.periodStartDate.toString, "1", srn, isLoggedInAsPsa))).map {
       isNonZero => (firstCompileReturns zip isNonZero).filter(!_._2).map(_._1)
     }
   }
@@ -117,7 +117,8 @@ class PsaSchemePartialService @Inject()(
 
   private def getInProgressReturnsModel(overview: Seq[AFTOverview],
                                         srn: String,
-                                        pstr: String
+                                        pstr: String,
+                                        isLoggedInAsPsa: Boolean
                                        )(implicit hc: HeaderCarrier, messages: Messages): Future[(Seq[CardSubHeading], Seq[Link])] = {
     val inProgressReturns = overview.filter(_.versionDetails.isDefined)
       .map(_.toPodsReport).filter(_.compiledVersionAvailable)
@@ -127,7 +128,7 @@ class PsaSchemePartialService @Inject()(
       val endDate: LocalDate = Quarters.getQuarter(startDate).endDate
 
       if (inProgressReturns.head.numberOfVersions == 1) {
-        aftConnector.getIsAftNonZero(pstr, startDate.toString, "1").flatMap {
+        aftConnector.getIsAftNonZero(pstr, startDate.toString, "1", srn, isLoggedInAsPsa).flatMap {
           case true => modelForSingleInProgressReturn(srn, startDate, endDate, inProgressReturns.head)
           case _ => Future.successful((Nil, Nil))
         }
@@ -136,7 +137,7 @@ class PsaSchemePartialService @Inject()(
       }
 
     } else if (inProgressReturns.nonEmpty) {
-      modelForMultipleInProgressReturns(srn, pstr, inProgressReturns)
+      modelForMultipleInProgressReturns(srn, pstr, inProgressReturns, isLoggedInAsPsa)
     } else {
       Future.successful((Nil, Nil))
     }
@@ -181,10 +182,11 @@ class PsaSchemePartialService @Inject()(
   private def modelForMultipleInProgressReturns(
                                                  srn: String,
                                                  pstr: String,
-                                                 inProgressReturns: Seq[AFTOverviewOnPODS]
+                                                 inProgressReturns: Seq[AFTOverviewOnPODS],
+                                                 isLoggedInAsPsa: Boolean
                                                )(implicit hc: HeaderCarrier,
                                                  messages: Messages): Future[(Seq[CardSubHeading], Seq[Link])] =
-    retrieveZeroedOutReturns(inProgressReturns, pstr).map { zeroedReturns =>
+    retrieveZeroedOutReturns(inProgressReturns, pstr, srn, isLoggedInAsPsa).map { zeroedReturns =>
       val countInProgress: Int = inProgressReturns.size - zeroedReturns.size
       if (countInProgress > 0) {
         (

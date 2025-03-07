@@ -50,7 +50,7 @@ class PaymentsAndChargesController @Inject()(
   def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
-        paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap {
+        paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType, request.isLoggedInAsPsa).flatMap {
           paymentsCache =>
             val overdueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(paymentsCache.schemeFSDetail)
             val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(paymentsCache.schemeFSDetail)

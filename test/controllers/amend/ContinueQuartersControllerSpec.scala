@@ -71,9 +71,9 @@ class ContinueQuartersControllerSpec extends ControllerSpecBase with JsonMatcher
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
+    when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq(aftOverviewQ22020, aftOverviewQ32020, aftOverviewQ42020)))
-    when(mockQuartersService.getInProgressQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
+    when(mockQuartersService.getInProgressQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
@@ -100,7 +100,7 @@ class ContinueQuartersControllerSpec extends ControllerSpecBase with JsonMatcher
     }
 
     "redirect to session expired page when quarters service returns an empty list" in {
-      when(mockQuartersService.getInProgressQuarters(any(), any())(any(), any())).thenReturn(Future.successful(Nil))
+      when(mockQuartersService.getInProgressQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
@@ -126,7 +126,7 @@ class ContinueQuartersControllerSpec extends ControllerSpecBase with JsonMatcher
     }
 
     "redirect to session expired page when there quarters service returns an empty list for a POST" in {
-      when(mockQuartersService.getInProgressQuarters(any(), any())(any(), any())).thenReturn(Future.successful(Nil))
+      when(mockQuartersService.getInProgressQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER

@@ -129,7 +129,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
               ua3.data,
               chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance),
               memberNo = Some(index.id))
-            _ <- aftService.fileCompileReturn(pstr, ua2)
+            _ <- aftService.fileCompileReturn(pstr, ua2, srn)
           } yield {
             Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
           }) recoverWith recoverFrom5XX(srn, startDate)

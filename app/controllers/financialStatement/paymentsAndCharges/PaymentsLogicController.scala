@@ -37,7 +37,7 @@ class PaymentsLogicController @Inject()(override val messagesApi: MessagesApi,
     with I18nSupport {
 
   def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
-    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
+    service.getPaymentsForJourney(request.idOrException, srn, journeyType, request.isLoggedInAsPsa).flatMap { paymentsCache =>
       navService.navFromSchemeDashboard(paymentsCache.schemeFSDetail, srn, journeyType)
     }
   }

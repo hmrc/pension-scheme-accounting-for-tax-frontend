@@ -46,7 +46,7 @@ class AFTAmendController @Inject()(
       psaId = request.idOrException,
       srn = srn
     ) flatMap { schemeDetails =>
-      aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
+      aftConnector.getAftOverview(schemeDetails.pstr, srn, request.isLoggedInAsPsa).flatMap { aftOverview =>
         val futureResult = if (aftOverview.nonEmpty) {
           val yearsSeq = aftOverview.map(_.periodStartDate.getYear).distinct.sorted
 

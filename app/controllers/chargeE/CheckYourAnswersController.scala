@@ -102,7 +102,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           })
           _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAnnualAllowance), memberNo = Some(index.id))
           _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAnnualAllowance))
-          _ <- aftService.fileCompileReturn(pstr, updatedAnswers)
+          _ <- aftService.fileCompileReturn(pstr, updatedAnswers, srn)
         } yield {
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         }

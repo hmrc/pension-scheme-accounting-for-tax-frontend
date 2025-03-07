@@ -32,9 +32,9 @@ class QuartersService @Inject()(
                                  userAnswersCacheConnector: UserAnswersCacheConnector
                                ) extends CommonQuarters {
 
-  def getPastQuarters(pstr: String, year: Int)
+  def getPastQuarters(pstr: String, year: Int, srn: String, isLoggedInAsPsa: Boolean)
                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayQuarter]] = {
-    aftConnector.getAftOverview(pstr).map { aftOverview =>
+    aftConnector.getAftOverview(pstr, srn, isLoggedInAsPsa).map { aftOverview =>
       if (aftOverview.nonEmpty) {
 
         aftOverview
@@ -53,9 +53,9 @@ class QuartersService @Inject()(
     }
   }
 
-  def getPastYears(pstr: String)
+  def getPastYears(pstr: String, srn: String, isLoggedInAsPsa: Boolean)
     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Int]] = {
-    aftConnector.getAftOverview(pstr).map (
+    aftConnector.getAftOverview(pstr, srn, isLoggedInAsPsa).map (
       _.filter(_.versionDetails.isDefined)
         .map(_.toPodsReport).filter(_.submittedVersionAvailable)
         .map(overviewElement => Quarters.getQuarter(overviewElement.periodStartDate).startDate.getYear)
@@ -63,9 +63,9 @@ class QuartersService @Inject()(
     )
   }
 
-  def getInProgressQuarters(srn: String, pstr: String)
+  def getInProgressQuarters(srn: String, pstr: String, isLoggedInAsPsa: Boolean)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayQuarter]] = {
-    aftConnector.getAftOverview(pstr).flatMap { aftOverview =>
+    aftConnector.getAftOverview(pstr, srn, isLoggedInAsPsa).flatMap { aftOverview =>
       if (aftOverview.nonEmpty) {
 
         val displayQuarters: Seq[Future[Seq[DisplayQuarter]]] =
@@ -86,7 +86,9 @@ class QuartersService @Inject()(
                     aftConnector.getIsAftNonZero(
                       pstr,
                       overviewElement.periodStartDate.toString,
-                      "1"
+                      "1",
+                      srn,
+                      isLoggedInAsPsa
                     ).map {
                       case true =>
                         Seq(DisplayQuarter(
@@ -110,9 +112,9 @@ class QuartersService @Inject()(
     }
   }
 
-  def getStartQuarters(srn: String, pstr: String, year: Int)
+  def getStartQuarters(srn: String, pstr: String, year: Int, isLoggedInAsPsa: Boolean)
                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayQuarter]] = {
-    aftConnector.getAftOverview(pstr).flatMap { aftOverview =>
+    aftConnector.getAftOverview(pstr, srn, isLoggedInAsPsa).flatMap { aftOverview =>
       if (aftOverview.nonEmpty) {
 
         val displayQuarters: Seq[Future[Seq[DisplayQuarter]]] = availableQuarters(year)(config).map { x => // Q1, Q2
@@ -130,7 +132,7 @@ class QuartersService @Inject()(
                   if (podsReportsForQuarter.head.submittedVersionAvailable) {
                     Future.successful(Seq(DisplayQuarter(availableQuarter, displayYear = false, None, Some(SubmittedHint))))
                   } else {
-                    aftConnector.getIsAftNonZero(pstr, podsReportsForQuarter.head.periodStartDate.toString, "1").map {
+                    aftConnector.getIsAftNonZero(pstr, podsReportsForQuarter.head.periodStartDate.toString, "1", srn, isLoggedInAsPsa).map {
                       case true =>
                         Seq(DisplayQuarter(availableQuarter, displayYear = false, None, Some(InProgressHint)))
                       case _ =>

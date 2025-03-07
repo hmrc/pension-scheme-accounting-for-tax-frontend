@@ -65,7 +65,7 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with BeforeAndAfte
 
       val sampleData = generateSampleData(1)
 
-      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
+      when(mockAFTConnector.getAftOverview(any(), any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(sampleData))
 
       val result = route(application, httpGETRequest(httpPathGET)).value
@@ -89,7 +89,7 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with BeforeAndAfte
 
       val sampleData = generateSampleData(5)
 
-      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
+      when(mockAFTConnector.getAftOverview(any(), any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(sampleData))
 
 

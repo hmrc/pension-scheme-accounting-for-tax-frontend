@@ -59,7 +59,7 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
     for {
       psaOrPspName <- minimalConnector.getPsaOrPspName
       schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn)
-      creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
+      creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr, srn, request.isLoggedInAsPsa)
     } yield {
       if (creditSchemeFS.inhibitRefundSignal) {
         controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url

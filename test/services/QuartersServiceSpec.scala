@@ -47,14 +47,14 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
   override def beforeEach(): Unit = {
     reset(mockAftConnector)
     reset(mockUserAnswersConnector)
-    when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
+    when(mockAftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(Nil))
     when(mockUserAnswersConnector.lockDetail(any(), any())(any(), any())).thenReturn(Future.successful(None))
   }
 
   "getPastQuarters" must {
     "give all quarters for a given year for which return has been submitted when all returns are for a single year" in {
-      when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(pastOneYear))
-      whenReady(quartersService.getPastQuarters(pstr, year2020)) { result =>
+      when(mockAftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(pastOneYear))
+      whenReady(quartersService.getPastQuarters(pstr, year2020, srn, true)) { result =>
         result mustBe Seq(
           DisplayQuarter(q22020, displayYear = true, None, None),
           DisplayQuarter(q42020, displayYear = true, None, None)
@@ -63,8 +63,8 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
     }
 
     "give all quarters for a given year for which return has been submitted when returns are for multiple years" in {
-      when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(pastMultipleYears))
-      whenReady(quartersService.getPastQuarters(pstr, year2020)) { result =>
+      when(mockAftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(pastMultipleYears))
+      whenReady(quartersService.getPastQuarters(pstr, year2020, srn, true)) { result =>
         result mustBe Seq(
           DisplayQuarter(q22020, displayYear = false, None, None),
           DisplayQuarter(q42020, displayYear = false, None, None)
@@ -73,7 +73,7 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
     }
 
     "give an empty list if overview api returns an empty list" in {
-      whenReady(quartersService.getPastQuarters(pstr, year2020)) { result =>
+      whenReady(quartersService.getPastQuarters(pstr, year2020, srn, true)) { result =>
         result mustBe Nil
       }
     }
@@ -81,21 +81,21 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
 
   "getPastYears" must {
     "give all years for which return has been submitted when all returns are for a single year" in {
-      when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(pastOneYear))
-      whenReady(quartersService.getPastYears(pstr)) { result =>
+      when(mockAftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(pastOneYear))
+      whenReady(quartersService.getPastYears(pstr, srn, true)) { result =>
         result mustBe Seq(2020)
       }
     }
 
     "give all years for which return has been submitted when returns are for multiple years" in {
-      when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(pastMultipleYears))
-      whenReady(quartersService.getPastYears(pstr)) { result =>
+      when(mockAftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(pastMultipleYears))
+      whenReady(quartersService.getPastYears(pstr, srn, true)) { result =>
         result mustBe Seq(2020, 2021)
       }
     }
 
     "give an empty list if overview api returns an empty list" in {
-      whenReady(quartersService.getPastYears(pstr)) { result =>
+      whenReady(quartersService.getPastYears(pstr, srn, true)) { result =>
         result mustBe Nil
       }
     }
@@ -104,12 +104,12 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
   "getInProgressQuarters" must {
     "give all quarters which are currently in progress when one of them is locked and one is unlocked and" +
       "skip quarters (q1 2021) which are in their first compile and zeroed out" in {
-      when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(inProgress))
-      when(mockAftConnector.getIsAftNonZero(any(), ArgumentMatchers.eq(q12021.startDate.toString), any())(any(), any()))
+      when(mockAftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(inProgress))
+      when(mockAftConnector.getIsAftNonZero(any(), ArgumentMatchers.eq(q12021.startDate.toString), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(false))
       when(mockUserAnswersConnector.lockDetail(any(), ArgumentMatchers.eq(q32020.startDate.toString))(any(), any()))
         .thenReturn(Future.successful(Some(LockDetail(psaName, psaId))))
-      whenReady(quartersService.getInProgressQuarters(srn, pstr)) { result =>
+      whenReady(quartersService.getInProgressQuarters(srn, pstr, true)) { result =>
         result mustBe Seq(
           DisplayQuarter(q32020, displayYear = true, Some(psaName), Some(LockedHint)),
           DisplayQuarter(q42020, displayYear = true, None, Some(InProgressHint))
@@ -118,7 +118,7 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
     }
 
     "give an empty list if overview api returns an empty list" in {
-      whenReady(quartersService.getInProgressQuarters(srn, pstr)) { result =>
+      whenReady(quartersService.getInProgressQuarters(srn, pstr, true)) { result =>
         result mustBe Nil
       }
     }
@@ -126,12 +126,12 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
 
   "getStartQuarters" must {
     "give all quarters which are not started yet and the ones currently in progress when one of them is locked and one is unlocked" in {
-      when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(startQuartersInProgress))
-      when(mockAftConnector.getIsAftNonZero(any(), any(), any())(any(), any())).thenReturn(Future.successful(true))
+      when(mockAftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(startQuartersInProgress))
+      when(mockAftConnector.getIsAftNonZero(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(true))
       when(mockUserAnswersConnector.lockDetail(any(), ArgumentMatchers.eq(q32020.startDate.toString))(any(), any()))
         .thenReturn(Future.successful(Some(LockDetail(psaName, psaId))))
       DateHelper.setDate(Some(newDate))
-      whenReady(quartersService.getStartQuarters(srn, pstr, year2020)) { result =>
+      whenReady(quartersService.getStartQuarters(srn, pstr, year2020, true)) { result =>
         result mustBe Seq(
           DisplayQuarter(q22020, displayYear = false, None, None),
           DisplayQuarter(q32020, displayYear = false, Some(psaName), Some(LockedHint)),
@@ -141,12 +141,12 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
     }
 
     "give all quarters which are not started yet and the ones currently in progress when one of them is locked and one is unlocked but zeroed out" in {
-      when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(startQuartersInProgress))
-      when(mockAftConnector.getIsAftNonZero(any(), any(), any())(any(), any())).thenReturn(Future.successful(false))
+      when(mockAftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(startQuartersInProgress))
+      when(mockAftConnector.getIsAftNonZero(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(false))
       when(mockUserAnswersConnector.lockDetail(any(), ArgumentMatchers.eq(q32020.startDate.toString))(any(), any()))
         .thenReturn(Future.successful(Some(LockDetail(psaName, psaId))))
       DateHelper.setDate(Some(newDate))
-      whenReady(quartersService.getStartQuarters(srn, pstr, year2020)) { result =>
+      whenReady(quartersService.getStartQuarters(srn, pstr, year2020, true)) { result =>
         result mustBe Seq(
           DisplayQuarter(q22020, displayYear = false, None, None),
           DisplayQuarter(q32020, displayYear = false, Some(psaName), Some(LockedHint)),
@@ -156,9 +156,9 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
     }
 
     "give all quarters submitted in the past" in {
-      when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(startQuartersCurrentAndPast))
-      when(mockAftConnector.getIsAftNonZero(any(), any(), any())(any(), any())).thenReturn(Future.successful(true))
-      whenReady(quartersService.getStartQuarters(srn, pstr, year2020)) { result =>
+      when(mockAftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(startQuartersCurrentAndPast))
+      when(mockAftConnector.getIsAftNonZero(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(true))
+      whenReady(quartersService.getStartQuarters(srn, pstr, year2020, true)) { result =>
         result mustBe Seq(
           DisplayQuarter(q22020, displayYear = false, None, Some(SubmittedHint)),
           DisplayQuarter(q32020, displayYear = false, None, None),
@@ -168,7 +168,7 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
     }
 
     "give display all available quarters to start if overview api returns an empty list" in {
-      whenReady(quartersService.getStartQuarters(srn, pstr, year2020)) { result =>
+      whenReady(quartersService.getStartQuarters(srn, pstr, year2020, true)) { result =>
         result mustBe Seq(
           DisplayQuarter(q22020, displayYear = false, None, None),
           DisplayQuarter(q32020, displayYear = false, None, None),
