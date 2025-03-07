@@ -110,7 +110,6 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
         title = messages("penaltyType.title"),
         psaName = "psa-name",
         submitCall = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.All),
-        buttonText = messages("site.save_and_continue"),
         returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
         radios = PenaltyType.radiosWithHint(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
         journeyType = ChargeDetailsFilter.All
@@ -131,7 +130,6 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
         title = messages("financial.overview.historyChargeType.title"),
         psaName = "psa-name",
         submitCall = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.History),
-        buttonText = messages("site.continue"),
         returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
         radios = PenaltyType.radios(form, displayPenalties, areLabelsBold = false),
         journeyType = ChargeDetailsFilter.History
