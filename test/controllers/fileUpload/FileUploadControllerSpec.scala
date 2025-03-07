@@ -34,6 +34,7 @@ import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, status, _}
 import services.fileUpload.UploadProgressTracker
+import uk.gov.hmrc.govukfrontend.views.Aliases.{ErrorMessage, Text}
 import views.html.fileUpload.FileUploadView
 
 import java.time.LocalDateTime
@@ -92,6 +93,190 @@ class FileUploadControllerSpec extends ControllerSpecBase with JsonMatchers {
     "return OK and the correct view for a GET" in {
       val request = FakeRequest(GET, controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
 
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
+      when(mockUpscanInitiateConnector.initiateV2(any(), any(), any())(any(), any())).thenReturn(Future.successful(upscanInitiateResponse))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      val submitUrl = Call("POST",upscanInitiateResponse.postTarget)
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+
+      val view = application.injector.instanceOf[FileUploadView].apply(
+        schemeName, chargeType.toString,ChargeType.fileUploadText(chargeType), submitUrl,
+        returnUrl, None,formFieldsMap)(request, messages)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      compareResultAndView(result, view)
+    }
+
+    "return view with EntityTooLarge error" in {
+      val url = controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
+      val queryString = "?errorCode=EntityTooLarge&errorMessage=FileExceededLimit"
+      val request = FakeRequest(GET, s"$url$queryString")
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
+      when(mockUpscanInitiateConnector.initiateV2(any(), any(), any())(any(), any())).thenReturn(Future.successful(upscanInitiateResponse))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      val submitUrl = Call("POST",upscanInitiateResponse.postTarget)
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+
+      val view = application.injector.instanceOf[FileUploadView].apply(
+        schemeName, chargeType.toString,ChargeType.fileUploadText(chargeType), submitUrl,
+        returnUrl, Some(ErrorMessage(content = Text(messages("generic.upload.error.size" , 4 * 1024 * 1024)))),formFieldsMap)(request, messages)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      compareResultAndView(result, view)
+    }
+
+    "return view with InvalidArgument error" in {
+      val url = controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
+      val queryString = "?errorCode=InvalidArgument&errorMessage='file' field not found"
+      val request = FakeRequest(GET, s"$url$queryString")
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
+      when(mockUpscanInitiateConnector.initiateV2(any(), any(), any())(any(), any())).thenReturn(Future.successful(upscanInitiateResponse))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      val submitUrl = Call("POST",upscanInitiateResponse.postTarget)
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+
+      val view = application.injector.instanceOf[FileUploadView].apply(
+        schemeName, chargeType.toString,ChargeType.fileUploadText(chargeType), submitUrl,
+        returnUrl, Some(ErrorMessage(content = Text(messages("generic.upload.error.required")))),formFieldsMap)(request, messages)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      compareResultAndView(result, view)
+    }
+
+    "return view with InvalidArgument-format error" in {
+      val url = controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
+      val queryString = "?errorCode=InvalidArgument&errorMessage='file' invalid file format"
+      val request = FakeRequest(GET, s"$url$queryString")
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
+      when(mockUpscanInitiateConnector.initiateV2(any(), any(), any())(any(), any())).thenReturn(Future.successful(upscanInitiateResponse))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      val submitUrl = Call("POST",upscanInitiateResponse.postTarget)
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+
+      val view = application.injector.instanceOf[FileUploadView].apply(
+        schemeName, chargeType.toString,ChargeType.fileUploadText(chargeType), submitUrl,
+        returnUrl, Some(ErrorMessage(content = Text(messages("generic.upload.error.format")))),formFieldsMap)(request, messages)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      compareResultAndView(result, view)
+    }
+
+    "return view with EntityTooSmall error" in {
+      val url = controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
+      val queryString = "?errorCode=EntityTooSmall&errorMessage=FileTooSmall"
+      val request = FakeRequest(GET, s"$url$queryString")
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
+      when(mockUpscanInitiateConnector.initiateV2(any(), any(), any())(any(), any())).thenReturn(Future.successful(upscanInitiateResponse))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      val submitUrl = Call("POST",upscanInitiateResponse.postTarget)
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+
+      val view = application.injector.instanceOf[FileUploadView].apply(
+        schemeName, chargeType.toString,ChargeType.fileUploadText(chargeType), submitUrl,
+        returnUrl, Some(ErrorMessage(content = Text(messages("generic.upload.error.required")))),formFieldsMap)(request, messages)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      compareResultAndView(result, view)
+    }
+
+    "return view with REJECTED error" in {
+      val url = controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
+      val queryString = "?errorCode=REJECTED&errorMessage=REJECTED"
+      val request = FakeRequest(GET, s"$url$queryString")
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
+      when(mockUpscanInitiateConnector.initiateV2(any(), any(), any())(any(), any())).thenReturn(Future.successful(upscanInitiateResponse))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      val submitUrl = Call("POST",upscanInitiateResponse.postTarget)
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+
+      val view = application.injector.instanceOf[FileUploadView].apply(
+        schemeName, chargeType.toString,ChargeType.fileUploadText(chargeType), submitUrl,
+        returnUrl, Some(ErrorMessage(content = Text(messages("generic.upload.error.format")))),formFieldsMap)(request, messages)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      compareResultAndView(result, view)
+    }
+
+    "return view with QUARANTINE error" in {
+      val url = controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
+      val queryString = "?errorCode=QUARANTINE&errorMessage=QUARANTINE"
+      val request = FakeRequest(GET, s"$url$queryString")
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
+      when(mockUpscanInitiateConnector.initiateV2(any(), any(), any())(any(), any())).thenReturn(Future.successful(upscanInitiateResponse))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      val submitUrl = Call("POST",upscanInitiateResponse.postTarget)
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+
+      val view = application.injector.instanceOf[FileUploadView].apply(
+        schemeName, chargeType.toString,ChargeType.fileUploadText(chargeType), submitUrl,
+        returnUrl, Some(ErrorMessage(content = Text(messages("generic.upload.error.malicious")))),formFieldsMap)(request, messages)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      compareResultAndView(result, view)
+    }
+
+    "return view with UNKNOWN error" in {
+      val url = controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
+      val queryString = "?errorCode=UNKNOWN&errorMessage=UNKNOWN"
+      val request = FakeRequest(GET, s"$url$queryString")
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
+      when(mockUpscanInitiateConnector.initiateV2(any(), any(), any())(any(), any())).thenReturn(Future.successful(upscanInitiateResponse))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      val submitUrl = Call("POST",upscanInitiateResponse.postTarget)
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+
+      val view = application.injector.instanceOf[FileUploadView].apply(
+        schemeName, chargeType.toString,ChargeType.fileUploadText(chargeType), submitUrl,
+        returnUrl, Some(ErrorMessage(content = Text(messages("generic.upload.error.unknown")))),formFieldsMap)(request, messages)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      compareResultAndView(result, view)
+    }
+
+    "return view and ignore upscan error" in {
+      val url = controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
+      val queryString = "?errorCode=SomeOtherKey&errorMessage=UNKNOWN"
+      val request = FakeRequest(GET, s"$url$queryString")
       fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
       when(mockUpscanInitiateConnector.initiateV2(any(), any(), any())(any(), any())).thenReturn(Future.successful(upscanInitiateResponse))
 
