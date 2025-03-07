@@ -26,7 +26,6 @@
     title: String,
     submitCall: Call,
     psaName: String,
-    buttonText: String,
     returnUrl: String,
     radios: Seq[RadioItem],
     journeyType: String)(implicit request: Request[_], messages: Messages)
@@ -67,7 +66,7 @@
 
 
             @govukButton(
-                ButtonViewModel(Text(buttonText)).asFormSubmit
+                ButtonViewModel(Text(messages("site.continue"))).asFormSubmit
               )
             }
 

@@ -21,7 +21,6 @@ import uk.gov.hmrc.domain.Nino
 import utils.DateHelper
 
 import java.time.LocalDate
-import scala.concurrent.duration.DurationInt
 
 trait Constraints {
   private val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
