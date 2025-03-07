@@ -188,6 +188,30 @@ class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
       compareResultAndView(result, view)
     }
 
+    "return OK and the correct view for a GET with onPageLoadWithPageNo" in {
+      when(mockMemberPaginationService
+        .getItemsPaginated(pageCaptor.capture(), any(), any(), any(), any()))
+        .thenReturn(expectedPaginatedMembersInfo)
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+      def httpPathGET: String = controllers.chargeE.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, versionInt, 2).url
+
+      val request = httpGETRequest(httpPathGET)
+
+      val  viewModel = getAddMembersViewModel(1)
+      val view = application.injector.instanceOf[AddMembersView].apply(
+        form,
+        viewModel,
+        controllers.chargeD.routes.AddMembersController.onSubmit(srn, startDate, accessType, versionInt, 2),
+        table = tableTemp, pageLinksSeq = dummyPagerNavSeq
+      )(request, messages)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      compareResultAndView(result, view)
+    }
+
     "return OK and the correct view for a GET with page no 2" in {
       when(mockMemberPaginationService
         .getItemsPaginated(pageCaptor.capture(), any(), any(), any(), any()))
