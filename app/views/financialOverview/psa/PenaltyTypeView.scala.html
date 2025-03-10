@@ -37,13 +37,18 @@
             @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
                 @if(journeyType == "history") {
                     <span class="govuk-caption-xl">@psaName</span>
-                    <h1 class="govuk-heading-xl">@title</h1>
 
                     @govukRadios(
                         RadiosViewModel(
                             form("value"),
                             items = radios,
-                            fieldset = Fieldset(legend = None)
+                            fieldset = Fieldset(
+                                legend = Some(Legend(
+                                    content = Text(title),
+                                    isPageHeading = true,
+                                    classes = "govuk-fieldset__legend--xl govuk-!-margin-bottom-8",
+                                ))
+                            )
                         )
                     )
                 } else {
