@@ -140,7 +140,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(answersIndividual))
 
@@ -162,14 +162,14 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
         .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
 
       verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(ArgumentMatchers.eq(pstr),
-        ArgumentMatchers.eq(expectedUA))(any(), any(), any())
+        ArgumentMatchers.eq(expectedUA), ArgumentMatchers.eq(srn))(any(), any(), any())
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted organisation marked as deleted" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(answersOrg))
 
@@ -192,12 +192,12 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
           .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
 
       verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(ArgumentMatchers.eq(pstr),
-        ArgumentMatchers.eq(expectedUA))(any(), any(), any())
+        ArgumentMatchers.eq(expectedUA), ArgumentMatchers.eq(srn))(any(), any(), any())
     }
 
     "redirect to your action was not processed page for a POST if 5XX error is thrown" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(answersOrg))
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any()))
         .thenReturn(Future.failed(UpstreamErrorResponse("serviceUnavailable", SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE)))
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", "true"))
 

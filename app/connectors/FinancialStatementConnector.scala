@@ -19,6 +19,7 @@ package connectors
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.financialStatement._
+import org.apache.pekko.http.scaladsl.model.Uri
 import play.api.http.Status._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -71,10 +72,15 @@ class FinancialStatementConnector @Inject()(httpClientV2: HttpClientV2, config: 
     }
   }
 
-  def getSchemeFS(pstr: String)
-                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeFS] = {
+  private def makeQueryString(queryParams: Seq[(String, Boolean)]): String = {
+    val paramPairs = queryParams.map { case (k, v) => s"$k=$v" }
+    if (paramPairs.isEmpty) "" else paramPairs.mkString("?", "&", "")
+  }
 
-    val url = url"${config.schemeFinancialStatementUrl}"
+  def getSchemeFS(pstr: String, srn: String, loggedInAsPsa: Boolean)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeFS] = {
+    val url = url"${Uri({config.schemeFinancialStatementUrl.format(srn)})
+              .withQuery(Uri.Query("loggedInAsPsa" -> s"$loggedInAsPsa"))}"
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
     httpClientV2
       .get(url)(schemeHc)
@@ -92,10 +98,10 @@ class FinancialStatementConnector @Inject()(httpClientV2: HttpClientV2, config: 
       }
   }
 
-  def getSchemeFSPaymentOnAccount(pstr: String)
+  def getSchemeFSPaymentOnAccount(pstr: String, srn: String, loggedInAsPsa: Boolean)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeFS] = {
-
-    val url = url"${config.schemeFinancialStatementUrl}"
+    val url = url"${Uri(config.schemeFinancialStatementUrl.format(srn))
+                  .withQuery(Uri.Query("loggedInAsPsa" -> s"$loggedInAsPsa"))}"
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
     httpClientV2
       .get(url)(schemeHc)

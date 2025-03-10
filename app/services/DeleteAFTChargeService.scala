@@ -34,11 +34,11 @@ class DeleteAFTChargeService @Inject()(
     deleteChargeHelper: DeleteChargeHelper
 ) {
 
-  def deleteAndFileAFTReturn[A](pstr: String, answers: UserAnswers)(
+  def deleteAndFileAFTReturn[A](pstr: String, answers: UserAnswers, srn: String)(
     implicit ec: ExecutionContext,
     hc: HeaderCarrier,
     request: DataRequest[AnyContent]): Future[Unit] = {
-    aftService.fileCompileReturn(pstr, answers).flatMap { _ =>
+    aftService.fileCompileReturn(pstr, answers, srn).flatMap { _ =>
       if (deleteChargeHelper.allChargesDeletedOrZeroed(answers) && !request.isAmendment) {
        userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
       } else {

@@ -130,12 +130,13 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with JsonMatchers {
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
-    when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(versions))
-    when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(multipleVersions))
+    when(mockAFTConnector.getListOfVersions(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(versions))
+    when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(multipleVersions))
     when(mockUserAnswersCacheConnector.lockDetail(any(), any())(any(), any())).thenReturn(Future.successful(None))
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq.empty)))  }
+    when(mockFinancialStatementConnector.getSchemeFS(any(), any(), any())(any(), any()))
+      .thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq.empty)))  }
 
   "ReturnHistory Controller" must {
     "return OK and the correct view for a GET" in {
@@ -159,7 +160,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with JsonMatchers {
     }
 
     "return OK and the correct view with payment and charges URL for a GET where there is scheme fin info" in {
-      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
+      when(mockFinancialStatementConnector.getSchemeFS(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(SampleData.schemeFSResponseAftAndOTC))
 
       val result = route(application, httpGETRequest(httpPathGET)).value

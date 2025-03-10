@@ -80,7 +80,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with JsonMatchers
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC.seqSchemeFSDetail)))
     when(mockPaymentsAndChargesService.getTypeParam(any())(any())).thenReturn("event reporting")
   }
@@ -120,7 +120,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with JsonMatchers
 
     "redirect to next page when valid data is submitted and multiple quarters are found for the selected year" in {
       val schemeFSDetail = schemeFSResponseAftAndOTC.seqSchemeFSDetail.head.copy(periodStartDate = Some(LocalDate.parse("2020-07-01")))
-      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC.seqSchemeFSDetail :+ schemeFSDetail)))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value

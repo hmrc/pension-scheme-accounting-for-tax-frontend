@@ -74,7 +74,7 @@ class AFTAmendControllerSpec extends ControllerSpecBase with JsonMatchers
     "on a GET" must {
 
       "return to AmendYears page if more than 1 years are available to choose from" in {
-        when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(overview1, overview2, overview3)))
+        when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(Seq(overview1, overview2, overview3)))
         val result = route(application, httpGETRequest(httpPathGET)).value
         val eventCaptor = ArgumentCaptor.forClass(classOf[StartAmendAFTAuditEvent])
 
@@ -85,7 +85,7 @@ class AFTAmendControllerSpec extends ControllerSpecBase with JsonMatchers
       }
 
       "return to Quarters page if 1 year and more than 1 quarters are available to choose from" in {
-        when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(overview1, overview2)))
+        when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(Seq(overview1, overview2)))
         val result = route(application, httpGETRequest(httpPathGET)).value
         val eventCaptor = ArgumentCaptor.forClass(classOf[StartAmendAFTAuditEvent])
 
@@ -96,7 +96,7 @@ class AFTAmendControllerSpec extends ControllerSpecBase with JsonMatchers
       }
 
       "return to ReturnHistory page if exactly 1 year and 1 quarter are available to choose from" in {
-        when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(overview1)))
+        when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(Seq(overview1)))
 
         val result = route(application, httpGETRequest(httpPathGET)).value
         val eventCaptor = ArgumentCaptor.forClass(classOf[StartAmendAFTAuditEvent])
@@ -108,7 +108,7 @@ class AFTAmendControllerSpec extends ControllerSpecBase with JsonMatchers
       }
 
       "redirect to Session Expired page if there is no data returned from overview" in {
-        when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
+        when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(Nil))
 
         val result = route(application, httpGETRequest(httpPathGET)).value
         val eventCaptor = ArgumentCaptor.forClass(classOf[StartAmendAFTAuditEvent])

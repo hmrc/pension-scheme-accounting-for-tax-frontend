@@ -74,9 +74,9 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
 
     when(mockPaymentsAndChargesService.getDueCharges(any()))
       .thenReturn(schemeFSResponse)
-    when(mockQuartersService.getInProgressQuarters(any(), any())(any(), any()))
+    when(mockQuartersService.getInProgressQuarters(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq.empty))
-    when(mockQuartersService.getPastYears(any())(any(), any()))
+    when(mockQuartersService.getPastYears(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq.empty))
     when(mockPaymentsAndChargesService.getInterestCharges(any()))
       .thenReturn(schemeFSResponse)
@@ -90,7 +90,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
 
       when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
         .thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
-      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
 
       val result = route(application, httpGETRequest(httpPathGET(srn))).value
@@ -111,7 +111,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
     }
 
     "return Success page when paymentsAndChargesService fails" in {
-      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.failed(new RuntimeException("Test exception")))
 
       when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))

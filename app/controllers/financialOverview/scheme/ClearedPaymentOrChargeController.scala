@@ -42,7 +42,7 @@ class ClearedPaymentOrChargeController @Inject()(override val messagesApi: Messa
     with I18nSupport {
   def onPageLoad(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter, index: Index): Action[AnyContent] = {
     (identify andThen allowAccess()).async { implicit request =>
-      paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).map { paymentsCache =>
+      paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType, request.isLoggedInAsPsa).map { paymentsCache =>
         val filteredPayment: SchemeFSDetail = paymentsCache.schemeFSDetail.filter(_.periodEndDate match {
           case Some(endDate) => endDate.getYear == period.toInt
           case _ => false

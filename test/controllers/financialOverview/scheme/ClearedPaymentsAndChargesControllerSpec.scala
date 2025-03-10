@@ -84,7 +84,7 @@ class ClearedPaymentsAndChargesControllerSpec extends ControllerSpecBase {
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPaymentsAndChargesService)
-    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(samplePaymentsCache))
     when(mockPaymentsAndChargesService.getClearedPaymentsAndCharges(any(), any(), any(), any())(any()))
       .thenReturn(table)

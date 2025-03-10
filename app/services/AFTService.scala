@@ -33,16 +33,18 @@ class AFTService @Inject()(
     aftConnector: AFTConnector
 ) {
 
-  def fileSubmitReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
+  def fileSubmitReturn(pstr: String, answers: UserAnswers, srn: String)(implicit ec: ExecutionContext, hc: HeaderCarrier,
+                                                                        request: DataRequest[_]): Future[Unit] = {
     val journeyType = if (request.isAmendment) JourneyType.AFT_SUBMIT_AMEND else JourneyType.AFT_SUBMIT_RETURN
     aftConnector
-      .fileAFTReturn(pstr, answers.setOrException(AFTStatusQuery, "Submitted"), journeyType)
+      .fileAFTReturn(pstr, answers.setOrException(AFTStatusQuery, "Submitted"), journeyType, srn, request.isLoggedInAsPsa)
   }
 
-  def fileCompileReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
+  def fileCompileReturn(pstr: String, answers: UserAnswers, srn: String)(implicit ec: ExecutionContext,
+                                                                         hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
     val journeyType = if (request.isAmendment) JourneyType.AFT_COMPILE_AMEND else JourneyType.AFT_COMPILE_RETURN
     aftConnector
-      .fileAFTReturn(pstr, answers.setOrException(AFTStatusQuery, "Compiled"), journeyType)
+      .fileAFTReturn(pstr, answers.setOrException(AFTStatusQuery, "Compiled"), journeyType, srn, request.isLoggedInAsPsa)
       .recover {
         case _: ReturnAlreadySubmittedException => ()
       }

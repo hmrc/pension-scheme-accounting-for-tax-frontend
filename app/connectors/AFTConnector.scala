@@ -19,6 +19,7 @@ package connectors
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.{AFTOverview, JourneyType, Quarters, UserAnswers, VersionsWithSubmitter}
+import org.apache.pekko.http.scaladsl.model.Uri
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json._
@@ -36,9 +37,11 @@ class AFTConnector @Inject()(httpClient2: HttpClientV2, config: FrontendAppConfi
 
   private val logger = Logger(classOf[AFTConnector])
 
-  def fileAFTReturn(pstr: String, answers: UserAnswers, journeyType: JourneyType.Name)
+  def fileAFTReturn(pstr: String, answers: UserAnswers, journeyType: JourneyType.Name,
+                    srn: String, loggedInAsPsa:Boolean)
                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
-    val url = url"${config.aftFileReturn.format(journeyType.toString)}"
+    val url = url"${Uri(config.aftFileReturn.format(journeyType.toString, srn))
+                  .withQuery(Uri.Query("loggedInAsPsa" -> s"$loggedInAsPsa"))}"
     val headers: Seq[(String, String)] = Seq("pstr" -> pstr)
     val aftHc = hc.withExtraHeaders(headers = headers:_*)
 
@@ -62,9 +65,10 @@ class AFTConnector @Inject()(httpClient2: HttpClientV2, config: FrontendAppConfi
     }
   }
 
-  def getAFTDetails(pstr: String, startDate: String, aftVersion: String)
+  def getAFTDetails(pstr: String, startDate: String, aftVersion: String, srn: String, loggedInAsPsa: Boolean)
                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-    val url = url"${config.getAftDetails}"
+    val url = url"${Uri(config.getAftDetails.format(srn))
+                .withQuery(Uri.Query("loggedInAsPsa" -> s"$loggedInAsPsa"))}"
     val headers: Seq[(String, String)] = Seq("pstr" -> pstr, "startDate" -> startDate, "aftVersion" -> aftVersion)
     val aftHc = hc.withExtraHeaders(headers = headers:_*)
     logger.info("Calling getAFT details")
@@ -86,9 +90,10 @@ class AFTConnector @Inject()(httpClient2: HttpClientV2, config: FrontendAppConfi
     }
   }
 
-  def getIsAftNonZero(pstr: String, startDate: String, aftVersion: String)
+  def getIsAftNonZero(pstr: String, startDate: String, aftVersion: String, srn: String, loggedInAsPsa: Boolean)
                      (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Boolean] = {
-    val url = url"${config.isAftNonZero}"
+    val url = url"${Uri(config.isAftNonZero.format(srn))
+                .withQuery(Uri.Query("loggedInAsPsa" -> s"$loggedInAsPsa"))}"
     val headers: Seq[(String, String)] = Seq("pstr" -> pstr, "startDate" -> startDate, "aftVersion" -> aftVersion)
     val aftHc = hc.withExtraHeaders(headers = headers:_*)
     httpClient2
@@ -103,9 +108,10 @@ class AFTConnector @Inject()(httpClient2: HttpClientV2, config: FrontendAppConfi
     }
   }
 
-  def getListOfVersions(pstr: String, startDate: String)
+  def getListOfVersions(pstr: String, startDate: String, srn: String, loggedInAsPsa: Boolean)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[VersionsWithSubmitter]] = {
-    val url = url"${config.aftListOfVersions}"
+    val url = url"${Uri(config.aftListOfVersions.format(srn))
+      .withQuery(Uri.Query("loggedInAsPsa" -> s"$loggedInAsPsa"))}"
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr, "startDate" -> startDate)
     httpClient2
       .get(url)(schemeHc)
@@ -127,12 +133,12 @@ class AFTConnector @Inject()(httpClient2: HttpClientV2, config: FrontendAppConfi
 
   }
 
-  def getAftOverview(pstr: String, startDate: Option[String] = None, endDate: Option[String] = None)
+  def getAftOverview(pstr: String, srn: String, loggedInAsPsa: Boolean, startDate: Option[String] = None, endDate: Option[String] = None)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
-    val url = url"${config.aftOverviewUrl}"
+    val url = url"${Uri(config.aftOverviewUrl.format(srn))
+                  .withQuery(Uri.Query("loggedInAsPsa" -> s"$loggedInAsPsa"))}"
     val headers: Seq[(String, String)] = Seq("pstr" -> pstr, "startDate" -> aftOverviewStartDate.toString, "endDate" -> aftOverviewEndDate.toString)
     val schemeHc = hc.withExtraHeaders(headers = headers:_*)
-
     httpClient2
       .get(url)(schemeHc)
       .setHeader(headers: _*)

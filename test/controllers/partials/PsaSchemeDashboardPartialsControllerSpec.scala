@@ -65,7 +65,7 @@ class PsaSchemeDashboardPartialsControllerSpec
     reset(mockPsaSchemePartialService)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
-    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
+    when(mockFinancialStatementConnector.getSchemeFS(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
   }
 
@@ -73,7 +73,7 @@ class PsaSchemeDashboardPartialsControllerSpec
     "aftPartial" must {
 
       "return the html with information received from overview api" in {
-        when(mockPsaSchemePartialService.aftCardModel(any(), any())(any(), any()))
+        when(mockPsaSchemePartialService.aftCardModel(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(allTypesMultipleReturnsModel))
         when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
           .thenReturn(allTypesMultipleReturnsModel)

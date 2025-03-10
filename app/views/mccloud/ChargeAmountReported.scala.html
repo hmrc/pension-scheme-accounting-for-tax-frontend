@@ -25,6 +25,9 @@
 @(form: Form[_], submitCall: Call, returnUrl: String, schemeName: String, periodDescription: String, ordinal: String, chargeTypeDesc: String)(implicit request: Request[_], messages: Messages)
 
 @layout(messages("chargeAmountReported.title", periodDescription, ordinal, messages(chargeTypeDesc)), formHasErrors = form.hasErrors) {
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    }
     <div>
         <h1 class="govuk-heading-xl">@messages("chargeAmountReported.heading", periodDescription, ordinal, messages(chargeTypeDesc))</h1>
 

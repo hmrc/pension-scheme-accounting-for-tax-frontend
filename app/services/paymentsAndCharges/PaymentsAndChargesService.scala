@@ -281,29 +281,30 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
-  private def saveAndReturnPaymentsCache(loggedInId: String, srn: String)
+  private def saveAndReturnPaymentsCache(loggedInId: String, srn: String, isLoggedInAsPsa: Boolean)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaymentsCache] =
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(loggedInId, srn)
-      schemeFSDetail <- fsConnector.getSchemeFS(schemeDetails.pstr)
+      schemeFSDetail <- fsConnector.getSchemeFS(schemeDetails.pstr, srn, isLoggedInAsPsa)
       paymentsCache = PaymentsCache(loggedInId, srn, schemeDetails, schemeFSDetail.seqSchemeFSDetail)
       _ <- financialInfoCacheConnector.save(Json.toJson(paymentsCache))
     } yield paymentsCache
 
-  private def getPaymentsFromCache(loggedInId: String, srn: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
+  private def getPaymentsFromCache(loggedInId: String, srn: String, isLoggedInAsPsa: Boolean)
+                                  (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
     financialInfoCacheConnector.fetch flatMap {
       case Some(jsValue) =>
         val cacheAuthenticated: PaymentsCache => Boolean = value => value.loggedInId == loggedInId && value.srn == srn
         jsValue.validate[PaymentsCache] match {
           case JsSuccess(value, _) if cacheAuthenticated(value) => Future.successful(value)
-          case _ => saveAndReturnPaymentsCache(loggedInId, srn)
+          case _ => saveAndReturnPaymentsCache(loggedInId, srn, isLoggedInAsPsa)
         }
-      case _ => saveAndReturnPaymentsCache(loggedInId, srn)
+      case _ => saveAndReturnPaymentsCache(loggedInId, srn, isLoggedInAsPsa)
     }
 
-  def getPaymentsForJourney(loggedInId: String, srn: String, journeyType: ChargeDetailsFilter)
+  def getPaymentsForJourney(loggedInId: String, srn: String, journeyType: ChargeDetailsFilter, isLoggedInAsPsa: Boolean)
                            (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
-    getPaymentsFromCache(loggedInId, srn).map { cache =>
+    getPaymentsFromCache(loggedInId, srn, isLoggedInAsPsa).map { cache =>
       journeyType match {
         case Overdue => cache.copy(schemeFSDetail = getOverdueCharges(cache.schemeFSDetail))
         case Upcoming => cache.copy(schemeFSDetail = extractUpcomingCharges(cache.schemeFSDetail))

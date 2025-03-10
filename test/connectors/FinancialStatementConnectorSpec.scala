@@ -18,6 +18,7 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
+import data.SampleData.srn
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, INTEREST_ON_CONTRACT_SETTLEMENT, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT}
 import models.financialStatement.{DocumentLineItemDetail, FSClearingReason, PsaFS, PsaFSDetail}
 import org.scalatest.matchers.must.Matchers
@@ -40,7 +41,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
   private val psaId = "test-psa-id"
   private val pstr = "test-pstr"
   private val psaFSUrl = "/pension-scheme-accounting-for-tax/psa-financial-statement"
-  private val schemeFSUrl = "/pension-scheme-accounting-for-tax/scheme-financial-statement"
+  private val schemeFSUrl = s"/pension-scheme-accounting-for-tax/scheme-financial-statement/$srn?loggedInAsPsa=true"
 
   "getPsaFS" must {
 
@@ -141,7 +142,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
 
       val connector = injector.instanceOf[FinancialStatementConnector]
 
-      connector.getSchemeFS(pstr).map(_.seqSchemeFSDetail mustBe SampleData.schemeFSResponseAftAndOTC.seqSchemeFSDetail)
+      connector.getSchemeFS(pstr, srn, true).map(_.seqSchemeFSDetail mustBe SampleData.schemeFSResponseAftAndOTC.seqSchemeFSDetail)
     }
 
     "return the Scheme financial statement for a valid request/response with pstr and with extra fields" in {
@@ -159,7 +160,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
 
       val connector = injector.instanceOf[FinancialStatementConnector]
 
-      connector.getSchemeFS(pstr).map(_.seqSchemeFSDetail mustBe SampleData.schemeFSResponseAftAndOTCWithExtraFieldValues.seqSchemeFSDetail)
+      connector.getSchemeFS(pstr, srn, true).map(_.seqSchemeFSDetail mustBe SampleData.schemeFSResponseAftAndOTCWithExtraFieldValues.seqSchemeFSDetail)
     }
 
     "throw BadRequestException for a 400 INVALID_PSTR response" in {
@@ -176,7 +177,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
       val connector = injector.instanceOf[FinancialStatementConnector]
 
       recoverToSucceededIf[BadRequestException] {
-        connector.getSchemeFS(pstr)
+        connector.getSchemeFS(pstr, srn, true)
       }
 
     }
@@ -198,7 +199,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
 
       val connector = injector.instanceOf[FinancialStatementConnector]
 
-      connector.getSchemeFSPaymentOnAccount(pstr).map(fs => fs mustBe SampleData.schemeFSResponseAftAndOTC)
+      connector.getSchemeFSPaymentOnAccount(pstr, srn, true).map(fs => fs mustBe SampleData.schemeFSResponseAftAndOTC)
 
     }
 
@@ -215,7 +216,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
       )
       val connector = injector.instanceOf[FinancialStatementConnector]
       recoverToSucceededIf[BadRequestException] {
-        connector.getSchemeFSPaymentOnAccount(pstr)
+        connector.getSchemeFSPaymentOnAccount(pstr, srn, true)
       }
 
     }

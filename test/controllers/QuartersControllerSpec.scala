@@ -86,7 +86,7 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
   "Quarters Controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
+      when(mockQuartersService.getStartQuarters(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
@@ -107,7 +107,7 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "return OK and redirect to correct page if no display quarters" in {
-      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq()))
+      when(mockQuartersService.getStartQuarters(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
@@ -119,9 +119,9 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "redirect to next page when valid data is submitted" in {
-      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
+      when(mockQuartersService.getStartQuarters(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
 
-      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
+      when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
@@ -130,9 +130,9 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "redirect when there are no displayQuarters" in {
-      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq()))
+      when(mockQuartersService.getStartQuarters(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq()))
 
-      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
+      when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
@@ -141,9 +141,9 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "redirect to locked page when AFT return is locked but there is no overview data" in {
-      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any()))
+      when(mockQuartersService.getStartQuarters(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(Seq(DisplayQuarter(q12021, displayYear = false, None, Some(LockedHint)))))
-      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
+      when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(Nil))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
@@ -153,9 +153,9 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
+      when(mockQuartersService.getStartQuarters(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
 
-      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
+      when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
