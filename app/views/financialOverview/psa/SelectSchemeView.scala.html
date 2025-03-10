@@ -25,7 +25,9 @@
 @(form: Form[_], submitCall: Call, typeParam: String, psaName: String, returnUrl: String, radios: Seq[RadioItem])(implicit request: Request[_], messages: Messages)
 
 @layout(messages("selectScheme.title", typeParam), formHasErrors = form.hasErrors, fullWidthLayout = false) {
-
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    }
 <div>
     @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
         @govukRadios(
