@@ -61,8 +61,8 @@
     </p>
 
     @if(model.chargeAmountDetails.isDefined) {
-        <div role="region" aria-labelledby="chargeE_h1" class="govuk-!-margin-bottom-1">
-            <h2 class="govuk-heading-l">
+        <div role="region" aria-labelledby="charge_details_h2" class="govuk-!-margin-bottom-1">
+            <h2 class="govuk-heading-l" id="charge_details_h2">
                     @messages("psa.pension.scheme.charge.details.new")
             </h2>
                 @model.chargeAmountDetails.map { table =>
