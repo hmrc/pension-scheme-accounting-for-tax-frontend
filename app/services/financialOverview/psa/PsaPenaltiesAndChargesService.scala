@@ -496,8 +496,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
     Table(
       head = Some(head),
-      rows = rows.map(_.toSeq),
-      attributes = Map("role" -> "table")
+      rows = rows.map(_.toSeq)
     )
   }
 
@@ -561,8 +560,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
     Table(
       head = Some(head),
-      rows = rows.map(_.toSeq),
-      attributes = Map("role" -> "table")
+      rows = rows.map(_.toSeq)
     )
   }
 
