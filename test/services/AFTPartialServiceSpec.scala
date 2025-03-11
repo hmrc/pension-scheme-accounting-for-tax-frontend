@@ -22,10 +22,8 @@ import connectors.cache.UserAnswersCacheConnector
 import data.SampleData.multiplePenalties
 import helpers.FormatHelper
 import models._
-import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -39,7 +37,7 @@ import viewmodels._
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class AFTPartialServiceSpec
   extends SpecBase
@@ -73,7 +71,7 @@ class AFTPartialServiceSpec
         )
 
         service.retrievePsaPenaltiesCardModel(penalties) mustBe
-          aftViewModel(upcomingLink = Nil, upcomingAmount = "£0.00", overdueAmount = "£0.00")
+          aftViewModel(upcomingLink = Nil, upcomingAmount = "£0.00")
       }
 
       "there are upcoming payments for a single due date" in {
@@ -251,7 +249,6 @@ object AFTPartialServiceSpec {
     LocalDate.parse(endDate, dateFormatterYMD).format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
   private val srn = "srn"
   private val pstr = "pstr"
-  private val psaId = "A0000000"
   private val name = "test-name"
   val minimalPsaName: Option[String] = Some("John Doe Doe")
   private val viewPenaltiesUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/view-penalties"
@@ -262,8 +259,7 @@ object AFTPartialServiceSpec {
 
   def aftViewModel(message: String = "pspDashboardUpcomingAftChargesCard.span.multipleDueDate",
                    upcomingLink: Seq[Link] = Nil,
-                   upcomingAmount: String = "£200.00",
-                   overdueAmount: String = "£0.00",
+                   upcomingAmount: String = "£200.00"
                   )(implicit messages: Messages): DashboardAftViewModel = DashboardAftViewModel(
     subHeadings = Seq(
       Json.obj(
@@ -271,7 +267,7 @@ object AFTPartialServiceSpec {
         "span" -> Messages(message)
       ),
       Json.obj(
-        "total" -> overdueAmount,
+        "total" -> "£0.00",
         "span" -> Messages("pspDashboardOverdueAftChargesCard.total.span")
       )
     ),
@@ -482,95 +478,4 @@ object AFTPartialServiceSpec {
       ).map(_.link)
     )
 
-  private def createCharge(
-                            startDate: String,
-                            endDate: String,
-                            dueDate: Option[LocalDate] = Option(LocalDate.parse("2021-02-15")),
-                            chargeReference: String,
-                            accruedInterestTotal: BigDecimal = 0.00
-                          ): SchemeFSDetail = {
-    SchemeFSDetail(
-      index = 0,
-      chargeReference = chargeReference,
-      chargeType = PSS_AFT_RETURN,
-      dueDate = dueDate,
-      totalAmount = 56432.00,
-      amountDue = 1029.05,
-      outstandingAmount = 56049.08,
-      accruedInterestTotal = accruedInterestTotal,
-      stoodOverAmount = 25089.08,
-      periodStartDate = Some(LocalDate.parse(startDate)),
-      periodEndDate = Some(LocalDate.parse(endDate)),
-      formBundleNumber = None,
-      version = Some(1),
-      receiptDate = Some(LocalDate.now),
-      sourceChargeRefForInterest = None,
-      sourceChargeInfo = None,
-      documentLineItemDetails = Seq()
-    )
-  }
-
-  private def schemeFSResponseSinglePeriod(accruedInterestTotal: BigDecimal = 0.00): Seq[SchemeFSDetail] = Seq(
-    createCharge(
-      startDate = "2020-10-01",
-      endDate = "2020-12-31",
-      chargeReference = "XY002610150184",
-      accruedInterestTotal = accruedInterestTotal
-    ),
-    createCharge(
-      startDate = "2020-10-01",
-      endDate = "2020-12-31",
-      chargeReference = "AYU3494534632",
-      accruedInterestTotal = accruedInterestTotal
-    ),
-    createCharge(
-      startDate = "2020-10-01",
-      endDate = "2020-12-31",
-      chargeReference = "XY002610150185",
-      accruedInterestTotal = accruedInterestTotal
-    )
-  )
-
-  private def schemeFSResponseMultiplePeriods(accruedInterestTotal: BigDecimal = 0.00): Seq[SchemeFSDetail] = Seq(
-    createCharge(
-      startDate = "2020-10-01",
-      endDate = "2020-12-31",
-      chargeReference = "XY002610150184",
-      accruedInterestTotal = accruedInterestTotal
-    ),
-    createCharge(
-      startDate = "2020-10-01",
-      endDate = "2020-12-31",
-      chargeReference = "AYU3494534632",
-      accruedInterestTotal = accruedInterestTotal
-    ),
-    createCharge(
-      startDate = "2021-01-01",
-      endDate = "2021-03-31",
-      chargeReference = "XY002610150185",
-      accruedInterestTotal = accruedInterestTotal,
-      dueDate = Option(LocalDate.parse("2021-05-15"))
-    )
-  )
-
-  private val pastCharges: Seq[SchemeFSDetail] = Seq(
-    createCharge(
-      startDate = "2020-06-01",
-      endDate = "2020-09-30",
-      chargeReference = "XY002610150185",
-      dueDate = None
-    ),
-    createCharge(
-      startDate = "2020-06-01",
-      endDate = "2020-09-30",
-      chargeReference = "AYU3494534636",
-      dueDate = None
-    ),
-    createCharge(
-      startDate = "2020-06-01",
-      endDate = "2020-09-30",
-      chargeReference = "XY002610150187",
-      dueDate = None
-    )
-  )
 }
