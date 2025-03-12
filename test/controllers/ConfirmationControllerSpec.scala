@@ -129,7 +129,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         Some(viewPaymentsUrl),
         controllers.routes.AFTOverviewController.onPageLoad(srn).url,
         schemeName,
-        "",
         submitUrl.url
       )
 
@@ -157,7 +156,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         Some(viewPaymentsUrl),
         controllers.routes.AFTOverviewController.onPageLoad(srn).url,
         schemeName,
-        "",
         submitUrl.url
       )
 
@@ -190,7 +188,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         Some(viewPaymentsUrl),
         controllers.routes.AFTOverviewController.onPageLoad(srn).url,
         schemeName,
-        "",
         submitUrl.url
       )
 
@@ -223,7 +220,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         Some(viewPaymentsUrl),
         controllers.routes.AFTOverviewController.onPageLoad(srn).url,
         schemeName,
-        "",
         submitUrl.url
       )
 
@@ -256,7 +252,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         Some(viewPaymentsUrl),
         controllers.routes.AFTOverviewController.onPageLoad(srn).url,
         schemeName,
-        "",
         submitUrl.url
       )
 
@@ -288,7 +283,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         None,
         controllers.routes.AFTOverviewController.onPageLoad(srn).url,
         schemeName,
-        "",
         submitUrl.url
       )
 
