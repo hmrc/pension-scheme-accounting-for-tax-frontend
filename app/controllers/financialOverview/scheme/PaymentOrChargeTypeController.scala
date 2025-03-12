@@ -66,7 +66,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
           title = title,
           submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn, journeyType),
           schemeName = cache.schemeDetails.schemeName,
-          returnUrl = config.schemeDashboardUrl(request).format(srn),
+          returnUrl = config.financialOverviewUrl.format(srn),
           radios = radios,
           journeyType = journeyType
         )))
@@ -94,7 +94,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
             title = title,
             submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn, journeyType),
             schemeName = cache.schemeDetails.schemeName,
-            returnUrl = config.schemeDashboardUrl(request).format(srn),
+            returnUrl = config.financialOverviewUrl.format(srn),
             radios = radios,
             journeyType = journeyType
           ))

@@ -69,8 +69,7 @@ class ClearedPaymentOrChargeController @Inject()(override val messagesApi: Messa
 
         val paymentsTable = paymentsAndChargesService.chargeAmountDetailsRowsV2(filteredPayment)
 
-        // Url to be updated when page merged to main
-        val returnUrl = routes.ClearedPaymentOrChargeController.onPageLoad(srn, period, paymentOrChargeType, index).url
+        val returnUrl = routes.ClearedPaymentsAndChargesController.onPageLoad(srn, period, paymentOrChargeType).url
 
         Ok(clearedPaymentOrChargeView(
           filteredPayment.chargeType.toString,

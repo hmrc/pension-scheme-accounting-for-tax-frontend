@@ -59,7 +59,7 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
           title = Messages("schemeFinancial.clearedPaymentsAndCharges"),
           submitCall = routes.ClearedChargesSelectYearController.onSubmit(srn, paymentOrChargeType),
           schemeName = paymentsCache.schemeDetails.schemeName,
-          returnUrl = config.schemeDashboardUrl(request).format(srn),
+          returnUrl = config.financialOverviewUrl.format(srn),
           radios = FSYears.radios(form, years, isYearRangeFormat = true)
         )))
       }

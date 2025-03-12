@@ -29,8 +29,10 @@ site.view.link = View link
 site.remove.link = Remove link
 site.return_to_overview = Return to overview
 site.return.to.overview.new = Return to your financial overview
-site.return.to.overview.scheme.new = Return to financial overview
+return.to.overview.scheme.new = Return to scheme financial overview
 return.to.link = Return to {0}
+return.to.charge.overview = Return to {0} {1}
+site.overview = overview
 site.continue_to_scheme_overview = Continue to scheme overview
 
 error.title.prefix = Error:

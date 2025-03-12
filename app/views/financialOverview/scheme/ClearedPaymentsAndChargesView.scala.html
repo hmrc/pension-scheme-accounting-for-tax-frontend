@@ -19,7 +19,7 @@
     govukTable: GovukTable
 )
 
-@(schemeName: String, table: Table)(implicit request: Request[_], messages: Messages)
+@(schemeName: String, table: Table, returnUrl: String)(implicit request: Request[_], messages: Messages)
 
 @layout(messages("scheme.financial.overview.clearedPaymentsAndCharges.title")) {
     <div>
@@ -29,4 +29,10 @@
 
         @govukTable(table)
     </div>
+
+    <p class="govuk-body">
+        <a id="return" href="@returnUrl" class="govuk-link">
+        @messages("return.to.overview.scheme.new")
+        </a>
+    </p>
 }

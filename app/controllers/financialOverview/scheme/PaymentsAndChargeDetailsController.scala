@@ -117,7 +117,7 @@ class PaymentsAndChargeDetailsController @Inject()(
         insetText = setInsetText(isChargeAssigned, schemeFSDetail, interestUrl),
         interest = Some(schemeFSDetail.accruedInterestTotal),
         returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
-        returnUrl = paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType),
+        returnUrl = controllers.financialOverview.scheme.routes.AllPaymentsAndChargesController.onPageLoad(srn, period, paymentOrChargeType).url,
         returnHistoryUrl = returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)),
         hintText = Some(optHintText(schemeFSDetail))
       )
@@ -196,7 +196,7 @@ class PaymentsAndChargeDetailsController @Inject()(
         insetText = setInsetTextV2(isChargeAssigned, schemeFSDetail, interestUrl),
         interest = Some(schemeFSDetail.accruedInterestTotal),
         returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeDetails.schemeName),
-        returnUrl = paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType),
+        returnUrl = controllers.financialOverview.scheme.routes.AllPaymentsAndChargesController.onPageLoad(srn, period, paymentOrChargeType).url,
         returnHistoryUrl = returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)),
         hintText = Some(optHintText(schemeFSDetail))
       )

@@ -80,14 +80,14 @@
 @if(model.returnHistoryUrl.nonEmpty && model.versionValue.nonEmpty) {
 <p class="govuk-body">
     <a id="return-history" href="@model.returnHistoryUrl" class="govuk-link">
-        @messages("financialPaymentsAndCharges.viewReturnHistory", model.versionValue)
+        @messages("financialPaymentsAndCharges.viewReturnHistory", model.chargeType)
     </a>
 </p>
 }
 
 <p class="govuk-body">
     <a id="return" href="@model.returnUrl" class="govuk-link">
-        @messages("return.to.link", model.returnLinkBasedOnJourney)
+        @messages("return.to.charge.overview", model.chargeType, messages("site.overview"))
     </a>
 </p>
 }

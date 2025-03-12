@@ -67,7 +67,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
           penaltyType = typeParam,
           submitCall = routes.SelectYearController.onSubmit(srn, paymentOrChargeType),
           schemeName = paymentsCache.schemeDetails.schemeName,
-          returnUrl = config.schemeDashboardUrl(request).format(srn),
+          returnUrl = config.financialOverviewUrl.format(srn),
           radios = FSYears.radios(form(paymentOrChargeType, typeParam), years, isTaxYearFormat(paymentOrChargeType))
         )))
       }
@@ -91,7 +91,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                 penaltyType = typeParam,
                 submitCall = routes.SelectYearController.onSubmit(srn, paymentOrChargeType),
                 schemeName = paymentsCache.schemeDetails.schemeName,
-                returnUrl = config.schemeDashboardUrl(request).format(srn),
+                returnUrl = config.financialOverviewUrl.format(srn),
                 radios = FSYears.radios(formWithErrors, years, isTaxYearFormat(paymentOrChargeType))
               )))
             },

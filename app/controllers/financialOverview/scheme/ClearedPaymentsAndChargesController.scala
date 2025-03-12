@@ -16,6 +16,7 @@
 
 package controllers.financialOverview.scheme
 
+import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.ChargeDetailsFilter
 import models.financialStatement.PaymentOrChargeType
@@ -32,6 +33,7 @@ import scala.concurrent.ExecutionContext
 
 class ClearedPaymentsAndChargesController @Inject()(override val messagesApi: MessagesApi,
                                                     identify: IdentifierAction,
+                                                    config: FrontendAppConfig,
                                                     allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                     val controllerComponents: MessagesControllerComponents,
                                                     paymentsAndChargesService: PaymentsAndChargesService,
@@ -50,7 +52,8 @@ class ClearedPaymentsAndChargesController @Inject()(override val messagesApi: Me
           .filter(_.outstandingAmount <= 0)
 
         val table = paymentsAndChargesService.getClearedPaymentsAndCharges(srn, period, paymentOrChargeType, filteredPayments)
-        Ok(clearedPaymentsAndChargesView(paymentsCache.schemeDetails.schemeName, table))
+        Ok(clearedPaymentsAndChargesView(paymentsCache.schemeDetails.schemeName, table, returnUrl = config.financialOverviewUrl.format(srn)
+        ))
       }
     }
   }

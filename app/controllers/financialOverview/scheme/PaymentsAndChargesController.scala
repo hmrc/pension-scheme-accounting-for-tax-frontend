@@ -86,7 +86,7 @@ class PaymentsAndChargesController @Inject()(
                   totalDue = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
                   penaltiesTable = tableOfPaymentsAndCharges,
                   paymentAndChargesTable = tableOfPaymentsAndCharges,
-                  returnUrl = config.schemeDashboardUrl(request).format(srn)
+                  returnUrl = config.financialOverviewUrl.format(srn)
                 )
               } else {
                 view(
@@ -99,7 +99,7 @@ class PaymentsAndChargesController @Inject()(
                   totalUpcoming = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
                   penaltiesTable = tableOfPaymentsAndCharges,
                   paymentAndChargesTable = tableOfPaymentsAndCharges,
-                  returnUrl = config.schemeDashboardUrl(request).format(srn)
+                  returnUrl = config.financialOverviewUrl.format(srn)
                 )
               }
 
