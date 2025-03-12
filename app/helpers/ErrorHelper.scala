@@ -19,7 +19,7 @@ package helpers
 import connectors.ReturnAlreadySubmittedException
 import play.api.mvc.Result
 import play.api.mvc.Results._
-import uk.gov.hmrc.http.HttpReads.is5xx
+import uk.gov.hmrc.http.HttpErrorFunctions.is5xx
 import uk.gov.hmrc.http.UpstreamErrorResponse
 
 import scala.concurrent.{ExecutionContext, Future}
