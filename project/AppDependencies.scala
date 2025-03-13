@@ -1,7 +1,7 @@
 import sbt._
 
 object AppDependencies {
-  private val bootstrapVersion = "8.5.0"
+  private val bootstrapVersion = "8.6.0"
   val compile = Seq(
     play.sbt.PlayImport.ws,
     "uk.gov.hmrc"                   %%  "play-conditional-form-mapping-play-30"  % "2.0.0",
