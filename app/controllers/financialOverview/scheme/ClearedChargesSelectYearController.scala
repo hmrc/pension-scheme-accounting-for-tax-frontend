@@ -59,7 +59,8 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
           title = Messages("schemeFinancial.clearedPaymentsAndCharges"),
           submitCall = routes.ClearedChargesSelectYearController.onSubmit(srn, paymentOrChargeType),
           schemeName = paymentsCache.schemeDetails.schemeName,
-          returnUrl = config.financialOverviewUrl.format(srn),
+          returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
+          returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
           radios = FSYears.radios(form, years, isYearRangeFormat = true)
         )))
       }
@@ -83,8 +84,9 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
                 title = Messages("schemeFinancial.clearedPaymentsAndCharges"),
                 submitCall = routes.ClearedChargesSelectYearController.onSubmit(srn, paymentOrChargeType),
                 schemeName = paymentsCache.schemeDetails.schemeName,
-                returnUrl = config.schemeDashboardUrl(request).format(srn),
-                radios = FSYears.radios(formWithErrors, years, isYearRangeFormat = true)
+                returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
+                radios = FSYears.radios(formWithErrors, years, isYearRangeFormat = true),
+                returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
               )))
             },
             value =>

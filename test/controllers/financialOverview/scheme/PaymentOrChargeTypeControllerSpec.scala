@@ -89,7 +89,8 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with JsonMatc
         title = messages(s"paymentOrChargeType.all.title"),
         schemeName = schemeName,
         submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn, All),
-        returnUrl = dummyCall.url,
+        returnUrl = "/financial-overview/aa",
+        returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
         radios = PaymentOrChargeType.radios(form, displayPaymentOrChargeType,
         Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
         journeyType = All

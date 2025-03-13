@@ -98,7 +98,8 @@ class ClearedPaymentsAndChargesControllerSpec extends ControllerSpecBase {
       val view = application.injector.instanceOf[ClearedPaymentsAndChargesView].apply(
         schemeName,
         table,
-        returnUrl = dummyCall.url
+        returnUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/aa/financial-overview",
+        returnDashboardUrl = "http://localhost:8204/manage-pension-schemes/pension-scheme-summary/aa"
       )(httpGETRequest(httpPathGET), messages)
 
       compareResultAndView(result, view)

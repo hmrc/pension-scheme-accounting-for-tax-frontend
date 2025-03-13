@@ -95,7 +95,8 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with JsonMatchers
         form = form,
         submitCall = submitCall,
         schemeName = schemeName,
-        returnUrl = dummyCall.url,
+        returnUrl = s"/financial-overview/aa",
+        returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
         radios = Quarters.radios(
             form,
             displayQuarters,

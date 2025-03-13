@@ -61,10 +61,11 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
           form = form(quarters, year),
           submitCall = routes.SelectQuarterController.onSubmit(srn, year),
           schemeName = paymentsCache.schemeDetails.schemeName,
-          returnUrl = config.financialOverviewUrl.format(srn),
+          returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
           radios = Quarters.radios(form(quarters, year), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
             Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
-          Year = year
+          Year = year,
+          returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
         )))
       } else {
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -86,10 +87,11 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
               form = formWithErrors,
               submitCall = routes.SelectQuarterController.onSubmit(srn, year),
               schemeName = paymentsCache.schemeDetails.schemeName,
-              returnUrl = config.financialOverviewUrl.format(srn),
+              returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
               radios = Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFSDetail),
                 Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
-              Year = year
+              Year = year,
+              returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
             )))
           },
           value => {

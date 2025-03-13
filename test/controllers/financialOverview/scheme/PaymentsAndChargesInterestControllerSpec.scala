@@ -105,6 +105,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with J
             schemeFSDetail.periodEndDate)),
           insetText = HtmlContent("<p class=govuk-body>The charge reference for the interest due will show once you have paid the <span><a id='breakdown' class=govuk-link href=/manage-pension-scheme-accounting-for-tax/test-srn/financial-overview/accounting-for-tax/2020-04-01/1/2016-12-17/1/overdue-charge-details> original amount due</a></span> in full. You can only pay the interest once a charge reference has been generated.</p>"),
           returnUrl = dummyCall.url,
+          returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
           returnLinkBasedOnJourney = dummyCall.url,
         )
       )(messages, req)

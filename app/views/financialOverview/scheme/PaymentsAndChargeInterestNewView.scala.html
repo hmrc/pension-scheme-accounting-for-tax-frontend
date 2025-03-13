@@ -66,4 +66,10 @@
         @messages("return.to.link", model.returnLinkBasedOnJourney)
     </a>
 </p>
+
+<p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+    <a id="return_to_scheme" href=@model.returnDashboardUrl class="govuk-link">
+    @messages("return.to.link", model.schemeName)
+    </a>
+</p>
 }

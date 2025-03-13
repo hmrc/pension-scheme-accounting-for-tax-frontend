@@ -114,7 +114,8 @@ class ClearedPaymentOrChargeControllerSpec extends ControllerSpecBase {
         formatDateDMY(LocalDate.parse("2020-05-13")),
         chargeDetailsRow,
         table,
-        httpPathGET
+        returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
+        "/manage-pension-scheme-accounting-for-tax/aa/financial-overview/accounting-for-tax/2020/cleared-payments-and-charges"
       )(messages, httpGETRequest(httpPathGET))
 
       compareResultAndView(result, view)

@@ -86,7 +86,8 @@ class PaymentsAndChargesController @Inject()(
                   totalDue = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
                   penaltiesTable = tableOfPaymentsAndCharges,
                   paymentAndChargesTable = tableOfPaymentsAndCharges,
-                  returnUrl = config.financialOverviewUrl.format(srn)
+                  returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
+                  returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
                 )
               } else {
                 view(
@@ -99,7 +100,8 @@ class PaymentsAndChargesController @Inject()(
                   totalUpcoming = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
                   penaltiesTable = tableOfPaymentsAndCharges,
                   paymentAndChargesTable = tableOfPaymentsAndCharges,
-                  returnUrl = config.financialOverviewUrl.format(srn)
+                  returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
+                  returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
                 )
               }
 

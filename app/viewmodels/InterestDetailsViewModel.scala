@@ -29,5 +29,6 @@ case class InterestDetailsViewModel(
                                      tableHeader: Option[String] = None,
                                      insetText: HtmlContent,
                                      returnUrl: String,
+                                     returnDashboardUrl: String,
                                      returnLinkBasedOnJourney: String
                                    )

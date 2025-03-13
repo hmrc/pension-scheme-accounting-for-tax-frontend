@@ -66,9 +66,10 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
           title = title,
           submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn, journeyType),
           schemeName = cache.schemeDetails.schemeName,
-          returnUrl = config.financialOverviewUrl.format(srn),
+          returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
           radios = radios,
-          journeyType = journeyType
+          journeyType = journeyType,
+          returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
         )))
       }
     }
@@ -94,9 +95,10 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
             title = title,
             submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn, journeyType),
             schemeName = cache.schemeDetails.schemeName,
-            returnUrl = config.financialOverviewUrl.format(srn),
+            returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
             radios = radios,
-            journeyType = journeyType
+            journeyType = journeyType,
+            returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
           ))
         )
         },

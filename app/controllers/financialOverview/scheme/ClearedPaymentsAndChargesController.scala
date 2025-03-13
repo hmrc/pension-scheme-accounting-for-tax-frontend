@@ -52,7 +52,10 @@ class ClearedPaymentsAndChargesController @Inject()(override val messagesApi: Me
           .filter(_.outstandingAmount <= 0)
 
         val table = paymentsAndChargesService.getClearedPaymentsAndCharges(srn, period, paymentOrChargeType, filteredPayments)
-        Ok(clearedPaymentsAndChargesView(paymentsCache.schemeDetails.schemeName, table, returnUrl = config.financialOverviewUrl.format(srn)
+        Ok(clearedPaymentsAndChargesView(paymentsCache.schemeDetails.schemeName,
+          table,
+          returnUrl = config.financialOverviewUrl.format(srn),
+          returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
         ))
       }
     }

@@ -96,7 +96,8 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
         totalDue = "£0.00",
         penaltiesTable = penaltiesTable,
         paymentAndChargesTable = penaltiesTable,
-        returnUrl = dummyCall.url
+        returnUrl = "/financial-overview/test-srn",
+        returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
       )(req, messages)
 
       compareResultAndView(result, view)
@@ -120,7 +121,8 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
         totalUpcoming = "£0.00",
         penaltiesTable = penaltiesTable,
         paymentAndChargesTable = penaltiesTable,
-        returnUrl = dummyCall.url
+        returnUrl = "/financial-overview/test-srn",
+        returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
       )(messages, req)
 
       compareResultAndView(result, view)

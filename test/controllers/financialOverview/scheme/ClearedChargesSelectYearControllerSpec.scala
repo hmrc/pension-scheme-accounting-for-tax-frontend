@@ -92,7 +92,8 @@ class ClearedChargesSelectYearControllerSpec extends ControllerSpecBase {
         Messages("schemeFinancial.clearedPaymentsAndCharges"),
         routes.ClearedChargesSelectYearController.onSubmit(srn, PaymentOrChargeType.AccountingForTaxCharges),
         schemeName,
-        dummyCall.url,
+        s"/financial-overview/aa",
+        returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
         radios
       )(httpGETRequest(httpPathGET), messages)
 

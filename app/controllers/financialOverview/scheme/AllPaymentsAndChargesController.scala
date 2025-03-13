@@ -78,7 +78,8 @@ class AllPaymentsAndChargesController @Inject()(
             totalDue = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
             penaltiesTable = tableOfPaymentsAndCharges,
             paymentAndChargesTable = tableOfPaymentsAndCharges,
-            returnUrl = config.financialOverviewUrl.format(srn)
+            returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
+            returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
           )))
         } else {
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")

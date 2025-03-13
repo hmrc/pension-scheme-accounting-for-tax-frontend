@@ -143,7 +143,8 @@ class PaymentsAndChargesInterestController @Inject()(
       insetText = htmlInsetText,
       originalAmountUrl = originalAmountUrl,
       returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
-      returnUrl = paymentsAndChargesService.getReturnUrl(srn, psaId, pspId, config, journeyType)
+      returnUrl = paymentsAndChargesService.getReturnUrl(srn, psaId, pspId, config, journeyType),
+      returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
     )
   }
 
@@ -176,7 +177,8 @@ class PaymentsAndChargesInterestController @Inject()(
       insetText = htmlInsetText,
       originalAmountUrl = originalAmountUrl,
       returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
-      returnUrl = paymentsAndChargesService.getReturnUrl(srn, psaId, pspId, config, journeyType)
+      returnUrl = paymentsAndChargesService.getReturnUrl(srn, psaId, pspId, config, journeyType),
+      returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
     )
   }
 
