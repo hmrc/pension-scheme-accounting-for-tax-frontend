@@ -72,9 +72,9 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with JsonMatchers
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
+    when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq(aftOverviewQ22020, aftOverviewQ32020, aftOverviewQ42020)))
-    when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
+    when(mockQuartersService.getPastQuarters(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
@@ -101,7 +101,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with JsonMatchers
 
     "redirect to return history page when only one quarter for a GET" in {
       val displayQuarters: Seq[DisplayQuarter] = Seq(displayQuarterViewPast)
-      when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
+      when(mockQuartersService.getPastQuarters(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
@@ -111,7 +111,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "redirect to session expired page when quarters service returns an empty list" in {
-      when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(Nil))
+      when(mockQuartersService.getPastQuarters(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
@@ -138,7 +138,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "redirect to session expired page when there quarters service returns an empty list for a POST" in {
-      when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(Nil))
+      when(mockQuartersService.getPastQuarters(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER

@@ -67,7 +67,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
     super.beforeEach()
     reset(mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any())).
       thenReturn(Future.successful(paymentsCache(schemeFSResponseOverdue)))
     when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
       any(), any(), any())(any())).thenReturn(penaltiesTable)
@@ -130,7 +130,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
     }
 
     "redirect to Session Expired page when there is no data for a GET" in {
-      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).thenReturn(Future.successful(paymentsCache(Nil)))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(paymentsCache(Nil)))
       val result = route(application, httpGETRequest(httpPathGET)).value
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url

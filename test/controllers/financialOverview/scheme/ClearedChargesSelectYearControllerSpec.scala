@@ -72,7 +72,7 @@ class ClearedChargesSelectYearControllerSpec extends ControllerSpecBase {
     super.beforeEach()
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     reset(mockPaymentsAndChargesService)
-    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(samplePaymentsCache))
     when(mockPaymentsAndChargesService.getTypeParam(any())(any())).thenReturn("accounting-for-tax")
   }

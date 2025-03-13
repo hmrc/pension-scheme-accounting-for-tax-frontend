@@ -109,7 +109,7 @@ class DeleteMemberController @Inject()(
                           updatedAnswers <- Future.fromTry(userAnswersService
                             .removeMemberBasedCharge(MemberDetailsPage(index), totalAmount))
 
-                          _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
+                          _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers, srn)
                         } yield {
                           Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
                         }) recoverWith recoverFrom5XX(srn, startDate)

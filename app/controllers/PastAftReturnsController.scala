@@ -44,7 +44,7 @@ class PastAftReturnsController @Inject()(aftConnector: AFTConnector,
   def onPageLoad(srn: String, page: Int): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
         schemeService.retrieveSchemeDetails(request.idOrException, srn).flatMap { schemeDetails =>
-          aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
+          aftConnector.getAftOverview(schemeDetails.pstr, srn, request.isLoggedInAsPsa).flatMap { aftOverview =>
             val schemeName = schemeDetails.schemeName
 
             val currentYear = LocalDate.now().getYear

@@ -30,7 +30,6 @@ import play.api.Application
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.{AFTPartialService, SchemeService}
@@ -62,31 +61,6 @@ class PspSchemeDashboardPartialsControllerSpec
     )
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  private def pspDashboardAftReturnsViewModel: DashboardAftViewModel =
-    DashboardAftViewModel(
-      subHeadings = Seq(Json.obj(
-        "span" -> "test span for AFT returns"
-      )),
-      links = Nil
-    )
-
-  private def pspDashboardUpcomingAftChargesViewModel: DashboardAftViewModel =
-    DashboardAftViewModel(
-      subHeadings = Seq(Json.obj(
-        "span" -> "test span for upcoming charges",
-        "total" -> 100
-      )),
-      links = Nil
-    )
-
-  private def pspDashboardOverdueAftChargesViewModel: DashboardAftViewModel =
-    DashboardAftViewModel(
-      subHeadings = Seq(Json.obj(
-        "span" -> "test span for overdue charged",
-        "total" -> 100
-      )),
-      links = Nil
-    )
 
   private def pspDashboardSchemePaymentsAndChargesViewModel: Seq[CardViewModel] =
     allTypesMultipleReturnsModel
@@ -98,7 +72,7 @@ class PspSchemeDashboardPartialsControllerSpec
     when(mockAppConfig.paymentsAndChargesUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
-    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
+    when(mockFinancialStatementConnector.getSchemeFS(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
   }
 
@@ -107,14 +81,6 @@ class PspSchemeDashboardPartialsControllerSpec
 
 
     "return the html with the information for upcoming charges" in {
-      when(mockAftPartialService.retrievePspDashboardAftReturnsModel(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
-
-      when(mockAftPartialService.retrievePspDashboardUpcomingAftChargesModel(any(), any())(any()))
-        .thenReturn(pspDashboardUpcomingAftChargesViewModel)
-
-      when(mockAftPartialService.retrievePspDashboardOverdueAftChargesModel(any(), any())(any()))
-        .thenReturn(pspDashboardOverdueAftChargesViewModel)
 
       when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any(), any())(any()))
         .thenReturn(pspDashboardSchemePaymentsAndChargesViewModel)

@@ -22,10 +22,8 @@ import connectors.cache.UserAnswersCacheConnector
 import data.SampleData.multiplePenalties
 import helpers.FormatHelper
 import models._
-import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -39,7 +37,7 @@ import viewmodels._
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class AFTPartialServiceSpec
   extends SpecBase
@@ -64,287 +62,6 @@ class AFTPartialServiceSpec
   def service: AFTPartialService =
     new AFTPartialService(frontendAppConfig, paymentsAndChargesService, aftConnector, aftCacheConnector)
 
-  "retrievePspDashboardAftReturnsModel" must {
-    "return overview api returns multiple returns in progress, " +
-      "multiple past returns and start link needs to be displayed" in {
-      DateHelper.setDate(Some(LocalDate.of(2021, 4, 1)))
-      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(allTypesMultipleReturnsPresent))
-      when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
-      when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
-
-      whenReady(service.retrievePspDashboardAftReturnsModel(srn, pstr, psaId)) {
-        _ mustBe pspDashboardAftReturnsViewModel
-      }
-    }
-
-    "return the correct model when return one return is in progress but not locked" in {
-      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(oneInProgress))
-      when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
-      when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
-      when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
-        .thenReturn(Future.successful(None))
-
-      whenReady(service.retrievePspDashboardAftReturnsModel(srn, pstr, psaId)) {
-        _ mustBe pspDashboardOneInProgressModelWithLocking(
-          locked = false,
-          h3 = "In progress",
-          span = "AFT return 1 October to 31 December 2020:",
-          linkText = "pspDashboardAftReturnsCard.inProgressReturns.link.single"
-        )
-      }
-    }
-
-    "return the correct model when one return is in progress and locked by another user" in {
-      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(oneInProgress))
-      when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
-      when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
-      when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
-        .thenReturn(Future.successful(Some(LockDetail(name, psaId))))
-
-      whenReady(service.retrievePspDashboardAftReturnsModel(srn, pstr, psaId)) {
-        _ mustBe pspDashboardOneInProgressModelWithLocking(
-          locked = true,
-          h3 = "Locked by test-name",
-          span = "AFT return 1 October to 31 December 2020:",
-          linkText = "pspDashboardAftReturnsCard.inProgressReturns.link.single.locked"
-        )
-      }
-    }
-
-    "return a model with start link and only 2 returns in progress" when {
-      "a scheme has 3 compiles in progress but " +
-        "one has been zeroed out and all quarters have been initiated (ie no start link)" in {
-        DateHelper.setDate(Some(LocalDate.of(2020, 12, 31)))
-        when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
-          .thenReturn(Future.successful(oneCompileZeroedOut))
-        when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
-        when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 12, 31))
-        when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
-          .thenReturn(Future.successful(None))
-        when(aftConnector.getIsAftNonZero(any(), ArgumentMatchers.eq("2020-07-01"), any())(any(), any()))
-          .thenReturn(Future.successful(false))
-        when(aftConnector.getIsAftNonZero(any(), ArgumentMatchers.eq("2020-04-01"), any())(any(), any()))
-          .thenReturn(Future.successful(true))
-
-        whenReady(service.retrievePspDashboardAftReturnsModel(srn, pstr, psaId)) {
-          _ mustBe pspDashboardOneCompileZeroedOutModel
-        }
-      }
-    }
-  }
-
-  "retrievePspDashboardUpcomingAftCharges" must {
-    "return a model for a single period upcoming charges with no past charges" in {
-      val service = app.injector.instanceOf[AFTPartialService]
-
-      service.retrievePspDashboardUpcomingAftChargesModel(schemeFSResponseSinglePeriod(), srn) mustBe
-        DashboardAftViewModel(
-          subHeadings = Seq(Json.obj(
-            "total" -> "£3,087.15",
-            "span" -> "Payment due by 15 February 2021:"
-          )),
-          links = Seq(
-            Link(
-              id = "upcoming-payments-and-charges",
-              url = viewUpcomingChargesUrl,
-              linkText =
-                Text(Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
-                  ,Seq("1 October", "31 December"))),
-              hiddenText = None
-            )
-          )
-        )
-    }
-
-
-    "return a model for multiple period upcoming charges with no past charges" in {
-      val service = app.injector.instanceOf[AFTPartialService]
-
-      service.retrievePspDashboardUpcomingAftChargesModel(schemeFSResponseMultiplePeriods(), srn) mustBe
-        DashboardAftViewModel(
-          subHeadings = Seq(Json.obj(
-            "total" -> "£3,087.15",
-            "span" -> "Total upcoming payments:"
-          )),
-          links = Seq(
-            Link(
-              id = "upcoming-payments-and-charges",
-              url = viewUpcomingChargesUrl,
-              linkText =
-                Text(Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple")),
-              hiddenText = None
-            )
-          )
-        )
-    }
-
-    "return a model for a single period upcoming charges with past charges" in {
-      val service = app.injector.instanceOf[AFTPartialService]
-      val schemeFSDetail = schemeFSResponseSinglePeriod() ++ pastCharges
-      service.retrievePspDashboardUpcomingAftChargesModel(schemeFSDetail, srn) mustBe
-        DashboardAftViewModel(
-          subHeadings = Seq(Json.obj(
-            "total" -> "£3,087.15",
-            "span" -> "Payment due by 15 February 2021:"
-          )),
-          links = Seq(
-            Link(
-              id = "upcoming-payments-and-charges",
-              url = viewUpcomingChargesUrl,
-              linkText =
-                Text(Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
-                  , Seq("1 October", "31 December"))),
-              hiddenText = None
-            ),
-            Link(
-              id = "past-payments-and-charges",
-              url = viewPastChargesUrl,
-              linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges")),
-              hiddenText = None
-            )
-          )
-        )
-    }
-
-
-    "return a model for multiple period upcoming charges with past charges" in {
-      val service = app.injector.instanceOf[AFTPartialService]
-      val schemeFSDetail = schemeFSResponseMultiplePeriods() ++ pastCharges
-      service.retrievePspDashboardUpcomingAftChargesModel(schemeFSDetail, srn) mustBe
-        DashboardAftViewModel(
-          subHeadings = Seq(Json.obj(
-            "total" -> "£3,087.15",
-            "span" -> "Total upcoming payments:"
-          )),
-          links = Seq(
-            Link(
-              id = "upcoming-payments-and-charges",
-              url = viewUpcomingChargesUrl,
-              linkText =
-                Text(Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple")),
-              hiddenText = None
-            ),
-            Link(
-              id = "past-payments-and-charges",
-              url = viewPastChargesUrl,
-              linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges")),
-              hiddenText = None
-            )
-          )
-        )
-    }
-  }
-
-  "retrievePspDashboardOverdueAftCharges" must {
-    "return a model for a single period overdue charges with no interest accruing" in {
-      service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseSinglePeriod(), srn) mustBe
-        DashboardAftViewModel(
-          subHeadings = Seq(
-            Json.obj(
-              "total" -> "£3,087.15",
-              "span" -> "Total overdue payments:"
-            ),
-            Json.obj(
-              "total" -> "£0.00",
-              "span" -> "Interest accruing:"
-            )
-          ),
-          links = Seq(
-            Link(
-              id = "overdue-payments-and-charges",
-              url = viewOverdueChargesUrl,
-              linkText =
-                Text(Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
-                  ,Seq("1 October", "31 December"))),
-              hiddenText = None
-            )
-          )
-        )
-    }
-
-
-    "return a model for a single period overdue charges with interest accruing" in {
-      service.retrievePspDashboardOverdueAftChargesModel(
-        schemeFSResponseSinglePeriod(123.00), srn
-      ) mustBe
-        DashboardAftViewModel(
-          subHeadings = Seq(
-            Json.obj(
-              "total" -> "£3,087.15",
-              "span" -> "Total overdue payments:"
-            ),
-            Json.obj(
-              "total" -> "£369.00",
-              "span" -> "Interest accruing:"
-            )
-          ),
-          links = Seq(
-            Link(
-              id = "overdue-payments-and-charges",
-              url = viewOverdueChargesUrl,
-              linkText =
-                Text(Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
-                  , Seq("1 October", "31 December"))),
-              hiddenText = None
-            )
-          )
-        )
-    }
-
-    "return a model for a multiple periods overdue charges with no interest accruing" in {
-      service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseMultiplePeriods(), srn) mustBe
-        DashboardAftViewModel(
-          subHeadings = Seq(
-            Json.obj(
-              "total" -> "£3,087.15",
-              "span" -> "Total overdue payments:"
-            ),
-            Json.obj(
-              "total" -> "£0.00",
-              "span" -> "Interest accruing:"
-            )
-          ),
-          links = Seq(
-            Link(
-              id = "overdue-payments-and-charges",
-              url = viewOverdueChargesUrl,
-              linkText =
-                Text(Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods")),
-              hiddenText = None
-            )
-          )
-        )
-    }
-
-
-    "return a model for a multiple periods overdue charges with interest accruing" in {
-      service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseMultiplePeriods(123.00), srn) mustBe
-        DashboardAftViewModel(
-          subHeadings = Seq(Json.obj(
-            "total" -> "£3,087.15",
-            "span" -> "Total overdue payments:"
-          ),
-            Json.obj(
-              "total" -> "£369.00",
-              "span" -> "Interest accruing:"
-            )
-          ),
-          links = Seq(
-            Link(
-              id = "overdue-payments-and-charges",
-              url = viewOverdueChargesUrl,
-              linkText =
-                Text(Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods")),
-              hiddenText = None
-            )
-          )
-        )
-    }
-  }
-
   "retrievePsaPenaltiesCardModel" must {
     "return the correct viewmodel" when {
       "there are no upcoming payments" in {
@@ -354,7 +71,7 @@ class AFTPartialServiceSpec
         )
 
         service.retrievePsaPenaltiesCardModel(penalties) mustBe
-          aftViewModel(upcomingLink = Nil, upcomingAmount = "£0.00", overdueAmount = "£0.00")
+          aftViewModel(upcomingLink = Nil, upcomingAmount = "£0.00")
       }
 
       "there are upcoming payments for a single due date" in {
@@ -532,7 +249,6 @@ object AFTPartialServiceSpec {
     LocalDate.parse(endDate, dateFormatterYMD).format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
   private val srn = "srn"
   private val pstr = "pstr"
-  private val psaId = "A0000000"
   private val name = "test-name"
   val minimalPsaName: Option[String] = Some("John Doe Doe")
   private val viewPenaltiesUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/view-penalties"
@@ -543,8 +259,7 @@ object AFTPartialServiceSpec {
 
   def aftViewModel(message: String = "pspDashboardUpcomingAftChargesCard.span.multipleDueDate",
                    upcomingLink: Seq[Link] = Nil,
-                   upcomingAmount: String = "£200.00",
-                   overdueAmount: String = "£0.00",
+                   upcomingAmount: String = "£200.00"
                   )(implicit messages: Messages): DashboardAftViewModel = DashboardAftViewModel(
     subHeadings = Seq(
       Json.obj(
@@ -552,7 +267,7 @@ object AFTPartialServiceSpec {
         "span" -> Messages(message)
       ),
       Json.obj(
-        "total" -> overdueAmount,
+        "total" -> "£0.00",
         "span" -> Messages("pspDashboardOverdueAftChargesCard.total.span")
       )
     ),
@@ -763,95 +478,4 @@ object AFTPartialServiceSpec {
       ).map(_.link)
     )
 
-  private def createCharge(
-                            startDate: String,
-                            endDate: String,
-                            dueDate: Option[LocalDate] = Option(LocalDate.parse("2021-02-15")),
-                            chargeReference: String,
-                            accruedInterestTotal: BigDecimal = 0.00
-                          ): SchemeFSDetail = {
-    SchemeFSDetail(
-      index = 0,
-      chargeReference = chargeReference,
-      chargeType = PSS_AFT_RETURN,
-      dueDate = dueDate,
-      totalAmount = 56432.00,
-      amountDue = 1029.05,
-      outstandingAmount = 56049.08,
-      accruedInterestTotal = accruedInterestTotal,
-      stoodOverAmount = 25089.08,
-      periodStartDate = Some(LocalDate.parse(startDate)),
-      periodEndDate = Some(LocalDate.parse(endDate)),
-      formBundleNumber = None,
-      version = Some(1),
-      receiptDate = Some(LocalDate.now),
-      sourceChargeRefForInterest = None,
-      sourceChargeInfo = None,
-      documentLineItemDetails = Seq()
-    )
-  }
-
-  private def schemeFSResponseSinglePeriod(accruedInterestTotal: BigDecimal = 0.00): Seq[SchemeFSDetail] = Seq(
-    createCharge(
-      startDate = "2020-10-01",
-      endDate = "2020-12-31",
-      chargeReference = "XY002610150184",
-      accruedInterestTotal = accruedInterestTotal
-    ),
-    createCharge(
-      startDate = "2020-10-01",
-      endDate = "2020-12-31",
-      chargeReference = "AYU3494534632",
-      accruedInterestTotal = accruedInterestTotal
-    ),
-    createCharge(
-      startDate = "2020-10-01",
-      endDate = "2020-12-31",
-      chargeReference = "XY002610150185",
-      accruedInterestTotal = accruedInterestTotal
-    )
-  )
-
-  private def schemeFSResponseMultiplePeriods(accruedInterestTotal: BigDecimal = 0.00): Seq[SchemeFSDetail] = Seq(
-    createCharge(
-      startDate = "2020-10-01",
-      endDate = "2020-12-31",
-      chargeReference = "XY002610150184",
-      accruedInterestTotal = accruedInterestTotal
-    ),
-    createCharge(
-      startDate = "2020-10-01",
-      endDate = "2020-12-31",
-      chargeReference = "AYU3494534632",
-      accruedInterestTotal = accruedInterestTotal
-    ),
-    createCharge(
-      startDate = "2021-01-01",
-      endDate = "2021-03-31",
-      chargeReference = "XY002610150185",
-      accruedInterestTotal = accruedInterestTotal,
-      dueDate = Option(LocalDate.parse("2021-05-15"))
-    )
-  )
-
-  private val pastCharges: Seq[SchemeFSDetail] = Seq(
-    createCharge(
-      startDate = "2020-06-01",
-      endDate = "2020-09-30",
-      chargeReference = "XY002610150185",
-      dueDate = None
-    ),
-    createCharge(
-      startDate = "2020-06-01",
-      endDate = "2020-09-30",
-      chargeReference = "AYU3494534636",
-      dueDate = None
-    ),
-    createCharge(
-      startDate = "2020-06-01",
-      endDate = "2020-09-30",
-      chargeReference = "XY002610150187",
-      dueDate = None
-    )
-  )
 }

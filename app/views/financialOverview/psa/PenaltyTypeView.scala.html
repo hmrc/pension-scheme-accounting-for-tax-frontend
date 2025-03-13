@@ -38,6 +38,10 @@
     <div>
 
             @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
+                @if(form.errors.nonEmpty) {
+                    @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+                }
+
                 @if(journeyType == "history") {
                     <span class="govuk-caption-xl">@psaName</span>
                     <h1 class="govuk-heading-xl">@title</h1>

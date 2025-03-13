@@ -64,10 +64,11 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     "remove lock and all user answers if no valid charges to be saved (i.e. user has deleted last member/ employer)" in {
       val jsonCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
       val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter
-      when(mockAFTConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
-      whenReady(aftService.fileSubmitReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
+      when(mockAFTConnector.fileAFTReturn(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
+      whenReady(aftService.fileSubmitReturn(pstr, uaBeforeCalling, srn)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
         verify(mockAFTConnector, times(1))
-          .fileAFTReturn(any(), jsonCaptor.capture(), ArgumentMatchers.eq(JourneyType.AFT_SUBMIT_RETURN))(any(), any())
+          .fileAFTReturn(any(), jsonCaptor.capture(), ArgumentMatchers.eq(JourneyType.AFT_SUBMIT_RETURN),
+            ArgumentMatchers.eq(srn), any())(any(), any())
       }
       jsonCaptor.getValue.getOrException(AFTStatusQuery) mustBe "Submitted"
     }
@@ -77,10 +78,11 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     "remove lock and all user answers if no valid charges to be saved (i.e. user has deleted last member/ employer)" in {
       val jsonCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
       val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter
-      when(mockAFTConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
-      whenReady(aftService.fileCompileReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
+      when(mockAFTConnector.fileAFTReturn(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
+      whenReady(aftService.fileCompileReturn(pstr, uaBeforeCalling, srn)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
         verify(mockAFTConnector, times(1))
-          .fileAFTReturn(any(), jsonCaptor.capture(), ArgumentMatchers.eq(JourneyType.AFT_COMPILE_RETURN))(any(), any())
+          .fileAFTReturn(any(), jsonCaptor.capture(), ArgumentMatchers.eq(JourneyType.AFT_COMPILE_RETURN),
+            ArgumentMatchers.eq(srn), any())(any(), any())
       }
       jsonCaptor.getValue.getOrException(AFTStatusQuery) mustBe "Compiled"
     }

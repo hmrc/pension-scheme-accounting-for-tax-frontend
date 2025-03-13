@@ -112,10 +112,10 @@ class RequestCreationServiceSpec extends SpecBase with Matchers with MockitoSuga
             )))
         )
 
-        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+        when(mockAftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
-        when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
+        when(mockAftConnector.getAFTDetails(any(), any(), any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
         val jsonCaptorForSaveAndLock = ArgumentCaptor.forClass(classOf[JsObject])
@@ -160,10 +160,10 @@ class RequestCreationServiceSpec extends SpecBase with Matchers with MockitoSuga
               compiledVersionAvailable = true
             )))
         )
-        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+        when(mockAftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
-        when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
+        when(mockAftConnector.getAFTDetails(any(), any(), any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
         when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
@@ -202,10 +202,10 @@ class RequestCreationServiceSpec extends SpecBase with Matchers with MockitoSuga
               compiledVersionAvailable = true
             )))
         )
-        when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
+        when(mockAftConnector.getAFTDetails(any(), any(), any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
-        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+        when(mockAftConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
         when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))

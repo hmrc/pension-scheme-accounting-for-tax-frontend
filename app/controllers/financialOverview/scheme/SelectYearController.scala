@@ -56,7 +56,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async { implicit request =>
-      service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
+      service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All, request.isLoggedInAsPsa).flatMap { paymentsCache =>
         val typeParam: String = service.getTypeParam(paymentOrChargeType)
         val years = getYears(paymentsCache.schemeFSDetail, paymentOrChargeType)
         implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
@@ -76,7 +76,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
 
   def onSubmit(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async { implicit request =>
-      service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
+      service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All, request.isLoggedInAsPsa).flatMap { paymentsCache =>
         val typeParam: String = service.getTypeParam(paymentOrChargeType)
         val years = getYears(paymentsCache.schemeFSDetail, paymentOrChargeType)
         implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))

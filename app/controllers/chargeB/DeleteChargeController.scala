@@ -89,7 +89,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                 DataRetrievals.retrievePSTR { pstr =>
                   val userAnswers: UserAnswers = userAnswersService.removeSchemeBasedCharge(SpecialDeathBenefitsQuery)
                   (for {
-                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswers)
+                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswers, srn)
                     } yield {
                     Redirect(navigator.nextPage(DeleteChargePage, NormalMode, userAnswers, srn, startDate, accessType, version))
                   }) recoverWith recoverFrom5XX(srn, startDate)

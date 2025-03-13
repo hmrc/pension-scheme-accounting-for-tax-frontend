@@ -53,7 +53,7 @@ class AmendYearsController @Inject()(
       psaId = request.idOrException,
       srn = srn
     ) flatMap { schemeDetails =>
-      quartersService.getPastYears(schemeDetails.pstr).flatMap {
+      quartersService.getPastYears(schemeDetails.pstr, srn, request.isLoggedInAsPsa).flatMap {
         case Nil => futureSessionExpiredPage
         case Seq(oneYearOnly) => amendQuartersPage(srn, oneYearOnly)
         case yearsSeq =>
@@ -76,7 +76,7 @@ class AmendYearsController @Inject()(
       psaId = request.idOrException,
       srn = srn
     ) flatMap { schemeDetails =>
-      quartersService.getPastYears(schemeDetails.pstr).flatMap {
+      quartersService.getPastYears(schemeDetails.pstr, srn, request.isLoggedInAsPsa).flatMap {
         case Nil => futureSessionExpiredPage
         case yearsSeq =>
           form(yearsSeq).bindFromRequest().fold(

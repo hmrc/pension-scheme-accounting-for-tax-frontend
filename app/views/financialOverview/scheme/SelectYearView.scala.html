@@ -26,6 +26,10 @@
 
 @layout(titleMessage, formHasErrors = form.hasErrors) {
 
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    }
+
 <div>
 
     @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {

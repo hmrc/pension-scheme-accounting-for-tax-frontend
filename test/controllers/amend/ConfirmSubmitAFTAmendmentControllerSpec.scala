@@ -74,8 +74,8 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Js
     when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
     when(mockAmendmentHelper.amendmentSummaryRows(any(), any(), any())(any())).thenReturn(Nil)
     when(mockAmendmentHelper.getTotalAmount(any())).thenReturn((BigDecimal(2000.00), BigDecimal(40000.00)))
-    when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(
+    when(mockAFTConnector.getAFTDetails(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(
       Seq(AFTOverview(QUARTER_START_DATE, QUARTER_END_DATE,
         tpssReportPresent = false,
         Some(AFTOverviewVersion(2, submittedVersionAvailable = true, compiledVersionAvailable = true))))))
