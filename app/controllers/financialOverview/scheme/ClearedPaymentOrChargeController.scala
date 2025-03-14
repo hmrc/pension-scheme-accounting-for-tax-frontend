@@ -16,6 +16,7 @@
 
 package controllers.financialOverview.scheme
 
+import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.{ChargeDetailsFilter, Index}
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
@@ -32,6 +33,7 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class ClearedPaymentOrChargeController @Inject()(override val messagesApi: MessagesApi,
+                                                  config: FrontendAppConfig,
                                                   identify: IdentifierAction,
                                                   allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                   val controllerComponents: MessagesControllerComponents,
@@ -69,8 +71,7 @@ class ClearedPaymentOrChargeController @Inject()(override val messagesApi: Messa
 
         val paymentsTable = paymentsAndChargesService.chargeAmountDetailsRowsV2(filteredPayment)
 
-        // Url to be updated when page merged to main
-        val returnUrl = routes.ClearedPaymentOrChargeController.onPageLoad(srn, period, paymentOrChargeType, index).url
+        val returnUrl = routes.ClearedPaymentsAndChargesController.onPageLoad(srn, period, paymentOrChargeType).url
 
         Ok(clearedPaymentOrChargeView(
           filteredPayment.chargeType.toString,
@@ -78,6 +79,7 @@ class ClearedPaymentOrChargeController @Inject()(override val messagesApi: Messa
           datePaid,
           chargeDetailsList,
           paymentsTable,
+          Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
           returnUrl
         ))
 

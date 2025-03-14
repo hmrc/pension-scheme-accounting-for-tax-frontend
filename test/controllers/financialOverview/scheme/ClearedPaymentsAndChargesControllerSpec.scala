@@ -18,7 +18,7 @@ package controllers.financialOverview.scheme
 
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{psaId, schemeDetails, schemeFSResponseWithClearedPayments, schemeName, srn}
+import data.SampleData.{dummyCall, psaId, schemeDetails, schemeFSResponseWithClearedPayments, schemeName, srn}
 import models.financialStatement.PaymentOrChargeType
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
@@ -97,7 +97,9 @@ class ClearedPaymentsAndChargesControllerSpec extends ControllerSpecBase {
 
       val view = application.injector.instanceOf[ClearedPaymentsAndChargesView].apply(
         schemeName,
-        table
+        table,
+        returnUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/aa/financial-overview",
+        returnDashboardUrl = "http://localhost:8204/manage-pension-schemes/pension-scheme-summary/aa"
       )(httpGETRequest(httpPathGET), messages)
 
       compareResultAndView(result, view)

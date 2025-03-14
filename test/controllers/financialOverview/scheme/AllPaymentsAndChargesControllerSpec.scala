@@ -97,7 +97,8 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
         totalDue = "£3,087.15",
         penaltiesTable = emptyChargesTable,
         paymentAndChargesTable = emptyChargesTable,
-        returnUrl = dummyCall.url
+        returnUrl = "/financial-overview/test-srn",
+        returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
       )(req, messages)
 
       compareResultAndView(result, view)

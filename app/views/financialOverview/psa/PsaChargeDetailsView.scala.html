@@ -15,12 +15,14 @@
  *@
 
 @import viewmodels.PsaChargeDetailsViewModel
+@import config.FrontendAppConfig
 
 @this(
     layout: templates.Layout,
     govukButton: GovukButton,
     govukSummaryList: GovukSummaryList,
-    govukInsetText: GovukInsetText
+    govukInsetText: GovukInsetText,
+    config: FrontendAppConfig
 )
 
 @(model: PsaChargeDetailsViewModel)(implicit messages: Messages, request: Request[_])
@@ -63,4 +65,10 @@
 
 <p class="govuk-body"><a id="return" class="govuk-link" href="@{model.returnUrl}">
     @messages("return.to.link", model.returnUrlText)</a></p>
+
+<p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+    <a id="return_to_psa" href="@config.managePensionsSchemeOverviewUrl" class="govuk-link">
+    @messages("return.to.link", model.psaName)
+    </a>
+</p>
 }
