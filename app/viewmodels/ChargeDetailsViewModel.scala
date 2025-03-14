@@ -31,6 +31,7 @@ case class ChargeDetailsViewModel(
                                    interest: Option[BigDecimal],
                                    returnLinkBasedOnJourney: String,
                                    returnUrl: String,
+                                   returnDashboardUrl: Option[String] = None,
                                    returnHistoryUrl: String,
                                    paymentDueAmount: Option[String] = None,
                                    paymentDueDate: Option[String] = None,

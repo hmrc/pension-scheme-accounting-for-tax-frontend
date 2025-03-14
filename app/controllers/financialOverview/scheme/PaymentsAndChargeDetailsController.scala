@@ -197,6 +197,7 @@ class PaymentsAndChargeDetailsController @Inject()(
         interest = Some(schemeFSDetail.accruedInterestTotal),
         returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeDetails.schemeName),
         returnUrl = controllers.financialOverview.scheme.routes.AllPaymentsAndChargesController.onPageLoad(srn, period, paymentOrChargeType).url,
+        returnDashboardUrl = Some(Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)),
         returnHistoryUrl = returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)),
         hintText = Some(optHintText(schemeFSDetail))
       )

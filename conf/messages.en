@@ -31,7 +31,7 @@ site.return_to_overview = Return to overview
 site.return.to.overview.new = Return to your financial overview
 return.to.overview.scheme.new = Return to scheme financial overview
 return.to.link = Return to {0}
-return.to.charge.overview = Return to {0} {1}
+return.to.charge.overview = Return to previous page overview
 site.overview = overview
 site.continue_to_scheme_overview = Continue to scheme overview
 
