@@ -30,7 +30,6 @@ import play.api.Application
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.{AFTPartialService, SchemeService}
@@ -62,31 +61,6 @@ class PspSchemeDashboardPartialsControllerSpec
     )
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  private def pspDashboardAftReturnsViewModel: DashboardAftViewModel =
-    DashboardAftViewModel(
-      subHeadings = Seq(Json.obj(
-        "span" -> "test span for AFT returns"
-      )),
-      links = Nil
-    )
-
-  private def pspDashboardUpcomingAftChargesViewModel: DashboardAftViewModel =
-    DashboardAftViewModel(
-      subHeadings = Seq(Json.obj(
-        "span" -> "test span for upcoming charges",
-        "total" -> 100
-      )),
-      links = Nil
-    )
-
-  private def pspDashboardOverdueAftChargesViewModel: DashboardAftViewModel =
-    DashboardAftViewModel(
-      subHeadings = Seq(Json.obj(
-        "span" -> "test span for overdue charged",
-        "total" -> 100
-      )),
-      links = Nil
-    )
 
   private def pspDashboardSchemePaymentsAndChargesViewModel: Seq[CardViewModel] =
     allTypesMultipleReturnsModel
