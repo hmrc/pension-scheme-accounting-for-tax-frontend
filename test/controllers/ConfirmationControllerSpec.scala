@@ -127,9 +127,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         email,
         rows(false),
         Some(viewPaymentsUrl),
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        controllers.routes.AFTOverviewController.onPageLoad(srn).url,
         schemeName,
-        "",
         submitUrl.url
       )
 
@@ -155,9 +154,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         email,
         rows(true),
         Some(viewPaymentsUrl),
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        controllers.routes.AFTOverviewController.onPageLoad(srn).url,
         schemeName,
-        "",
         submitUrl.url
       )
 
@@ -188,9 +186,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         email,
         rows(true),
         Some(viewPaymentsUrl),
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        controllers.routes.AFTOverviewController.onPageLoad(srn).url,
         schemeName,
-        "",
         submitUrl.url
       )
 
@@ -221,9 +218,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         email,
         rows(true),
         Some(viewPaymentsUrl),
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        controllers.routes.AFTOverviewController.onPageLoad(srn).url,
         schemeName,
-        "",
         submitUrl.url
       )
 
@@ -254,9 +250,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         email,
         rows(true),
         Some(viewPaymentsUrl),
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        controllers.routes.AFTOverviewController.onPageLoad(srn).url,
         schemeName,
-        "",
         submitUrl.url
       )
 
@@ -286,9 +281,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         email,
         rows(false),
         None,
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        controllers.routes.AFTOverviewController.onPageLoad(srn).url,
         schemeName,
-        "",
         submitUrl.url
       )
 

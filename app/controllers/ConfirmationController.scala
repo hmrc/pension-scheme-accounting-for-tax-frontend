@@ -21,7 +21,7 @@ import connectors.FinancialStatementConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import controllers.financialStatement.paymentsAndCharges.routes._
-import controllers.routes.{ReturnToSchemeDetailsController, SignOutController}
+import controllers.routes.SignOutController
 import models.AdministratorOrPractitioner.{Administrator, Practitioner}
 import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
@@ -115,9 +115,8 @@ class ConfirmationController @Inject()(
                   email,
                   rows,
                   optViewPaymentsUrl,
-                  ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                  controllers.routes.AFTOverviewController.onPageLoad(srn).url,
                   schemeName,
-                  listSchemesUrl,
                   SignOutController.signOut(Some(srn), Some(localDateToString(startDate))).url
               )
 
@@ -132,11 +131,6 @@ class ConfirmationController @Inject()(
             }
         }
     }
-
-  def listSchemesUrl(implicit request: DataRequest[AnyContent]): String = request.schemeAdministratorType match {
-    case Administrator => config.yourPensionSchemesUrl
-    case Practitioner => config.yourPensionSchemesPspUrl
-  }
 
   private[controllers] def getRows(schemeName: String, quarterStartDate: String, quarterEndDate: String,
                                    submittedDate: String, amendedVersion: Option[Int])(implicit messages: Messages): Seq[SummaryListRow] = {

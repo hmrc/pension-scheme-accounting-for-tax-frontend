@@ -964,7 +964,7 @@ confirmation.whatNext.li.item1 = the name of the pension scheme
 confirmation.whatNext.li.item2 = the date and time of the submission
 confirmation.whatNext.li.item3 = the submission number
 confirmation.saveOrPrint.h2 = Print
-confirmation.li1 = Return to {0}
+confirmation.li1 = Return to AFT overview
 confirmation.li2 = View your other pension schemes
 confirmation.print.page.link.text = Print this page
 

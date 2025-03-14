@@ -27,6 +27,5 @@ case class ConfirmationViewModel(
                                   viewPaymentsUrl: Option[String] = None,
                                   returnUrl: String,
                                   schemeName: String,
-                                  pensionSchemesUrl: String,
                                   submitUrl: String
                                 )
