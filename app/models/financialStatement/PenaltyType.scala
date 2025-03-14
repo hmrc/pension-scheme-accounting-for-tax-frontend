@@ -64,7 +64,7 @@ object PenaltyType extends Enumerable.Implicits {
       Radios(form("value"), x)
     }
 
-  def radios(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType], hintClass: Seq[String] = Nil,
+  def radios(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType],
              areLabelsBold: Boolean = true)(implicit messages: Messages): Seq[RadioItem] =
   {
     val x: Seq[Radio] = penaltyTypes.map { penaltyType =>
