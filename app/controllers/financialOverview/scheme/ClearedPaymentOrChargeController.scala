@@ -70,7 +70,7 @@ class ClearedPaymentOrChargeController @Inject()(override val messagesApi: Messa
           .getChargeDetailsForSelectedChargeV2(filteredPayment, paymentsCache.schemeDetails, isClearedCharge = true)
 
         val paymentsTable = paymentsAndChargesService.chargeAmountDetailsRowsV2(filteredPayment)
-
+        val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
         val returnUrl = routes.ClearedPaymentsAndChargesController.onPageLoad(srn, period, paymentOrChargeType).url
 
         Ok(clearedPaymentOrChargeView(
@@ -79,7 +79,11 @@ class ClearedPaymentOrChargeController @Inject()(override val messagesApi: Messa
           datePaid,
           chargeDetailsList,
           paymentsTable,
-          Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
+          returnDashboardUrl = if(loggedInAsPsa) {
+            Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+          } else {
+            Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+          },
           returnUrl
         ))
 

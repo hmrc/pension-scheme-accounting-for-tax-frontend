@@ -121,7 +121,7 @@ class SchemeFinancialOverviewControllerSpec
           creditBalanceFormatted = "£0.00",
           creditBalance = 0,
           isOverdueChargeAvailable = false,
-          returnUrl = "/pension-scheme-summary/aa",
+          returnUrl = "/aa/dashboard/pension-scheme-details",
           displayHistory = true,
           historyLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, History).url
         )(messages, request)

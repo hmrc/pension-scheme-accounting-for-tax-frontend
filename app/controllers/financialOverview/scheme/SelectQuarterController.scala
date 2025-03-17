@@ -53,6 +53,8 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
   def onPageLoad(srn: String, year: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All, request.isLoggedInAsPsa).flatMap { paymentsCache =>
 
+      val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
+
       val quarters: Seq[AFTQuarter] = getQuarters(year, paymentsCache.schemeFSDetail)
 
       if (quarters.nonEmpty) {
@@ -65,7 +67,11 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
           radios = Quarters.radios(form(quarters, year), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
             Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
           Year = year,
-          returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+          returnDashboardUrl = if(loggedInAsPsa) {
+            Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+          } else {
+            Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+          }
         )))
       } else {
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -76,6 +82,8 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
 
   def onSubmit(srn: String, year: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All, request.isLoggedInAsPsa).flatMap { paymentsCache =>
+
+      val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
 
       val quarters: Seq[AFTQuarter] = getQuarters(year, paymentsCache.schemeFSDetail)
       if (quarters.nonEmpty) {
@@ -91,7 +99,11 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
               radios = Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFSDetail),
                 Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
               Year = year,
-              returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+              returnDashboardUrl = if(loggedInAsPsa) {
+                Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+              } else {
+                Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+              }
             )))
           },
           value => {

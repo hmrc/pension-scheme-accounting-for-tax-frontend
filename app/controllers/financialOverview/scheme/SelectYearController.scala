@@ -60,6 +60,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
         val typeParam: String = service.getTypeParam(paymentOrChargeType)
         val years = getYears(paymentsCache.schemeFSDetail, paymentOrChargeType)
         implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
+        val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
 
         Future.successful(Ok(selectYearView(
           form = form(paymentOrChargeType, typeParam),
@@ -68,7 +69,11 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
           submitCall = routes.SelectYearController.onSubmit(srn, paymentOrChargeType),
           schemeName = paymentsCache.schemeDetails.schemeName,
           returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
-          returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
+          returnDashboardUrl = if(loggedInAsPsa) {
+            Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+          } else {
+            Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+          },
           radios = FSYears.radios(form(paymentOrChargeType, typeParam), years, isTaxYearFormat(paymentOrChargeType))
         )))
       }
@@ -80,6 +85,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
         val typeParam: String = service.getTypeParam(paymentOrChargeType)
         val years = getYears(paymentsCache.schemeFSDetail, paymentOrChargeType)
         implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
+        val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
 
         form(paymentOrChargeType, typeParam)
           .bindFromRequest()
@@ -93,7 +99,11 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                 submitCall = routes.SelectYearController.onSubmit(srn, paymentOrChargeType),
                 schemeName = paymentsCache.schemeDetails.schemeName,
                 returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
-                returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
+                returnDashboardUrl = if(loggedInAsPsa) {
+                  Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+                } else {
+                  Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+                },
                 radios = FSYears.radios(formWithErrors, years, isTaxYearFormat(paymentOrChargeType))
               )))
             },

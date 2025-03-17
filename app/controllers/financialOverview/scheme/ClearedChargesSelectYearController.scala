@@ -51,6 +51,7 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
         val typeParam: String = service.getTypeParam(paymentOrChargeType)
         val clearedPayments = paymentsCache.schemeFSDetail.filter(_.outstandingAmount <= 0)
         val years = getYears(clearedPayments, paymentOrChargeType)
+        val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
         implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
         val form = formProvider(Messages(s"selectChargesTaxYear.all.error", typeParam))(implicitly)
@@ -60,7 +61,11 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
           submitCall = routes.ClearedChargesSelectYearController.onSubmit(srn, paymentOrChargeType),
           schemeName = paymentsCache.schemeDetails.schemeName,
           returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
-          returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
+          returnDashboardUrl = if(loggedInAsPsa) {
+            Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+          } else {
+            Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+          },
           radios = FSYears.radios(form, years, isYearRangeFormat = true)
         )))
       }
@@ -72,6 +77,7 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
         val typeParam: String = service.getTypeParam(paymentOrChargeType)
         val clearedPayments = paymentsCache.schemeFSDetail.filter(_.outstandingAmount <= 0)
         val years = getYears(clearedPayments, paymentOrChargeType)
+        val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
         implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
         formProvider(Messages(s"selectChargesTaxYear.all.error", typeParam))(implicitly)
@@ -86,7 +92,11 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
                 schemeName = paymentsCache.schemeDetails.schemeName,
                 returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
                 radios = FSYears.radios(formWithErrors, years, isYearRangeFormat = true),
-                returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+                returnDashboardUrl = if(loggedInAsPsa) {
+                  Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+                } else {
+                  Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+                }
               )))
             },
             value =>

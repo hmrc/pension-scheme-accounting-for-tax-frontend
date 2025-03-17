@@ -128,6 +128,7 @@ class PaymentsAndChargesInterestController @Inject()(
       )
 
     val interestChargeType= getInterestChargeTypeText(schemeFSDetail.chargeType)
+    val loggedInAsPsa: Boolean = psaId.isDefined
 
     InterestDetailsViewModel(
       chargeDetailsList = getSummaryListRows(schemeFSDetail),
@@ -143,8 +144,12 @@ class PaymentsAndChargesInterestController @Inject()(
       insetText = htmlInsetText,
       originalAmountUrl = originalAmountUrl,
       returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
-      returnUrl = paymentsAndChargesService.getReturnUrl(srn, psaId, pspId, config, journeyType),
-      returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+      returnUrl = config.financialOverviewUrl.format(srn),
+      returnDashboardUrl = if(loggedInAsPsa) {
+        Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+      } else {
+        Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+      }
     )
   }
 
@@ -161,7 +166,7 @@ class PaymentsAndChargesInterestController @Inject()(
       )
 
     val interestChargeType = getInterestChargeTypeText(schemeFSDetail.chargeType)
-
+    val loggedInAsPsa: Boolean = psaId.isDefined
 
     InterestDetailsViewModel(
       chargeDetailsList = getSummaryListRowsV2(schemeFSDetail),
@@ -178,7 +183,11 @@ class PaymentsAndChargesInterestController @Inject()(
       originalAmountUrl = originalAmountUrl,
       returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
       returnUrl = paymentsAndChargesService.getReturnUrl(srn, psaId, pspId, config, journeyType),
-      returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+      returnDashboardUrl = if(loggedInAsPsa) {
+        Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+      } else {
+        Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+      }
     )
   }
 

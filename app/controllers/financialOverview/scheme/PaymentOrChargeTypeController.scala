@@ -60,8 +60,9 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
           (Messages("paymentOrChargeType.all.title"), PaymentOrChargeType.radios(form(), paymentsOrCharges,
             Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
         }
+      val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
 
-        Future.successful(Ok(paymentOrChargeTypeView(
+      Future.successful(Ok(paymentOrChargeTypeView(
           form = form(),
           title = title,
           submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn, journeyType),
@@ -69,7 +70,11 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
           returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
           radios = radios,
           journeyType = journeyType,
-          returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+          returnDashboardUrl = if(loggedInAsPsa) {
+            Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+          } else {
+            Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+          }
         )))
       }
     }
@@ -89,6 +94,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
             (Messages("paymentOrChargeType.all.title"),
               PaymentOrChargeType.radios(formWithErrors, paymentsOrCharges))
           }
+          val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
 
           Future.successful(BadRequest(paymentOrChargeTypeView(
             form = formWithErrors,
@@ -98,7 +104,11 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
             returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
             radios = radios,
             journeyType = journeyType,
-            returnDashboardUrl = Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+            returnDashboardUrl = if(loggedInAsPsa) {
+              Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+            } else {
+              Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+            }
           ))
         )
         },
