@@ -256,7 +256,10 @@ class AFTPartialService @Inject()(
                                             )(implicit messages: Messages): table.Table = {
 
     val head: Seq[HeadCell] = Seq(
-      HeadCell(Text("")),
+      HeadCell(
+        HtmlContent(
+          s"<span class='govuk-visually-hidden'>${messages("refunds.aft.creditDetails")}</span>"
+        )),
       HeadCell(Text(Messages("refunds.aft.date"))),
       HeadCell(Text(Messages("refunds.aft.credit.value"))))
 
