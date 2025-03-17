@@ -84,7 +84,7 @@ class AllPaymentsAndChargesController @Inject()(
               Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
             } else {
               Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
-            },
+            }
           )))
         } else {
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")
