@@ -34,10 +34,10 @@
 <div>
 
         @if(model.schemeAssociated) {
-            <h1 class="hmrc-caption govuk-caption-xl">@{model.schemeName}</h1>
+            <span class="hmrc-caption govuk-caption-xl">@{model.schemeName}</span>
             <h1 class="govuk-heading-xl">@{model.heading}</h1>
         } else {
-        <h1 class="govuk-heading-xl">@{model.heading}</h1>
+            <h1 class="govuk-heading-xl">@{model.heading}</h1>
         }
 
         <div class="govuk-grid-row">
@@ -45,7 +45,7 @@
                 <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
                     @messages("psa.pension.scheme.interest.dueAmount.new")
                 </h3>
-                <p class="govuk-heading-m govuk-!-margin-top-0">@{model.interestDueAmount}</p>
+                <p class="govuk-body-l govuk-!-margin-top-0"><strong>@{model.interestDueAmount}</strong></p>
             </div>
         </div>
 

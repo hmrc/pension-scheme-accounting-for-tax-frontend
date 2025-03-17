@@ -968,7 +968,7 @@ confirmation.whatNext.li.item1 = the name of the pension scheme
 confirmation.whatNext.li.item2 = the date and time of the submission
 confirmation.whatNext.li.item3 = the submission number
 confirmation.saveOrPrint.h2 = Print
-confirmation.li1 = Return to {0}
+confirmation.li1 = Return to AFT overview
 confirmation.li2 = View your other pension schemes
 confirmation.print.page.link.text = Print this page
 
@@ -1131,6 +1131,7 @@ refunds.aft.p1 = You are eligible for a refund of up to
 refunds.aft.p2 = You or someone else from your organisation might have recently requested a refund for this account.
 refunds.aft.p3 = Your credit balance will only change once a refund has been paid. We aim to process refund requests within 15 working days.
 refunds.aft.heading = Credit history
+refunds.aft.creditDetails = Credit details
 refunds.aft.date = Date
 refunds.aft.credit.value =Credit value
 
@@ -1164,6 +1165,7 @@ psa.pension.scheme.tax.reference.new = Pension Scheme Tax Reference
 psa.pension.scheme.tax.period.new = Tax period
 psa.pension.scheme.charge.details.new = Charge details
 psa.pension.scheme.chargeAmount.label.new = Charge amount
+psa.pension.scheme.tableHeader.date = Date
 psa.pension.scheme.interest.dueAmount.new = Interest amount:
 psa.pension.scheme.interest.tax.period.new = Tax period
 penalties.chargeDetails.payments = Payments
