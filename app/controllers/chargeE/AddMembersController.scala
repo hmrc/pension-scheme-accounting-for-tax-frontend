@@ -18,7 +18,6 @@ package controllers.chargeE
 
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import controllers.chargeD.routes
 import forms.AddMembersFormProvider
 import handlers.ErrorHandler
 import helpers.DeleteChargeHelper
@@ -144,7 +143,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       val table = mapToTable(pmi.membersForCurrentPage, !request.isViewOnly, pmi.paginationStats.totalAmount)
       val pageLinksSeq = chargePaginationService.pagerNavSeq(
         pmi.paginationStats,
-        controllers.chargeD.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, version, _)
+        controllers.chargeE.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, version, _)
       )
       Future.successful(status(view(form, viewModel, submitCall, table, pageLinksSeq)))
     }.getOrElse(Future.successful(NotFound))
