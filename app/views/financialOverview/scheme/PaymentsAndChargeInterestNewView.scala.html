@@ -63,7 +63,7 @@
 
 <p class="govuk-body">
     <a id="return" href="@model.returnUrl" class="govuk-link">
-        @messages("return.to.charge.overview")
+        @messages("return.to.link", model.returnLinkBasedOnJourney)
     </a>
 </p>
 
@@ -72,4 +72,5 @@
     @messages("return.to.link", model.schemeName)
     </a>
 </p>
+
 }

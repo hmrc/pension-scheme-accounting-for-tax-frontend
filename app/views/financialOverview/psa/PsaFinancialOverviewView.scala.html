@@ -14,12 +14,15 @@
  * limitations under the License.
  *@
 
+@import config.FrontendAppConfig
+
 @this(
 layout: templates.Layout,
 formHelper: FormWithCSRF,
 govukErrorSummary: GovukErrorSummary,
 govukButton: GovukButton,
-govukInsetText: components.inset_text
+govukInsetText: components.inset_text,
+config: FrontendAppConfig
 )
 
 @(
@@ -111,5 +114,11 @@ returnUrl: String
 
 
 </div>
+
+    <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+        <a id="return_to_psa" href="@config.managePensionsSchemeOverviewUrl" class="govuk-link">
+        @messages("return.to.link", psaName)
+        </a>
+    </p>
 
 }
