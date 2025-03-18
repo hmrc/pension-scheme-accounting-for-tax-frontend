@@ -22,7 +22,6 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import controllers.financialStatement.paymentsAndCharges.routes._
 import controllers.routes.SignOutController
-import models.AdministratorOrPractitioner.{Administrator, Practitioner}
 import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}

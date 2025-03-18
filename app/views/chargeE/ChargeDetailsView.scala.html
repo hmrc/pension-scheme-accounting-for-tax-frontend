@@ -15,6 +15,8 @@
  *@
 
 @import viewmodels.govuk.date.DateViewModel
+@import viewmodels.govuk.errorsummary.ErrorSummaryViewModel
+@import utils.DateErrorTargetHelper.targetField
 
 @this(
     layout: templates.Layout,
@@ -29,7 +31,7 @@
 
 @layout(messages("chargeEDetails.title"), formHasErrors = form.hasErrors) {
     @if(form.errors.nonEmpty) {
-        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+        @govukErrorSummary(ErrorSummaryViewModel(form, errorLinkOverrides = targetField("dateNoticeReceived", form.errors.head.message)))
     }
 <h1 class="govuk-heading-xl">@messages("chargeEDetails.heading", memberName)</h1>
 

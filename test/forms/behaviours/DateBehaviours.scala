@@ -152,7 +152,7 @@ trait DateBehaviours extends FieldBehaviours {
 
       val result = form.bind(Map.empty[String, String])
 
-      result.errors must contain(FormError(key, requiredAllKey, errorArgs))
+      result.errors must contain(FormError(key, requiredAllKey, List("day", "month", "year")))
     }
   }
 }

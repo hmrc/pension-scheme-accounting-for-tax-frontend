@@ -105,10 +105,10 @@ class OverseasTransferParserSpec extends SpecBase with Matchers with MockitoSuga
 
       val result = parser.parse(startDate, GivingInvalidChargeDetails, UserAnswers())
       result mustBe Invalid(Seq(
-        ParserValidationError(1, 3, "dob.error.incomplete", "dob", Seq("month", "year")),
-        ParserValidationError(1, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two", "qropsTransferDate", Seq("year")),
-        ParserValidationError(2, 3, "dob.error.incomplete", "dob", Seq("year")),
-        ParserValidationError(2, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two", "qropsTransferDate", Seq("month", "year"))
+        ParserValidationError(1, 3, messages("genericDate.error.invalid.missingInformation") ++ " month and year", "dob", Seq("month", "year")),
+        ParserValidationError(1, 5, messages("genericDate.error.invalid.missingInformation") ++ " year", "qropsTransferDate", Seq("year")),
+        ParserValidationError(2, 3, messages("genericDate.error.invalid.missingInformation") ++ " year", "dob", Seq("year")),
+        ParserValidationError(2, 5, messages("genericDate.error.invalid.missingInformation") ++ " month and year", "qropsTransferDate", Seq("month", "year"))
       ))
     }
 
@@ -122,13 +122,13 @@ class OverseasTransferParserSpec extends SpecBase with Matchers with MockitoSuga
       val result = parser.parse(startDate, GivingInvalidMemberDetailsAndChargeDetails, UserAnswers())
       result mustBe Invalid(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
-        ParserValidationError(1, 3, "dob.error.incomplete", "dob", Seq("month", "year")),
-        ParserValidationError(1, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two", "qropsTransferDate", Seq("year")),
+        ParserValidationError(1, 3, messages("genericDate.error.invalid.missingInformation") ++ " month and year", "dob", Seq("month", "year")),
+        ParserValidationError(1, 5, messages("genericDate.error.invalid.missingInformation") ++ " year", "qropsTransferDate", Seq("year")),
         ParserValidationError(1, 6, "The amount transferred into the QROPS for last must be an amount of money, like 123 or 123.45", "amountTransferred"),
         ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
-        ParserValidationError(2, 3, "dob.error.incomplete", "dob", Seq("year")),
+        ParserValidationError(2, 3, messages("genericDate.error.invalid.missingInformation") ++ " year", "dob", Seq("year")),
         ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino"),
-        ParserValidationError(2, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two", "qropsTransferDate", Seq("month", "year")),
+        ParserValidationError(2, 5, messages("genericDate.error.invalid.missingInformation") ++ " month and year", "qropsTransferDate", Seq("month", "year")),
         ParserValidationError(2, 7, "amountTaxDue.error.invalid", "amountTaxDue")
       ))
     }

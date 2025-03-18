@@ -20,26 +20,21 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import helpers.FormatHelper
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
-import models.financialStatement.SchemeFSDetail.{endDate, startDate}
 import models.financialStatement.{PsaFSDetail, SchemeFSDetail}
-import models.{AFTOverviewOnPODS, Draft, LockDetail, Quarters}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{Content, HtmlContent}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, TableRow}
-import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatDateDMY}
+import utils.DateHelper.formatDateDMY
 import viewmodels._
 
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class AFTPartialService @Inject()(
                                    appConfig: FrontendAppConfig,
