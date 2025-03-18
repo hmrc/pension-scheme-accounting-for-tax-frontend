@@ -66,7 +66,7 @@ object DateConstraintHandlers extends Mappings {
         Seq(
           yearHas4Digits("genericDate.error.invalid.year"),
           minDate(LocalDate.of(date._1, april, taxYearOpenDay), errorKey, date._1.toString, (date._1 + 1).toString, "day", "month", "year"),
-          maxDate(LocalDate.of(date._1 + 1, april, taxYearCloseDay), errorKey, date._1.toString, (date._1 + 1).toString, "day", "month", "year"),
+          maxDate(LocalDate.of(date._1 + 1, april, taxYearCloseDay), errorKey, date._1.toString, (date._1 + 1).toString, "day", "month", "year")
         )
     }
 }
