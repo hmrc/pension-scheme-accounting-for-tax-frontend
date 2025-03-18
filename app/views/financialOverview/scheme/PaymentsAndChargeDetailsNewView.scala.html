@@ -78,30 +78,28 @@
 </div>
 
 @if(model.returnHistoryUrl.nonEmpty && model.versionValue.nonEmpty) {
-<p class="govuk-body">
-    <a id="return-history" href="@model.returnHistoryUrl" class="govuk-link">
-        @messages("financialPaymentsAndCharges.viewReturnHistory", model.chargeType)
-    </a>
-</p>
+    <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+        <a id="return-history" href="@model.returnHistoryUrl" class="govuk-link">
+            @messages("financialPaymentsAndCharges.viewReturnHistory", model.chargeType)
+        </a>
+    </p>
+
+    <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+        <a id="return_to_scheme" href="@model.returnUrl" class="govuk-link">
+        @messages("return.to.link", model.returnLinkBasedOnJourney)
+        </a>
+    </p>
 } else {
-        <p class="govuk-body">
+    <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
             <a id="return" href="@model.returnUrl" class="govuk-link">
             @messages("return.to.link", model.returnLinkBasedOnJourney)
             </a>
         </p>
-    }
 
-@if(model.returnHistoryUrl.nonEmpty && model.versionValue.nonEmpty) {
-    <p class="govuk-body">
-        <a id="return" href="@model.returnUrl" class="govuk-link">
-            @messages("return.to.link", model.returnLinkBasedOnJourney)
+    <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+        <a id="return_to_scheme" href=@model.returnDashboardUrl class="govuk-link">
+        @messages("return.to.link", model.schemeName)
         </a>
     </p>
-} else {
-        <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
-            <a id="return_to_scheme" href=@model.returnDashboardUrl class="govuk-link">
-            @messages("return.to.link", model.schemeName)
-            </a>
-        </p>
     }
 }

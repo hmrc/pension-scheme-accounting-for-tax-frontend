@@ -117,7 +117,7 @@ class PaymentsAndChargeDetailsController @Inject()(
         insetText = setInsetText(isChargeAssigned, schemeFSDetail, interestUrl),
         interest = Some(schemeFSDetail.accruedInterestTotal),
         returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
-        returnUrl = controllers.financialOverview.scheme.routes.AllPaymentsAndChargesController.onPageLoad(srn, period, paymentOrChargeType).url,
+        returnUrl = paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType),
         returnHistoryUrl = returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)),
         hintText = Some(optHintText(schemeFSDetail))
       )
@@ -198,7 +198,7 @@ class PaymentsAndChargeDetailsController @Inject()(
         insetText = setInsetTextV2(isChargeAssigned, schemeFSDetail, interestUrl),
         interest = Some(schemeFSDetail.accruedInterestTotal),
         returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeDetails.schemeName),
-        returnUrl = controllers.financialOverview.scheme.routes.AllPaymentsAndChargesController.onPageLoad(srn, period, paymentOrChargeType).url,
+        returnUrl = paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType),
         returnDashboardUrl = if(loggedInAsPsa) {
           Some(Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn))
         } else {
