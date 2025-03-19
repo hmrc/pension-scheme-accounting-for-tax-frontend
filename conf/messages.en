@@ -529,7 +529,6 @@ dateOfEvent.error.required = Enter the date of the benefit crystallisation event
 dateOfEvent.error.date = The date of the benefit crystallisation event giving rise to the charge must be between {0} and {1}
 dateOfEvent.error.incomplete = The date of the benefit crystallisation event must include a day, month and year
 dateOfEvent.error.invalid = Enter a real date for the benefit crystallisation event giving rise to the charge
-dateOfEvent.error.outsideRelevantTaxYear = Date must be between {0} and {1}
 
 chargeDDetails.title = Lifetime allowance charge details for the member
 chargeDDetails.heading = Lifetime allowance charge details for {0}
@@ -1791,3 +1790,11 @@ generic.upload.error.format = File must be a .csv format
 generic.upload.error.size = The selected file must be smaller than 2 MB
 generic.upload.error.malicious = The file you have uploaded has been flagged as malicious
 generic.upload.error.unknown = The file you are trying to upload is invalid
+
+genericDate.error.invalid = Enter the real date
+genericDate.error.invalid.day = Enter a real day
+genericDate.error.invalid.month = Enter a real month
+genericDate.error.invalid.year = Enter a real year
+genericDate.error.invalid.missingInformation = The date must include a
+genericDate.error.invalid.allFieldsMissing = Enter date of {0}
+genericDate.error.outsideReportedYear = Date must be between {0} and {1}

@@ -26,7 +26,7 @@ import models.{AccessType, ChargeType, Index, Mode}
 import models.LocalDateBinder._
 import navigators.CompoundNavigator
 import pages.chargeG.MemberDetailsPage
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -48,14 +48,14 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         memberDetailsView: MemberDetailsView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
-  private val form = formProvider()
+  private def form()(implicit messages: Messages) = formProvider()
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get(MemberDetailsPage(index)) match {
-          case None        => form
-          case Some(value) => form.fill(value)
+          case None        => form()
+          case Some(value) => form().fill(value)
         }
 
         Future.successful(Ok(memberDetailsView(
@@ -71,7 +71,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        form
+        form()
           .bindFromRequest()
           .fold(
             formWithErrors => {

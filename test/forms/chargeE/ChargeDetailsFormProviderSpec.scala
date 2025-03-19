@@ -16,19 +16,21 @@
 
 package forms.chargeE
 
+import base.SpecBase
 import forms.behaviours._
 import play.api.data.FormError
 import utils.AFTConstants._
 import utils.DateHelper
-import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.{dateFormatterDMY, formatDateDMY}
 
-class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours with BooleanFieldBehaviours {
+class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours with BooleanFieldBehaviours {
 
   val form = new ChargeDetailsFormProvider().apply(
     minimumChargeValueAllowed = BigDecimal("0.01"),
     minimumDate = MIN_DATE,
     maximumDate = QUARTER_START_DATE
   )
+
   val dateKey = "dateNoticeReceived"
   val chargeAmountKey = "chargeAmount"
   val isMandatoryKey = "isPaymentMandatory"
@@ -41,20 +43,30 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
       form = form,
       key = dateKey,
       max = QUARTER_START_DATE,
-      formError = FormError(dateKey, s"$dateKey.error.future")
+      formError = FormError(
+        dateKey,
+        messages("genericDate.error.outsideReportedYear", formatDateDMY(MIN_DATE), formatDateDMY(QUARTER_START_DATE)),
+        List("day", "month", "year")
+      )
     )
 
     behave like mandatoryDateField(
       form = form,
       key = dateKey,
-      requiredAllKey = s"$dateKey.error.required")
+      requiredAllKey = messages("genericDate.error.invalid.allFieldsMissing", "notice"),
+      errorArgs = List("day", "month", "year")
+    )
   }
 
   behave like dateFieldWithMin(
     form = form,
     key = dateKey,
     min = MIN_DATE,
-    formError = FormError(dateKey, s"$dateKey.error.minDate", Seq(dateFormatterDMY.format(MIN_DATE)))
+    formError = FormError(
+      dateKey,
+      messages("genericDate.error.outsideReportedYear", formatDateDMY(MIN_DATE), formatDateDMY(QUARTER_START_DATE)),
+      List("day", "month", "year")
+    )
   )
 
   "chargeAmount" must {

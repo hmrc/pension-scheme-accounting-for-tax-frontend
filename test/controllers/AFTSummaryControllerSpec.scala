@@ -306,6 +306,23 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with
 
         compareResultAndView(result, view)
       }
+      "return a BAD REQUEST when invalid data is submitted" in {
+        val searchResult: Seq[MemberRow] = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44"))
+
+        when(mockMemberSearchService.search(any(), any(), any(), any(), any(), any())(any(), any()))
+          .thenReturn(searchResult)
+
+        mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+        fakeDataSetupAction.setDataToReturn(userAnswers)
+
+        val fakeRequest = httpPOSTRequest("/", Map("searchText" -> Seq()))
+
+        val controllerInstance = application.injector.instanceOf[AFTSummaryController]
+
+        val result = controllerInstance.onSearchMember(SampleData.srn, startDate, accessType, versionInt).apply(fakeRequest)
+
+        status(result) mustEqual BAD_REQUEST
+      }
     }
   }
 }

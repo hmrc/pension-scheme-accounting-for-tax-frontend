@@ -21,7 +21,7 @@ import models.chargeF.ChargeDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.i18n.Messages
-import utils.DateHelper.formatDateDMY
+import utils.DateConstraintHandlers.{localDateMappingWithDateRange, localDatesConstraintHandler}
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -30,15 +30,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
   def apply(min: LocalDate, max: LocalDate, minimumChargeValueAllowed:BigDecimal)(implicit messages: Messages): Form[ChargeDetails] =
     Form(mapping(
-      "deregistrationDate" -> localDate(
-        invalidKey = "chargeF.deregistrationDate.error.invalid",
-        allRequiredKey = "chargeF.deregistrationDate.error.required.all",
-        twoRequiredKey = "chargeF.deregistrationDate.error.required.two",
-        requiredKey = "chargeF.deregistrationDate.error.required.all"
-      ).verifying(
-        minDate(min, messages("chargeF.deregistrationDate.error.date", formatDateDMY(min), formatDateDMY(max))),
-        maxDate(max, messages("chargeF.deregistrationDate.error.date", formatDateDMY(min), formatDateDMY(max)))
-      ),
+      localDateMappingWithDateRange(field = "deregistrationDate", date = (min, max), dateDescription = "de-registration"),
       "amountTaxDue" -> bigDecimal2DP(
         requiredKey = "chargeF.amountTaxDue.error.required",
         invalidKey = "chargeF.amountTaxDue.error.invalid",

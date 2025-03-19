@@ -31,7 +31,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
   private val dateKey = "dateOfEvent"
   private val tax25PercentKey = "taxAt25Percent"
   private val tax55PercentKey = "taxAt55Percent"
-  private val outOfRangeMessage: List[String] = List(Messages("dateOfEvent.error.outsideRelevantTaxYear", formatDateDMY(QUARTER_START_DATE), formatDateDMY(QUARTER_END_DATE)))
+  private val outOfRangeMessage: List[String] = List(Messages("genericDate.error.outsideReportedYear", formatDateDMY(QUARTER_START_DATE), formatDateDMY(QUARTER_END_DATE)))
 
   private def chargeDetails(
                              date: LocalDate = QUARTER_START_DATE,
@@ -54,13 +54,13 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
       val outOfRangeDate = QUARTER_START_DATE.minusDays(1)
       val result = form.bind(chargeDetails(date = outOfRangeDate))
 
-      result.errors must contain(FormError(dateKey, outOfRangeMessage, List()))
+      result.errors must contain(FormError(dateKey, outOfRangeMessage, List("day", "month", "year")))
     }
 
     "fail to bind empty date" in {
       val result = form.bind(Map(dateKey -> "", tax25PercentKey -> "1.00", tax55PercentKey -> "1.00"))
 
-      result.errors must contain(FormError(dateKey, s"$dateKey.error.required"))
+      result.errors must contain(FormError(dateKey, messages("genericDate.error.invalid.allFieldsMissing", "benefit crystallisation event"), List("day", "month", "year")))
     }
   }
 

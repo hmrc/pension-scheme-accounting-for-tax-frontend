@@ -27,7 +27,7 @@ import models.{AccessType, ChargeType, CommonQuarters, Index, Mode}
 import navigators.CompoundNavigator
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -53,7 +53,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     with I18nSupport
     with CommonQuarters {
 
-  private def form(minimumChargeValue: BigDecimal, startDate: LocalDate): Form[ChargeEDetails] = {
+  private def form(minimumChargeValue: BigDecimal, startDate: LocalDate)(implicit messages: Messages): Form[ChargeEDetails] = {
     val endDate = getQuarter(startDate).endDate
     formProvider(
       minimumChargeValueAllowed = minimumChargeValue,

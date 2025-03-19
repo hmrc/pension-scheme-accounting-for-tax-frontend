@@ -26,8 +26,8 @@ import utils.DateHelper.dateFormatterDMY
 
 class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with StringFieldBehaviours {
 
-  private val dynamicErrorMsg: String = messages("chargeG.chargeDetails.qropsTransferDate.error.date", QUARTER_START_DATE.format(dateFormatterDMY),
-    QUARTER_END_DATE.format(dateFormatterDMY))
+  private val dynamicErrorMsg: String = messages("genericDate.error.outsideReportedYear",
+    QUARTER_START_DATE.format(dateFormatterDMY),QUARTER_END_DATE.format(dateFormatterDMY))
 
   val futureErrorMsg: String = "chargeG.chargeDetails.qropsTransferDate.error.future"
   val form = new ChargeDetailsFormProvider()(QUARTER_START_DATE, QUARTER_END_DATE)
@@ -40,17 +40,17 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with St
       form = form,
       key = qropsDateKey,
       min = QUARTER_START_DATE,
-      formError = FormError(qropsDateKey, dynamicErrorMsg)
+      formError = FormError(qropsDateKey, dynamicErrorMsg, List("day", "month", "year"))
     )
 
     behave like dateFieldWithMax(
       form = form,
       key = qropsDateKey,
       max = QUARTER_END_DATE,
-      formError = FormError(qropsDateKey, dynamicErrorMsg)
+      formError = FormError(qropsDateKey, dynamicErrorMsg, List("day", "month", "year"))
     )
 
-    behave like mandatoryDateField(form, qropsDateKey, "chargeG.chargeDetails.qropsTransferDate.error.required.all")
+    behave like mandatoryDateField(form, qropsDateKey, messages("genericDate.error.invalid.allFieldsMissing", "transfer"))
   }
 
   "qropsReferenceNumber" must {

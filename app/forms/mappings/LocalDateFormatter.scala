@@ -16,18 +16,21 @@
 
 package forms.mappings
 
+import models.TaxYearValidationDetail
 import play.api.data.FormError
 import play.api.data.format.Formatter
+import play.api.i18n.Messages
+import utils.DateHelper
 
 import java.time.LocalDate
 import scala.util.{Failure, Success, Try}
 
 private[mappings] class LocalDateFormatter(
                                             invalidKey: String,
-                                            allRequiredKey: String,
-                                            twoRequiredKey: String,
+                                            taxYearValidationDetail: Option[TaxYearValidationDetail] = None,
+                                            dateDescription: String,
                                             args: Seq[String] = Seq.empty
-                                          ) extends Formatter[LocalDate] with Formatters {
+                                          )(implicit messages: Messages) extends Formatter[LocalDate] with Formatters {
 
   private val fieldKeys: List[String] = List("day", "month", "year")
 
@@ -70,15 +73,28 @@ private[mappings] class LocalDateFormatter(
 
     fields.count(_._2.isDefined) match {
       case 3 =>
-        formatDate(key, data).left.map {
-          _.map(_.copy(key = key, args = args))
+        val formattedDate = formatDate(key, data)
+        formattedDate match {
+          case errors@Left(_) => errors
+          case rightDate@Right(d) =>
+            taxYearValidationDetail match {
+              case None => rightDate
+              case Some(TaxYearValidationDetail(invalidKey, taxYear)) =>
+                val taxYearForDate = DateHelper.getTaxYear(d)
+                if (taxYearForDate == taxYear) {
+                  rightDate
+                } else {
+                  Left(List(FormError(key, invalidKey, Seq(taxYear.toString, (taxYear + 1).toString) ++ fieldKeys)))
+                }
+            }
         }
       case 2 =>
-        Left(List(FormError(key, twoRequiredKey, missingFields ++ args)))
+        Left(List(FormError(key, s"${messages("genericDate.error.invalid.missingInformation")} ${missingFields.head}", args ++ missingFields)))
       case 1 =>
-        Left(List(FormError(key, twoRequiredKey, missingFields ++ args)))
+        val missingFieldsString = s"${missingFields.head} and ${missingFields.tail.head}"
+        Left(List(FormError(key, s"${messages("genericDate.error.invalid.missingInformation")} $missingFieldsString", args ++ missingFields)))
       case _ =>
-        Left(List(FormError(key, allRequiredKey, args)))
+        Left(List(FormError(key, s"${messages("genericDate.error.invalid.allFieldsMissing", dateDescription)}", args ++ missingFields)))
     }
   }
 

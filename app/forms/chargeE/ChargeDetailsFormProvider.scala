@@ -20,14 +20,15 @@ import forms.mappings.{Constraints, Mappings}
 import models.chargeE.ChargeEDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
-import utils.DateHelper.formatDateDMY
+import play.api.i18n.Messages
+import utils.DateConstraintHandlers.{localDateMappingWithDateRange, localDatesConstraintHandler}
 
 import java.time.LocalDate
 import javax.inject.Inject
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
-  def apply(minimumChargeValueAllowed:BigDecimal, minimumDate: LocalDate, maximumDate: LocalDate): Form[ChargeEDetails] =
+  def apply(minimumChargeValueAllowed:BigDecimal, minimumDate: LocalDate, maximumDate: LocalDate)(implicit messages: Messages): Form[ChargeEDetails] =
     Form(mapping(
 
       "chargeAmount" -> bigDecimal2DP(
@@ -38,16 +39,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         maximumValue[BigDecimal](BigDecimal("99999999999.99"), "chargeAmount.error.maximum"),
         minimumValue[BigDecimal](minimumChargeValueAllowed, "chargeAmount.error.invalid")
       ),
-      "dateNoticeReceived" -> localDate(
-        invalidKey = "dateNoticeReceived.error.invalid",
-        allRequiredKey = "dateNoticeReceived.error.required",
-        twoRequiredKey = "dateNoticeReceived.error.incomplete",
-        requiredKey = "dateNoticeReceived.error.required"
-      ).verifying(
-        minDate(minimumDate, "dateNoticeReceived.error.minDate", formatDateDMY(minimumDate)),
-        maxDate(maximumDate, "dateNoticeReceived.error.future"),
-        yearHas4Digits("dateNoticeReceived.error.invalid")
-      ),
+      localDateMappingWithDateRange(field = "dateNoticeReceived", date = (minimumDate, maximumDate), dateDescription = "notice"),
       "isPaymentMandatory" -> boolean("isPaymentMandatory.error")
     )(ChargeEDetails.apply)(ChargeEDetails.unapply))
 }
