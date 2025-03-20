@@ -25,7 +25,6 @@ import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import services.AFTPartialService
 import services.financialOverview.psa.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.financialOverview.psa.PenaltyTypeView
@@ -41,8 +40,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
                                       val controllerComponents: MessagesControllerComponents,
                                       penaltyTypeView: PenaltyTypeView,
                                       psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                      penaltiesNavService: PenaltiesNavigationService,
-                                      aftPartialService: AFTPartialService)
+                                      penaltiesNavService: PenaltiesNavigationService)
                                      (implicit ec: ExecutionContext) extends FrontendBaseController
   with I18nSupport {
 
@@ -54,7 +52,8 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
 
         val title = getTitle(journeyType)
 
-        val historyChargeTypes = getHistoryChargeTypes(penaltiesCache.penalties.toSeq)
+        val historicalPenalties = penaltiesCache.penalties.filter(_.outstandingAmount <= 0)
+        val historyChargeTypes = getPenaltyTypes(historicalPenalties)
 
         val radios = if (journeyType == ChargeDetailsFilter.History) {
             PenaltyType.radios(form, historyChargeTypes, areLabelsBold = false)
@@ -81,7 +80,8 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
       form.bindFromRequest().fold(
         formWithErrors => {
           val title = getTitle(journeyType)
-          val historyChargeTypes = getHistoryChargeTypes(penaltiesCache.penalties.toSeq)
+          val historicalPenalties = penaltiesCache.penalties.filter(_.outstandingAmount <= 0)
+          val historyChargeTypes = getPenaltyTypes(historicalPenalties)
 
           val radios = if (journeyType == ChargeDetailsFilter.History) {
             PenaltyType.radios(formWithErrors, historyChargeTypes, areLabelsBold = false)
@@ -109,14 +109,6 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
         value => penaltiesNavService.navFromPenaltiesTypePage(penaltiesCache.penalties, request.psaIdOrException.id, value, journeyType)
       )
     }
-  }
-
-  private def getHistoryChargeTypes(psaFs: Seq[PsaFSDetail]) = {
-    val historyChargeTypes = aftPartialService.retrievePaidPenaltiesAndCharges(psaFs)
-      .map(psaFSDetail => {
-        getPenaltyType(psaFSDetail.chargeType)
-      }).distinct.sortBy(_.toString)
-    historyChargeTypes.map(chargeType => DisplayPenaltyType(chargeType, None))
   }
 
   private def getPenaltyTypes(penalties: Seq[PsaFSDetail]): Seq[DisplayPenaltyType] =

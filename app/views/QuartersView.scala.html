@@ -30,6 +30,9 @@
     schemeName: String)(implicit request: Request[_], messages: Messages)
 
 @layout(messages("quarters.title", year), formHasErrors = form.hasErrors) {
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    }
     <div>
         @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
             @govukRadios(

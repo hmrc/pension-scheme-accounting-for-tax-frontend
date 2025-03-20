@@ -53,12 +53,7 @@
             </p>
         }
 
-        <ul class="govuk-list">
-            <li><a href=@{viewModel.returnUrl} class="govuk-link">@messages("confirmation.li1", viewModel.schemeName)</a></li>
-            <li><a href=@{viewModel.pensionSchemesUrl} class="govuk-link">@messages("confirmation.li2", viewModel.schemeName)</a></li>
-        </ul>
-
-        <h2 class="govuk-heading-m">@messages("confirmation.saveOrPrint.h2")</h2>
+        <p class="govuk-body"><a href=@{viewModel.returnUrl} class="govuk-link">@messages("confirmation.li1")</a></p>
 
         <p class="govuk-body"><a class="govuk-link print-this-page" href="#">@messages("confirmation.print.page.link.text")</a></p>
 

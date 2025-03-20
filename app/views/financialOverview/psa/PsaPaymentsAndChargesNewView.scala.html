@@ -92,21 +92,27 @@ config: FrontendAppConfig
 
 <div>
         @if(penaltiesTable.rows.nonEmpty) {
-        <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">messages(titleMessage)</span>
-        <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
+        <span id="penaltiesAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">messages(titleMessage)</span>
+        <div role="region" aria-labelledby="penaltiesAndCharges_h2" class="govuk-!-margin-bottom-7">
             @govukTable(penaltiesTable)
         </div>
         } else {
-        <span id="paymentAndCharges_h3" aria-hidden="true" class="govuk-visually-hidden">messages(titleMessage)</span>
+        <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">messages(titleMessage)</span>
         <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
             @govukTable(paymentAndChargesTable)
         </div>
         }
 </div>
 
-<p class="govuk-body">
+<p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+    <a id="return" href="@config.psafinancialOverviewUrl" class="govuk-link">
+        @messages("site.return.to.overview.new")
+    </a>
+</p>
+
+<p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
     <a id="return_to_psa" href="@config.managePensionsSchemeOverviewUrl" class="govuk-link">
-        @messages("return.to.link", psaName)
+    @messages("return.to.link", psaName)
     </a>
 </p>
 

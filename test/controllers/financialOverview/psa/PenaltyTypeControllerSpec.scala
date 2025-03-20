@@ -40,7 +40,6 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
-import services.AFTPartialService
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import views.html.financialOverview.psa.PenaltyTypeView
 
@@ -54,11 +53,9 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
   private val mockNavigationService = mock[PenaltiesNavigationService]
   private val mockListOfSchemesConn = mock[ListOfSchemesConnector]
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
-  private val mockAFTPartialService = mock[AFTPartialService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
     bind[ListOfSchemesConnector].toInstance(mockListOfSchemesConn),
-    bind[AFTPartialService].toInstance(mockAFTPartialService)
   )
 
   private val displayPenalties: Seq[DisplayPenaltyType] = Seq(
@@ -90,8 +87,6 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", multiplePenalties)))
-    when(mockAFTPartialService.retrievePaidPenaltiesAndCharges(any()))
-      .thenReturn(psaFsSeqWithCleared)
     when(mockNavigationService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).
       thenReturn(Future.successful(penaltySchemes))
     when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
@@ -119,6 +114,8 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
 
     }
     "return OK and the correct view for a GET with penalty types for charge history" in {
+      when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
+        thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeqWithCleared)))
       lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad(ChargeDetailsFilter.History).url
       val req = httpGETRequest(httpPathGET)
       val result = route(application, req).value

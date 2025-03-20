@@ -14,18 +14,23 @@
  * limitations under the License.
  *@
 
+@import config.FrontendAppConfig
+
 @this(
     layout: templates.Layout,
     formHelper: FormWithCSRF,
     govukErrorSummary: GovukErrorSummary,
     govukButton: GovukButton,
-    govukRadios: GovukRadios
+    govukRadios: GovukRadios,
+    config: FrontendAppConfig
 )
 
 @(form: Form[_], submitCall: Call, typeParam: String, psaName: String, returnUrl: String, radios: Seq[RadioItem])(implicit request: Request[_], messages: Messages)
 
 @layout(messages("selectScheme.title", typeParam), formHasErrors = form.hasErrors, fullWidthLayout = false) {
-
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    }
 <div>
     @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
         @govukRadios(
@@ -50,8 +55,18 @@
 
     }
 
-    <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", psaName)</a>
-
 </div>
+
+<p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+    <a id="return" href="@config.psafinancialOverviewUrl" class="govuk-link">
+    @messages("site.return.to.overview.new")
+    </a>
+</p>
+
+<p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+    <a id="return_to_psa" href="@config.managePensionsSchemeOverviewUrl" class="govuk-link">
+    @messages("return.to.link", psaName)
+    </a>
+</p>
 
 }

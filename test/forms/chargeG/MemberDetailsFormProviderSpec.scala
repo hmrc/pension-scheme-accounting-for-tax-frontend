@@ -16,15 +16,17 @@
 
 package forms.chargeG
 
+import base.SpecBase
 import forms.behaviours.{DateBehaviours, StringFieldBehaviours}
 import models.chargeG.MemberDetails
 import play.api.data.FormError
 import utils.AFTConstants.MIN_DATE
 import utils.DateHelper
+import utils.DateHelper.dateFormatterDMY
 
 import java.time.LocalDate
 
-class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehaviours {
+class MemberDetailsFormProviderSpec extends SpecBase with StringFieldBehaviours with DateBehaviours {
 
   val form = new MemberDetailsFormProvider()()
 
@@ -108,19 +110,21 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehav
       form = form,
       key = dobKey,
       min = MIN_DATE,
-      formError = FormError(dobKey, "dob.error.past")
+      formError = FormError(dobKey, messages("genericDate.error.outsideReportedYear",
+        MIN_DATE.format(dateFormatterDMY), DateHelper.today.format(dateFormatterDMY)), List("day", "month", "year"))
     )
 
     behave like dateFieldWithMax(
       form = form,
       key = dobKey,
       max = DateHelper.today,
-      formError = FormError(dobKey, "dob.error.future")
+      formError = FormError(dobKey, messages("genericDate.error.outsideReportedYear",
+        MIN_DATE.format(dateFormatterDMY), DateHelper.today.format(dateFormatterDMY)), List("day", "month", "year"))
     )
 
     behave like mandatoryDateField(
       form = form,
       key = dobKey,
-      requiredAllKey = "dob.error.required")
+      requiredAllKey = messages("genericDate.error.invalid.allFieldsMissing", "birth"))
   }
 }

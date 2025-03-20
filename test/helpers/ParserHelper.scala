@@ -94,10 +94,10 @@ trait ParserHelper extends SpecBase with Matchers with MockitoSugar with BeforeA
 
       val expectedResult = combine(Seq(
         ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount"),
-        ParserValidationError(1, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived", Seq("year")),
+        ParserValidationError(1, 5, messages("genericDate.error.invalid.missingInformation") ++ " year", "dateNoticeReceived", Seq("year")),
         ParserValidationError(1, 6, "error.boolean", "isPaymentMandatory"),
         ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.required", AnnualAllowanceFieldNames.taxYear),
-        ParserValidationError(2, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived", Seq("month", "year")),
+        ParserValidationError(2, 5, messages("genericDate.error.invalid.missingInformation") ++ " month and year", "dateNoticeReceived", Seq("month", "year")),
         ParserValidationError(2, 3, "annualAllowanceYear.fileUpload.error.invalid", AnnualAllowanceFieldNames.taxYear),
         ParserValidationError(3, 3, "annualAllowanceYear.fileUpload.error.future", AnnualAllowanceFieldNames.taxYear),
         ParserValidationError(4, 3, "annualAllowanceYear.fileUpload.error.past", AnnualAllowanceFieldNames.taxYear)
@@ -141,7 +141,7 @@ trait ParserHelper extends SpecBase with Matchers with MockitoSugar with BeforeA
         ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount"),
         ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
         ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino"),
-        ParserValidationError(2, 5, "dateNoticeReceived.error.invalid", "dateNoticeReceived")
+        ParserValidationError(2, 5, "genericDate.error.invalid", "dateNoticeReceived")
       ), extraExpected)
       result.swap.toList.flatten.take(expectedResult.size) mustBe expectedResult
     }
@@ -208,8 +208,8 @@ trait ParserHelper extends SpecBase with Matchers with MockitoSugar with BeforeA
       val result = parser.parse(startDate, GivingMissingYearAndMonth, UserAnswers())
       result.isInvalid mustBe true
       val expectedResult = combine(Seq(
-        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("year")),
-        ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("month", "year"))
+        ParserValidationError(1, 3, messages("genericDate.error.invalid.missingInformation") ++ " year", "dateOfEvent", Seq("year")),
+        ParserValidationError(2, 3, messages("genericDate.error.invalid.missingInformation") ++ " month and year", "dateOfEvent", Seq("month", "year"))
       ), extraExpected)
       result.swap.toList.flatten.take(expectedResult.size) mustBe expectedResult
     }
@@ -224,10 +224,10 @@ trait ParserHelper extends SpecBase with Matchers with MockitoSugar with BeforeA
       result.isInvalid mustBe true
       val expectedResult = combine(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
-        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("year")),
+        ParserValidationError(1, 3, messages("genericDate.error.invalid.missingInformation") ++ " year", "dateOfEvent", Seq("year")),
         ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
         ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino"),
-        ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("month", "year"))
+        ParserValidationError(2, 3, messages("genericDate.error.invalid.missingInformation") ++ " month and year", "dateOfEvent", Seq("month", "year"))
       ), extraExpected)
       result.swap.toList.flatten.take(expectedResult.size) mustBe expectedResult
     }
@@ -243,7 +243,7 @@ trait ParserHelper extends SpecBase with Matchers with MockitoSugar with BeforeA
       result.isInvalid mustBe true
       val expectedResult = combine(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
-        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("year")),
+        ParserValidationError(1, 3, messages("genericDate.error.invalid.missingInformation") ++ " year", "dateOfEvent", Seq("year")),
       ), extraExpected)
       result.swap.toList.flatten.take(expectedResult.size) mustBe expectedResult
     }

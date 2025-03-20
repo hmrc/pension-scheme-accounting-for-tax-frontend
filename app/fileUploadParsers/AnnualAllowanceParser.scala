@@ -60,7 +60,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
   private def processChargeDetailsValidation(index: Int,
                                              startDate: LocalDate,
                                              chargeFields: Seq[String],
-                                             parsedDate: ParsedDate): Validated[Seq[ParserValidationError], ChargeEDetails] = {
+                                             parsedDate: ParsedDate)(implicit messages: Messages): Validated[Seq[ParserValidationError], ChargeEDetails] = {
     val fields = Seq(
       Field(AnnualAllowanceFieldNames.chargeAmount, chargeFields(fieldNoChargeAmount), AnnualAllowanceFieldNames.chargeAmount, fieldNoChargeAmount),
       Field(AnnualAllowanceFieldNames.dateNoticeReceivedDay, parsedDate.day,
@@ -94,7 +94,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
                         fields: Seq[Field]): Validated[Seq[ParserValidationError], A] =
     Invalid(errorsFromForm(formWithErrors, fields, fieldIndex))
 
-  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Seq[String]): Validated[Seq[ParserValidationError], ChargeEDetails] = {
+  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Seq[String])(implicit messages: Messages): Validated[Seq[ParserValidationError], ChargeEDetails] = {
     processChargeDetailsValidation(
       index,
       startDate,

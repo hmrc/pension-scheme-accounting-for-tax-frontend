@@ -717,6 +717,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
     Table(head = Some(tableHeader), rows = rows)
   }
+
 }
 
 case class PaymentsCache(loggedInId: String,

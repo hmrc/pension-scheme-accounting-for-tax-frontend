@@ -24,7 +24,7 @@ import utils.DateHelper.dateFormatterDMY
 
 class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours {
 
-  private val dynamicErrorMsg: String = messages("chargeF.deregistrationDate.error.date",
+  private val dynamicErrorMsg: String = messages("genericDate.error.outsideReportedYear",
     QUARTER_START_DATE.format(dateFormatterDMY), QUARTER_END_DATE.format(dateFormatterDMY))
 
   val form = new ChargeDetailsFormProvider()(QUARTER_START_DATE, QUARTER_END_DATE, BigDecimal("0.01"))
@@ -39,20 +39,20 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
       form = form,
       key = deRegDateKey,
       min = QUARTER_START_DATE,
-      formError = FormError(deRegDateKey, dynamicErrorMsg)
+      formError = FormError(deRegDateKey, dynamicErrorMsg, List("day", "month", "year"))
     )
 
     behave like dateFieldWithMax(
       form = form,
       key = deRegDateKey,
       max = QUARTER_END_DATE,
-      formError = FormError(deRegDateKey, dynamicErrorMsg)
+      formError = FormError(deRegDateKey, dynamicErrorMsg, List("day", "month", "year"))
     )
 
     behave like mandatoryDateField(
       form = form,
       key = deRegDateKey,
-      requiredAllKey = s"$deRegDateMsgKey.error.required.all")
+      requiredAllKey = messages("genericDate.error.invalid.allFieldsMissing", "de-registration"))
   }
 
   "amountTaxDue" must {

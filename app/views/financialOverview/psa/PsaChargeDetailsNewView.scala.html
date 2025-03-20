@@ -15,13 +15,15 @@
  *@
 
 @import viewmodels.PsaChargeDetailsViewModel
+@import config.FrontendAppConfig
 
 @this(
     layout: templates.Layout,
     govukButton: GovukButton,
     govukSummaryList: GovukSummaryList,
     govukTable: GovukTable,
-    govukInsetText: GovukInsetText
+    govukInsetText: GovukInsetText,
+    config: FrontendAppConfig
 )
 
 @(model: PsaChargeDetailsViewModel)(implicit messages: Messages, request: Request[_])
@@ -31,7 +33,7 @@
 <div>
 
         @if(model.schemeAssociated) {
-            <h1 class="hmrc-caption govuk-caption-xl">@{model.schemeName}</h1>
+            <span class="hmrc-caption govuk-caption-xl">@{model.schemeName}</span>
             <h1 class="govuk-heading-xl">@{model.heading}</h1>
         } else {
             <h1 class="govuk-heading-xl">@{model.heading}</h1>
@@ -39,16 +41,16 @@
 
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-one-half">
-                <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
+                <span class="govuk-caption-m govuk-!-margin-bottom-1">
                     @messages("psa.scheme.paymentDueAmount.new")
-                </h3>
-                <p class="govuk-heading-m govuk-!-margin-top-0">@{model.paymentDueAmount}</p>
+                </span>
+                <p class="govuk-body-l govuk-!-margin-top-0"><strong>@{model.paymentDueAmount}</strong></p>
             </div>
             <div class="govuk-grid-column-one-half">
-                <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
+                <span class="govuk-caption-m govuk-!-margin-bottom-1">
                     @messages("psa.scheme.paymentDueDate.new")
-                </h3>
-                <p class="govuk-heading-m govuk-!-margin-top-0">@{model.paymentDueDate}</p>
+                </span>
+                <p class="govuk-body-l govuk-!-margin-top-0"><strong>@{model.paymentDueDate}</strong></p>
             </div>
         </div>
 
@@ -61,8 +63,8 @@
     </p>
 
     @if(model.chargeAmountDetails.isDefined) {
-        <div role="region" aria-labelledby="chargeE_h1" class="govuk-!-margin-bottom-1">
-            <h2 class="govuk-heading-l">
+        <div role="region" aria-labelledby="charge_details_h2" class="govuk-!-margin-bottom-1">
+            <h2 class="govuk-heading-l" id="charge_details_h2">
                     @messages("psa.pension.scheme.charge.details.new")
             </h2>
                 @model.chargeAmountDetails.map { table =>
@@ -81,6 +83,16 @@
 
 </div>
 
-<p class="govuk-body"><a id="return" class="govuk-link" href="@{model.returnUrl}">
-    @messages("return.to.link", model.returnUrlText)</a></p>
+<p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+    <a id="return" href=@{model.returnUrl} class="govuk-link">
+    @messages("return.to.link", model.returnUrlText)
+    </a>
+</p>
+
+<p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+    <a id="return_to_psa" href="@config.managePensionsSchemeOverviewUrl" class="govuk-link">
+    @messages("return.to.link", model.psaName)
+    </a>
+</p>
+
 }

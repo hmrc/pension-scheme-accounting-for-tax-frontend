@@ -20,13 +20,16 @@ import forms.mappings.{Constraints, Mappings, Transforms}
 import models.chargeG.MemberDetails
 import play.api.data.Form
 import play.api.data.Forms._
+import play.api.i18n.Messages
+import utils.DateConstraintHandlers.{localDateMappingWithDateRange, localDatesConstraintHandler}
+import utils.DateHelper
 
 import java.time.LocalDate
 import javax.inject.Inject
 
 class MemberDetailsFormProvider @Inject() extends Mappings with Constraints with Transforms {
 
-  def apply(): Form[MemberDetails] = Form(
+  def apply()(implicit messages: Messages): Form[MemberDetails] = Form(
     mapping(
       "firstName" -> text("memberDetails.error.firstName.required")
         .verifying(maxLength(MemberDetailsFormProvider.maxLength, "memberDetails.error.firstName.length"))
@@ -34,15 +37,9 @@ class MemberDetailsFormProvider @Inject() extends Mappings with Constraints with
       "lastName" -> text("memberDetails.error.lastName.required")
         .verifying(maxLength(MemberDetailsFormProvider.maxLength, "memberDetails.error.lastName.length"))
         .verifying(regexp(nameRegex, "memberDetails.error.lastName.invalid")),
-      "dob" -> localDate(
-        invalidKey = "dob.error.invalid",
-        allRequiredKey = "dob.error.required",
-        twoRequiredKey = "dob.error.incomplete",
-        requiredKey = "dob.error.required"
-      ).verifying(
-        minDate(MemberDetailsFormProvider.MIN_DATE, "dob.error.past"),
-        futureDate("dob.error.future"),
-        yearHas4Digits("dob.error.invalid")
+      localDateMappingWithDateRange(field = "dob",
+        date = (MemberDetailsFormProvider.MIN_DATE, DateHelper.today),
+        dateDescription = "birth"
       ),
       "nino" -> text("memberDetails.error.nino.required").transform(noSpaceWithUpperCaseTransform, noTransform).
         verifying(validNino("memberDetails.error.nino.invalid"))

@@ -31,7 +31,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
   val amountTaxDueMsgKey = "chargeC.amountTaxDue"
   val amountTaxDueKey = "amountTaxDue"
   val dateKey = "paymentDate"
-  private val dynamicErrorMsg: String = messages("chargeC.paymentDate.error.date", QUARTER_START_DATE.format(dateFormatterDMY),
+  private val dynamicErrorMsg: String = messages("genericDate.error.outsideReportedYear", QUARTER_START_DATE.format(dateFormatterDMY),
     QUARTER_END_DATE.format(dateFormatterDMY))
 
   "paymentDate" must {
@@ -52,38 +52,38 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
       result.value.value mustEqual expectedResult
     }
 
-    behave like mandatoryDateField(form, dateKey, "chargeC.paymentDate.error.required")
+    behave like mandatoryDateField(form, dateKey, messages("genericDate.error.invalid.allFieldsMissing", "payment"))
 
     behave like dateFieldWithMin(
       form = form,
       key = dateKey,
       min = QUARTER_START_DATE,
-      formError = FormError(dateKey, dynamicErrorMsg)
+      formError = FormError(dateKey, dynamicErrorMsg, List("day", "month", "year"))
     )
 
     behave like dateFieldWithMax(
       form = form,
       key = dateKey,
       max = QUARTER_END_DATE,
-      formError = FormError(dateKey, dynamicErrorMsg)
+      formError = FormError(dateKey, dynamicErrorMsg, List("day", "month", "year"))
     )
 
     behave like dateFieldInvalid(
       form = form,
       key = dateKey,
-      formError = FormError(dateKey, "chargeC.paymentDate.error.invalid")
+      formError = FormError(dateKey, "genericDate.error.invalid")
     )
 
     behave like dateFieldDayMonthMissing(
       form = form,
       key = dateKey,
-      formError = FormError(dateKey, "chargeC.paymentDate.error.incomplete", Seq("day", "month"))
+      formError = FormError(dateKey, messages("The date must include a") ++ " day and month", Seq("day", "month"))
     )
 
     behave like dateFieldYearNot4Digits(
       form = form,
       key = dateKey,
-      formError = FormError(dateKey, "chargeC.paymentDate.error.invalid")
+      formError = FormError(dateKey, "genericDate.error.invalid.year")
     )
   }
 

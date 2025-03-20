@@ -21,7 +21,7 @@ import models.chargeG.ChargeDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.i18n.Messages
-import utils.DateHelper.formatDateDMY
+import utils.DateConstraintHandlers.{localDateMappingWithDateRange, localDatesConstraintHandler}
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -29,7 +29,6 @@ import javax.inject.Inject
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
   val qropsReferenceNumberKey: String = "chargeG.chargeDetails.qropsReferenceNumber.error"
-  val qropsTransferDateKey: String = "chargeG.chargeDetails.qropsTransferDate.error"
 
   def apply(min: LocalDate, max: LocalDate)(implicit messages: Messages): Form[ChargeDetails] =
     Form(mapping(
@@ -39,15 +38,6 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         .verifying(
           regexp(qropsRegex, s"$qropsReferenceNumberKey.valid")
         ),
-      "qropsTransferDate" -> localDate(
-        invalidKey = s"$qropsTransferDateKey.invalid",
-        allRequiredKey = s"$qropsTransferDateKey.required.all",
-        twoRequiredKey = s"$qropsTransferDateKey.required.two",
-        requiredKey = s"$qropsTransferDateKey.required"
-      ).verifying(
-        minDate(min, messages("chargeG.chargeDetails.qropsTransferDate.error.date", formatDateDMY(min), formatDateDMY(max))),
-        maxDate(max, messages("chargeG.chargeDetails.qropsTransferDate.error.date", formatDateDMY(min), formatDateDMY(max))),
-        yearHas4Digits(s"$qropsTransferDateKey.invalid")
-      )
+      localDateMappingWithDateRange(field = "qropsTransferDate", date = (min, max), dateDescription = "transfer")
     )(ChargeDetails.apply)(ChargeDetails.unapply))
 }

@@ -121,7 +121,7 @@ class SchemeFinancialOverviewControllerSpec
           creditBalanceFormatted = "£0.00",
           creditBalance = 0,
           isOverdueChargeAvailable = false,
-          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
+          returnUrl = "/aa/dashboard/pension-scheme-details",
           displayHistory = true,
           historyLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, History).url
         )(messages, request)
@@ -162,7 +162,7 @@ class SchemeFinancialOverviewControllerSpec
           creditBalanceFormatted = "£0.00",
           creditBalance = 0,
           isOverdueChargeAvailable = false,
-          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
+          returnUrl = "/aa/dashboard/pension-scheme-details"
         )(messages, request)
 
         compareResultAndView(result, view)

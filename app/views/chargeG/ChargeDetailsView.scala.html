@@ -16,6 +16,8 @@
 
 @import models.chargeG.ChargeDetails
 @import viewmodels.govuk.date.DateViewModel
+@import viewmodels.govuk.errorsummary.ErrorSummaryViewModel
+@import utils.DateErrorTargetHelper.targetField
 
 @this(
     layout: templates.Layout,
@@ -34,6 +36,10 @@
 )(implicit request: Request[_], messages: Messages)
 
 @layout(messages("chargeG.chargeDetails.title"), formHasErrors = form.hasErrors) {
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummaryViewModel(form, errorLinkOverrides = targetField("qropsTransferDate", form.errors.head.message)))
+    }
+
     <div>
         <h1 class="govuk-heading-xl">@messages("chargeG.chargeDetails.heading", memberName)</h1>
 
