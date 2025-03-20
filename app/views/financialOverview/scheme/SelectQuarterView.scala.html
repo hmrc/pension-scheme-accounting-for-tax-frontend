@@ -22,7 +22,7 @@
     govukRadios: GovukRadios
 )
 
-@(form: Form[_], submitCall: Call, schemeName: String, returnUrl: String, radios: Seq[RadioItem], Year: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], submitCall: Call, schemeName: String, returnUrl: String, returnDashboardUrl: String, radios: Seq[RadioItem], Year: String)(implicit request: Request[_], messages: Messages)
 
 @layout(messages("selectChargesQuarter.all.title", Year), formHasErrors = form.hasErrors) {
 
@@ -51,8 +51,17 @@
 
     }
 
-    <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", schemeName)</a>
+    <p class="govuk-body">
+        <a id="return" href="@returnUrl" class="govuk-link">
+        @messages("return.to.overview.scheme.new")
+        </a>
+    </p>
 
+    <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+        <a id="return_to_scheme" href=@returnDashboardUrl class="govuk-link">
+        @messages("return.to.link", schemeName)
+        </a>
+    </p>
 </div>
 
 }

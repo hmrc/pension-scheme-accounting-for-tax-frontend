@@ -55,6 +55,7 @@ class AllPaymentsAndChargesController @Inject()(
         val (title, filteredPayments): (String, Seq[SchemeFSDetail]) =
           getTitleAndFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType)
 
+        val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
         val dueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getDueCharges(filteredPayments)
         val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
         val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(filteredPayments)
@@ -78,7 +79,12 @@ class AllPaymentsAndChargesController @Inject()(
             totalDue = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
             penaltiesTable = tableOfPaymentsAndCharges,
             paymentAndChargesTable = tableOfPaymentsAndCharges,
-            returnUrl = config.schemeDashboardUrl(request).format(srn)
+            returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
+            returnDashboardUrl = if(loggedInAsPsa) {
+              Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+            } else {
+              Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+            }
           )))
         } else {
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")

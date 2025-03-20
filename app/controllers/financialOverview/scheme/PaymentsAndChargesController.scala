@@ -71,6 +71,7 @@ class PaymentsAndChargesController @Inject()(
 
               val table: Table = paymentsAndChargesService.getPaymentsAndCharges(srn, paymentsCache.schemeFSDetail, journeyType, config)
               val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
+              val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
 
               val messages = request2Messages
 
@@ -86,7 +87,12 @@ class PaymentsAndChargesController @Inject()(
                   totalDue = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
                   penaltiesTable = tableOfPaymentsAndCharges,
                   paymentAndChargesTable = tableOfPaymentsAndCharges,
-                  returnUrl = config.schemeDashboardUrl(request).format(srn)
+                  returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
+                  returnDashboardUrl = if(loggedInAsPsa) {
+                    Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+                  } else {
+                    Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+                  }
                 )
               } else {
                 view(
@@ -99,7 +105,12 @@ class PaymentsAndChargesController @Inject()(
                   totalUpcoming = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
                   penaltiesTable = tableOfPaymentsAndCharges,
                   paymentAndChargesTable = tableOfPaymentsAndCharges,
-                  returnUrl = config.schemeDashboardUrl(request).format(srn)
+                  returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
+                  returnDashboardUrl = if(loggedInAsPsa) {
+                    Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+                  } else {
+                    Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+                  }
                 )
               }
 

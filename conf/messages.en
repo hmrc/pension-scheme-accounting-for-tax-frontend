@@ -28,7 +28,11 @@ site.action = Action
 site.view.link = View link
 site.remove.link = Remove link
 site.return_to_overview = Return to overview
+site.return.to.overview.new = Return to your financial overview
+return.to.overview.scheme.new = Return to scheme financial overview
 return.to.link = Return to {0}
+return.to.charge.overview = Return to related payments or charges overview
+site.overview = overview
 site.continue_to_scheme_overview = Continue to scheme overview
 
 error.title.prefix = Error:
@@ -1604,6 +1608,8 @@ psa.financial.overview.all.text = The information may not reflect payments made 
 psa.financial.overview.all.text.new = The information may not reflect payments made in the last 3 days.
 psa.financial.overview.datePaid = Date paid:
 psa.financial.overview.returnToClearedPenalties = your cleared penalties and charges
+psa.financial.overview.returnToRefunds = your refunds
+psa.financial.overview.returnToPenalties = your penalties and charges
 
 psa.financial.overview.clearedPenaltiesAndCharges.title = Cleared penalties and charges
 financial.overview.historyChargeType.title = Select type of charge

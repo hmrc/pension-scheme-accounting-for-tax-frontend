@@ -80,7 +80,12 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
     val totalOverdueChargeFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalOverdueCharge)}"
     val totalInterestAccruingFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}"
     val creditBalanceFormatted: String = creditBalanceAmountFormatted(creditSchemeFSDetail)
-    val returnUrl = config.managePensionsSchemeOverviewUrl
+    val loggedInAsPsa: Boolean = schemeFSCache.loggedInId.startsWith("A")
+    val returnUrl = if(loggedInAsPsa) {
+      Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+    } else {
+      Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+    }
     val isOverdueChargeAvailable = paymentsAndChargesService.isOverdueChargeAvailable(schemeFSDetail)
     val displayHistory = schemeFSDetail.exists(_.outstandingAmount <= 0)
     val historyLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, History).url

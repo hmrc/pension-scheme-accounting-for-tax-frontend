@@ -16,6 +16,7 @@
 
 package controllers.financialOverview.scheme
 
+import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.ChargeDetailsFilter
 import models.financialStatement.PaymentOrChargeType
@@ -32,6 +33,7 @@ import scala.concurrent.ExecutionContext
 
 class ClearedPaymentsAndChargesController @Inject()(override val messagesApi: MessagesApi,
                                                     identify: IdentifierAction,
+                                                    config: FrontendAppConfig,
                                                     allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                     val controllerComponents: MessagesControllerComponents,
                                                     paymentsAndChargesService: PaymentsAndChargesService,
@@ -49,8 +51,18 @@ class ClearedPaymentsAndChargesController @Inject()(override val messagesApi: Me
         }).filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)
           .filter(_.outstandingAmount <= 0)
 
+        val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
+
         val table = paymentsAndChargesService.getClearedPaymentsAndCharges(srn, period, paymentOrChargeType, filteredPayments)
-        Ok(clearedPaymentsAndChargesView(paymentsCache.schemeDetails.schemeName, table))
+        Ok(clearedPaymentsAndChargesView(paymentsCache.schemeDetails.schemeName,
+          table,
+          returnUrl = config.financialOverviewUrl.format(srn),
+          returnDashboardUrl = if(loggedInAsPsa) {
+            Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+          } else {
+            Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+          }
+        ))
       }
     }
   }

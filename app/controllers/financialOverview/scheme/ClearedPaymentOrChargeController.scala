@@ -16,6 +16,7 @@
 
 package controllers.financialOverview.scheme
 
+import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.{ChargeDetailsFilter, Index}
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
@@ -32,6 +33,7 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class ClearedPaymentOrChargeController @Inject()(override val messagesApi: MessagesApi,
+                                                  config: FrontendAppConfig,
                                                   identify: IdentifierAction,
                                                   allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                   val controllerComponents: MessagesControllerComponents,
@@ -68,9 +70,8 @@ class ClearedPaymentOrChargeController @Inject()(override val messagesApi: Messa
           .getChargeDetailsForSelectedChargeV2(filteredPayment, paymentsCache.schemeDetails, isClearedCharge = true)
 
         val paymentsTable = paymentsAndChargesService.chargeAmountDetailsRowsV2(filteredPayment)
-
-        // Url to be updated when page merged to main
-        val returnUrl = routes.ClearedPaymentOrChargeController.onPageLoad(srn, period, paymentOrChargeType, index).url
+        val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
+        val returnUrl = routes.ClearedPaymentsAndChargesController.onPageLoad(srn, period, paymentOrChargeType).url
 
         Ok(clearedPaymentOrChargeView(
           filteredPayment.chargeType.toString,
@@ -78,6 +79,11 @@ class ClearedPaymentOrChargeController @Inject()(override val messagesApi: Messa
           datePaid,
           chargeDetailsList,
           paymentsTable,
+          returnDashboardUrl = if(loggedInAsPsa) {
+            Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+          } else {
+            Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+          },
           returnUrl
         ))
 

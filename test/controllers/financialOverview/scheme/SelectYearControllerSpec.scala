@@ -101,7 +101,8 @@ class SelectYearControllerSpec extends ControllerSpecBase with JsonMatchers
         penaltyType = typeParam,
         submitCall = submitCall,
         schemeName = SampleData.schemeName,
-        returnUrl = dummyCall.url,
+        returnUrl = "/financial-overview/aa",
+        returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
         radios = FSYears.radios(form, years)
       )(request, messages)
 

@@ -178,6 +178,8 @@ class PaymentsAndChargeDetailsController @Inject()(
                         isChargeAssigned: Boolean
                        ): ChargeDetailsViewModel = {
 
+      val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
+
       ChargeDetailsViewModel(
         chargeDetailsList = paymentsAndChargesService.getChargeDetailsForSelectedChargeV2(schemeFSDetail, schemeDetails),
         schemeName = schemeDetails.schemeName,
@@ -197,6 +199,11 @@ class PaymentsAndChargeDetailsController @Inject()(
         interest = Some(schemeFSDetail.accruedInterestTotal),
         returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeDetails.schemeName),
         returnUrl = paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType),
+        returnDashboardUrl = if(loggedInAsPsa) {
+          Some(Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn))
+        } else {
+          Some(Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn))
+        },
         returnHistoryUrl = returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)),
         hintText = Some(optHintText(schemeFSDetail))
       )
