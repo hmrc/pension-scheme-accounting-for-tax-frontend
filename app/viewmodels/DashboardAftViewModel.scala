@@ -27,7 +27,7 @@ case class DashboardAftViewModel(
 
 object DashboardAftViewModel {
 
-  implicit def writes(implicit messages: Messages): OWrites[DashboardAftViewModel] = (
+  implicit def writes: OWrites[DashboardAftViewModel] = (
     (__ \ "subHeadings").write[Seq[JsObject]] and
       (__ \ "links").write[Seq[Link]]
     ) { model => (model.subHeadings, model.links) }

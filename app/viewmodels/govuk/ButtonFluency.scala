@@ -36,7 +36,7 @@ trait ButtonFluency {
       button.copy(
         inputType = Some("submit"),
         preventDoubleClick = Some(true)
-      ).withAttribute("id", "submit")
+      ).withAttribute("id" -> "submit")
     }
 
     def asLink(href: String): Button =

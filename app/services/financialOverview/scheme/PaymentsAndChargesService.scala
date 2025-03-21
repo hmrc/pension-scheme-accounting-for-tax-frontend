@@ -448,7 +448,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       ))
   }
 
-  private def getTaxPeriod(schemeFSDetail: SchemeFSDetail, isClearedCharge: Boolean = false)(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def getTaxPeriod(schemeFSDetail: SchemeFSDetail, isClearedCharge: Boolean)(implicit messages: Messages): Seq[SummaryListRow] = {
     val formattedStartDate = if (isClearedCharge) {
       formatStartDate(schemeFSDetail.periodStartDate)
     } else {
@@ -633,15 +633,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           case WRITTEN_OFF => Some(Text(Messages("pension.scheme.financialPaymentsAndCharges.clearingReason.c4.new")))
           case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(Text(Messages("pension.scheme.financialPaymentsAndCharges.clearingReason.c5.new")))
           case OTHER_REASONS => Some(Text(Messages("pension.scheme.financialPaymentsAndCharges.clearingReason.c6.new")))
-        }
-      case (Some(clearingReason), None, None) =>
-        clearingReason match {
-          case CLEARED_WITH_PAYMENT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c1")))
-          case CLEARED_WITH_DELTA_CREDIT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c2")))
-          case REPAYMENT_TO_THE_CUSTOMER => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c3")))
-          case WRITTEN_OFF => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c4")))
-          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(Text(Messages("financialPaymentsAndCharges.noClearingDate.clearingReason.c5")))
-          case OTHER_REASONS => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c6")))
         }
       case _ => None
     }

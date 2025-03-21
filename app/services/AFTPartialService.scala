@@ -38,10 +38,8 @@ import scala.concurrent.ExecutionContext
 
 class AFTPartialService @Inject()(
                                    appConfig: FrontendAppConfig,
-                                   paymentsAndChargesService: PaymentsAndChargesService,
-                                   aftConnector: AFTConnector,
-                                   aftCacheConnector: UserAnswersCacheConnector
-                                 )(implicit ec: ExecutionContext) {
+                                   paymentsAndChargesService: PaymentsAndChargesService
+                                 ) {
 
 
   def retrievePspDashboardPaymentsAndChargesModel(schemeFsDetail: Seq[SchemeFSDetail], srn: String, pstr: String)

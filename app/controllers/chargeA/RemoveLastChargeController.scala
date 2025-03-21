@@ -36,8 +36,7 @@ class RemoveLastChargeController @Inject()(override val messagesApi: MessagesApi
                                            allowAccess: AllowAccessActionProvider,
                                            requireData: DataRequiredAction,
                                            val controllerComponents: MessagesControllerComponents,
-                                           config: FrontendAppConfig,
-                                           view: RemoveLastChargeView)(implicit ec: ExecutionContext)
+                                           view: RemoveLastChargeView)
   extends FrontendBaseController
     with I18nSupport {
 

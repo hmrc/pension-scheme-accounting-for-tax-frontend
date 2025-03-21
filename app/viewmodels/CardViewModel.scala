@@ -48,7 +48,7 @@ case class CardViewModel(
 
 object CardViewModel {
 
-  implicit def writes(implicit messages: Messages): OWrites[CardViewModel] = (
+  implicit def writes: OWrites[CardViewModel] = (
     (__ \ "id").write[String] and
     (__ \ "heading").write[String] and
     (__ \ "subHeadings").write[Seq[CardSubHeading]] and

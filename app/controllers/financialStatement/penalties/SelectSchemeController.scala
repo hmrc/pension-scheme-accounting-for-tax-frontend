@@ -128,7 +128,7 @@ class SelectSchemeController @Inject()(
       case PensionsPenalties =>
         (penalties => penaltiesService.penaltySchemes(period.toInt, psaId, penaltyType, penalties),
           identifier => PenaltiesController.onPageLoadPension(period, identifier, journeyType))
-
+      case _ => throw new RuntimeException("Unknown penalty or charge")
     }
 
 }
