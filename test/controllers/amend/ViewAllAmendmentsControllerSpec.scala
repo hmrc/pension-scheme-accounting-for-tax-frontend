@@ -23,12 +23,12 @@ import data.SampleData
 import data.SampleData._
 import helpers.AmendmentHelper
 import matchers.JsonMatchers
+import models.AccessMode
 import models.AmendedChargeStatus.Updated
 import models.ChargeType.ChargeTypeDeRegistration
 import models.LocalDateBinder.localDateToString
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.AccessMode
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach

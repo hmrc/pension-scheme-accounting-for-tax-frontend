@@ -40,8 +40,8 @@ import play.api.test.Helpers.{route, status, _}
 import services.SchemeService
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.govukfrontend.views.Aliases.{HtmlContent, Table}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import utils.DateHelper.formatDateDMY
 import viewmodels.PsaChargeDetailsViewModel
 import views.html.financialOverview.psa.PsaChargeDetailsView

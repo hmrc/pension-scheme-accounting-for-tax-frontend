@@ -25,8 +25,8 @@ import uk.gov.hmrc.govukfrontend.views.Aliases.{Hint, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
 import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
-import viewmodels.Radios.Radio
 import viewmodels.Radios
+import viewmodels.Radios.Radio
 
 import java.time.{LocalDate, Month}
 

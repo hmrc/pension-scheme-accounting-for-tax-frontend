@@ -22,13 +22,13 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import controllers.financialStatement.paymentsAndCharges.routes._
 import controllers.routes.SignOutController
+import models.AccessType
 import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.DataRequest
 import models.viewModels.ConfirmationViewModel
-import models.AccessType
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -38,14 +38,11 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.formatSubmittedDate
+import views.html.{ConfirmationAmendDecreaseView, ConfirmationAmendIncreaseView, ConfirmationNoChargeView, ConfirmationView}
 
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.ConfirmationView
-import views.html.ConfirmationAmendDecreaseView
-import views.html.ConfirmationAmendIncreaseView
-import views.html.ConfirmationNoChargeView
 
 class ConfirmationController @Inject()(
                                         override val messagesApi: MessagesApi,

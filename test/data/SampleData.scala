@@ -17,22 +17,22 @@
 package data
 
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
+import models._
 import models.chargeB.ChargeBDetails
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
-import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT, AFT_DAILY_LFP, CONTRACT_SETTLEMENT}
+import models.financialStatement.PsaFSChargeType.{AFT_DAILY_LFP, AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
 import models.financialStatement._
-import models._
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
 import play.api.mvc.Call
-import services.paymentsAndCharges.PaymentsCache
 import services.financialOverview.scheme.{PaymentsCache => FinancialOverviewPaymentsCache}
+import services.paymentsAndCharges.PaymentsCache
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import utils.AFTConstants._
 

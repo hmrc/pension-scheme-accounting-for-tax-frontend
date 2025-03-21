@@ -32,11 +32,11 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper
+import views.html.financialStatement.paymentsAndCharges.PaymentsAndChargeInterestView
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.financialStatement.paymentsAndCharges.PaymentsAndChargeInterestView
 
 class PaymentsAndChargesInterestController @Inject()(
                                                       override val messagesApi: MessagesApi,

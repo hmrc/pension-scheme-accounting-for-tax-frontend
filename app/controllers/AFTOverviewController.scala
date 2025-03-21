@@ -32,10 +32,10 @@ import play.twirl.api.Html
 import services.financialOverview.scheme.PaymentsAndChargesService
 import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.AFTOverviewView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.AFTOverviewView
 
 class AFTOverviewController @Inject()(
                                        identify: IdentifierAction,

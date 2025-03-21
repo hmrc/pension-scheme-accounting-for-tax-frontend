@@ -30,11 +30,11 @@ import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import views.html.financialStatement.penalties.PenaltiesView
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.financialStatement.penalties.PenaltiesView
 
 class PenaltiesController @Inject()(identify: IdentifierAction,
                                     allowAccess: AllowAccessActionProviderForIdentifierRequest,

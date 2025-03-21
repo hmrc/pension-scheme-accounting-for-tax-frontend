@@ -22,11 +22,11 @@ import data.SampleData._
 import forms.ConfirmSubmitAFTReturnFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.requests.IdentifierRequest
 import models.UserAnswers
+import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.Mockito
+import org.mockito.Mockito.{never, times, verify, when}
 import pages.ConfirmSubmitAFTReturnPage
 import play.api.Application
 import play.api.inject.bind

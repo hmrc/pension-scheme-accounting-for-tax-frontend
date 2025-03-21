@@ -23,8 +23,8 @@ import forms.mccloud.EnterPstrFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.requests.IdentifierRequest
 import models.NormalMode
+import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{OptionValues, TryValues}

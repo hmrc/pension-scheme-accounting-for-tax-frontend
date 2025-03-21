@@ -25,8 +25,8 @@ import controllers.fileUpload.FileUploadHeaders.OverseasTransferFieldNames._
 import controllers.fileUpload.FileUploadHeaders.{MemberDetailsFieldNames, OverseasTransferFieldNames}
 import fileUploadParsers.Parser.Result
 import forms.chargeG.{ChargeAmountsFormProvider, ChargeDetailsFormProvider, MemberDetailsFormProvider}
-import models.{ChargeType, Quarters}
 import models.chargeG.{ChargeAmounts, ChargeDetails, MemberDetails}
+import models.{ChargeType, Quarters}
 import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages

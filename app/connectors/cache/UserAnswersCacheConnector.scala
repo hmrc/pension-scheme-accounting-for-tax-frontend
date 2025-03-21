@@ -18,7 +18,7 @@ package connectors.cache
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{ChargeType, SessionAccessData, LockDetail, SessionData}
+import models.{ChargeType, LockDetail, SessionAccessData, SessionData}
 import play.api.http.Status._
 import play.api.libs.json._
 import play.api.mvc.Result

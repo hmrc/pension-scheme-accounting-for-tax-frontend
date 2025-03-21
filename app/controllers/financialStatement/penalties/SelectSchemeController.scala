@@ -29,11 +29,11 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.financialStatement.penalties.SelectSchemeView
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.financialStatement.penalties.SelectSchemeView
 
 class SelectSchemeController @Inject()(
                                         identify: IdentifierAction,

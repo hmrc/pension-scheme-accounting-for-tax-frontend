@@ -24,10 +24,10 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.financialOverview.psa.PsaPenaltiesAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.financialOverview.psa.ClearedPenaltiesAndChargesView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.financialOverview.psa.ClearedPenaltiesAndChargesView
 
 class ClearedPenaltiesAndChargesController @Inject()(override val messagesApi: MessagesApi,
                                                      identify: IdentifierAction,

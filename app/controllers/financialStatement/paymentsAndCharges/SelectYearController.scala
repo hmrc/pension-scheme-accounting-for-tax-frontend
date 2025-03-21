@@ -27,10 +27,10 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc._
 import services.paymentsAndCharges.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.financialStatement.paymentsAndCharges.SelectYearView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.financialStatement.paymentsAndCharges.SelectYearView
 
 class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                                      identify: IdentifierAction,

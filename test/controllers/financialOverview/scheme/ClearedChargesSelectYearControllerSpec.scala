@@ -19,23 +19,22 @@ package controllers.financialOverview.scheme
 import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{dummyCall, psaId, schemeDetails, schemeFSResponseAftAndOTC, schemeName, srn}
+import data.SampleData._
 import forms.YearsFormProvider
-import models.{Enumerable, Year}
 import models.financialStatement.PaymentOrChargeType
+import models.requests.IdentifierRequest
+import models.{DisplayYear, Enumerable, FSYears, Year}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import play.api.Application
 import play.api.data.Form
 import play.api.http.Status.OK
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
-import play.api.inject.bind
-import play.api.test.Helpers.{route, _}
-import views.html.financialOverview.scheme.ClearedChargesSelectYearView
-import models.{DisplayYear, FSYears}
-import models.requests.IdentifierRequest
 import play.api.i18n.Messages
+import play.api.inject.bind
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
+import play.api.test.Helpers.{route, _}
+import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
+import views.html.financialOverview.scheme.ClearedChargesSelectYearView
 
 import scala.concurrent.Future
 

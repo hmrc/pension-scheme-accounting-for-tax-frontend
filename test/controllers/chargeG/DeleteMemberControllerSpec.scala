@@ -22,11 +22,11 @@ import data.SampleData._
 import forms.YesNoFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.requests.IdentifierRequest
 import models.UserAnswers
+import models.requests.IdentifierRequest
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.ArgumentMatchers
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery

@@ -17,7 +17,6 @@
 package viewmodels
 
 import play.api.mvc.Call
-
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 
 case class AFTSummaryViewModel(

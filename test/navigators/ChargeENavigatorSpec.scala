@@ -26,10 +26,10 @@ import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.{CheckMode, NormalMode, UserAnswers, YearRange}
 import org.scalatest.prop.TableFor3
+import pages._
 import pages.chargeE._
 import pages.fileUpload.InputSelectionPage
 import pages.mccloud._
-import pages.{IsPublicServicePensionsRemedyPage, Page, QuarterPage, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
 

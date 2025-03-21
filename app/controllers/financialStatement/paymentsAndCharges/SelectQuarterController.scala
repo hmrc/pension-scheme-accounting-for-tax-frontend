@@ -29,11 +29,11 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.financialStatement.paymentsAndCharges.SelectQuarterView
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.financialStatement.paymentsAndCharges.SelectQuarterView
 
 class SelectQuarterController @Inject()(config: FrontendAppConfig,
                                                   override val messagesApi: MessagesApi,

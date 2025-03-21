@@ -28,10 +28,10 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.financialStatement.penalties.SelectYearView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.financialStatement.penalties.SelectYearView
 
 class SelectPenaltiesYearController @Inject()(override val messagesApi: MessagesApi,
                                               identify: IdentifierAction,

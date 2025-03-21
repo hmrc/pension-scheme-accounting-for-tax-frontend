@@ -32,11 +32,11 @@ import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper.dateFormatterDMY
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, TableRow, Table}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}

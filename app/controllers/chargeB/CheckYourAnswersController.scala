@@ -31,10 +31,10 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.CheckYourAnswersView
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.CheckYourAnswersView
 
 class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,

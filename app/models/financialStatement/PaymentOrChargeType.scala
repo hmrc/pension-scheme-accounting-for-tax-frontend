@@ -22,8 +22,8 @@ import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.mvc.PathBindable
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Hint, RadioItem, Text}
-import viewmodels.{LabelClasses, Radios}
 import viewmodels.Radios.Radio
+import viewmodels.{LabelClasses, Radios}
 
 import scala.language.implicitConversions
 

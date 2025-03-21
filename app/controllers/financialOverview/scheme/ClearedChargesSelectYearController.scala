@@ -19,9 +19,9 @@ package controllers.financialOverview.scheme
 import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import forms.YearsFormProvider
-import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, Year}
 import models.financialStatement.PaymentOrChargeType.getPaymentOrChargeType
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
+import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, Year}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.financialOverview.scheme.PaymentsAndChargesService

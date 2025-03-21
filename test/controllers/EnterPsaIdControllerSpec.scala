@@ -28,9 +28,9 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{Enumerable, SchemeDetails, SchemeStatus, UserAnswers}
 import navigators.CompoundNavigator
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
-import org.mockito.ArgumentMatchers
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import pages.EnterPsaIdPage

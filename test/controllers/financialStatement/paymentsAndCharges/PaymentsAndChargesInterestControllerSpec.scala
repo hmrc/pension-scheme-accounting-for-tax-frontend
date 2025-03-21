@@ -39,10 +39,10 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import utils.AFTConstants._
 import utils.DateHelper
+import views.html.financialStatement.paymentsAndCharges.PaymentsAndChargeInterestView
 
 import java.time.LocalDate
 import scala.concurrent.Future
-import views.html.financialStatement.paymentsAndCharges.PaymentsAndChargeInterestView
 
 class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 

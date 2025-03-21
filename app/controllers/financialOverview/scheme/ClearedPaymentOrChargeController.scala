@@ -18,9 +18,9 @@ package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
-import models.{ChargeDetailsFilter, Index}
-import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.financialStatement.PaymentOrChargeType.getPaymentOrChargeType
+import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
+import models.{ChargeDetailsFilter, Index}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.financialOverview.scheme.PaymentsAndChargesService

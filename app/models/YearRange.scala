@@ -20,8 +20,8 @@ import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json._
 import uk.gov.hmrc.govukfrontend.views.Aliases.{RadioItem, Text}
-import viewmodels.Radios
 import utils.DateHelper
+import viewmodels.Radios
 
 import java.time.{LocalDate, Month}
 

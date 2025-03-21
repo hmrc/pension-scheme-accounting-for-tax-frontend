@@ -27,7 +27,6 @@ import play.api.libs.json.{JsString, Json}
 import uk.gov.hmrc.govukfrontend.views.Aliases.{RadioItem, Text}
 import utils.DateHelper
 
-
 import java.time.LocalDate
 
 class YearsSpec extends AnyFreeSpec with Matchers with MockitoSugar {

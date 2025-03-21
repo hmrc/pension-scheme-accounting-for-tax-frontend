@@ -37,7 +37,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{AnyContent, Results}
 import services.MemberSearchService.MemberRow
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist._
 
 import java.time.LocalDate
 

@@ -28,8 +28,8 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads.JsObjectReducer
 import play.api.libs.json._
 import play.api.mvc.AnyContent
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist._
 
 import java.time.LocalDate
 import javax.inject.Singleton

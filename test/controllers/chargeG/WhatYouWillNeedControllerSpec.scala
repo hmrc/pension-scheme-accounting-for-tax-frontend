@@ -21,11 +21,11 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.requests.IdentifierRequest
 import models.UserAnswers
+import models.requests.IdentifierRequest
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.mockito.ArgumentMatchers
 import pages.chargeG.WhatYouWillNeedPage
 import play.api.Application
 import play.api.test.Helpers._

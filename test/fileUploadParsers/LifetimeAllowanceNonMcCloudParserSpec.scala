@@ -25,8 +25,8 @@ import fileUploadParsers.AnnualAllowanceNonMcCloudParserSpec.mock
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
 import helpers.ParserHelper
-import models.{ChargeType, UserAnswers}
 import models.chargeD.ChargeDDetails
+import models.{ChargeType, UserAnswers}
 import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach

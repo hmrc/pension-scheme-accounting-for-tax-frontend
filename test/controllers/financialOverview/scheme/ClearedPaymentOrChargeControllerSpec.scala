@@ -19,15 +19,15 @@ package controllers.financialOverview.scheme
 import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{psaId, schemeDetails, schemeFSResponseWithClearedPayments, schemeName, srn}
+import data.SampleData._
 import helpers.FormatHelper
 import models.financialStatement.{PaymentOrChargeType, SchemeFSChargeType}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import play.api.Application
 import play.api.i18n.Messages
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.inject.bind
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers.{route, _}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, Text, Value}

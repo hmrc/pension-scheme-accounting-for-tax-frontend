@@ -24,11 +24,11 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.CannotSubmitAFTView
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.CannotSubmitAFTView
 
 class CannotSubmitAFTController @Inject()(appConfig: FrontendAppConfig,
                                                     override val messagesApi: MessagesApi,

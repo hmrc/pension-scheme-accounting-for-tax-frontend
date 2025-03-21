@@ -16,8 +16,6 @@
 
 package controllers.financialOverview.scheme
 
-import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
-import viewmodels.ChargeDetailsViewModel
 import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper.formatCurrencyAmountAsString
@@ -32,9 +30,11 @@ import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc._
 import services.financialOverview.scheme.PaymentsAndChargesService
+import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, formatDateYMD}
-import views.html.financialOverview.scheme.{PaymentsAndChargeDetailsView, PaymentsAndChargeDetailsNewView}
+import viewmodels.ChargeDetailsViewModel
+import views.html.financialOverview.scheme.{PaymentsAndChargeDetailsNewView, PaymentsAndChargeDetailsView}
 
 import java.time.LocalDate
 import javax.inject.Inject

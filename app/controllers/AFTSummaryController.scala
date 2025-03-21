@@ -32,17 +32,17 @@ import play.api.libs.json.JsObject
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import services._
-import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import uk.gov.hmrc.govukfrontend.views.html.components.{Hint => GovukHint}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.{AFTSummaryViewModel, Radios}
+import views.html.AFTSummaryView
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Success, Try}
-import views.html.AFTSummaryView
 
 class AFTSummaryController @Inject()(
                                       override val messagesApi: MessagesApi,

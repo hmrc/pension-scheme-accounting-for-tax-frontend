@@ -22,12 +22,12 @@ import models.CommonQuarters
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Results.Ok
 import play.api.mvc.{Action, AnyContent}
+import views.html.NotSubmissionTimeView
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.NotSubmissionTimeView
 
 class NotSubmissionTimeController  @Inject()(override val messagesApi: MessagesApi,
                                              notSubmissionTimeView: NotSubmissionTimeView,

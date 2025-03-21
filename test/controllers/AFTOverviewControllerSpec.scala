@@ -33,8 +33,8 @@ import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers._
-import services.{QuartersService, SchemeService}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
+import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import views.html.AFTOverviewView
 

@@ -21,9 +21,7 @@ import connectors.cache.FinancialInfoCacheConnector
 import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
-import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
-import models.ChargeDetailsFilter
-import models.ChargeDetailsFilter.History
+import models.ChargeDetailsFilter.{All, History, Overdue, Upcoming}
 import models.financialStatement.FSClearingReason._
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, displayCharge, getPenaltyType}
 import models.financialStatement.PsaFSChargeType._
@@ -31,7 +29,7 @@ import models.financialStatement.{DocumentLineItemDetail, PenaltyType, PsaFSChar
 import models.viewModels.financialOverview.PsaPaymentsAndChargesDetails
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
-import models.{ListOfSchemes, ListSchemeDetails}
+import models.{ChargeDetailsFilter, ListOfSchemes, ListSchemeDetails}
 import play.api.Logging
 import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}

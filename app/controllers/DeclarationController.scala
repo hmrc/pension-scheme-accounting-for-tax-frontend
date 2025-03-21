@@ -36,11 +36,11 @@ import services.AFTService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
+import views.html.{DeclarationView, PspDeclarationView}
 
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.{DeclarationView, PspDeclarationView}
 
 class DeclarationController @Inject()(
     override val messagesApi: MessagesApi,

@@ -24,9 +24,9 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{NormalMode, UserAnswers}
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.ArgumentMatchers
 import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}

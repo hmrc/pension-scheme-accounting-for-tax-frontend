@@ -22,13 +22,13 @@ import connectors.MinimalConnector.MinimalDetails
 import connectors.cache.FinancialInfoCacheConnector
 import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
 import controllers.financialStatement.penalties.routes._
-import data.SampleData.{paymentsCache, psaFs, psaFsSeq, psaId, schemeFSResponseAftAndOTC}
+import data.SampleData._
 import helpers.FormatHelper
 import models.LocalDateBinder._
 import models.PenaltiesFilter.All
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges, EventReportingCharges, InformationNoticePenalties, PensionsPenalties}
 import models.financialStatement.PsaFSChargeType._
-import models.financialStatement.{DocumentLineItemDetail, FSClearingReason, PsaFS, PsaFSChargeType, PsaFSDetail}
+import models.financialStatement._
 import models.{ListOfSchemes, ListSchemeDetails, PenaltiesFilter, PenaltySchemes}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}

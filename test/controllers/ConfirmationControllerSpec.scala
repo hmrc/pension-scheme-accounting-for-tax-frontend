@@ -29,8 +29,8 @@ import models.financialStatement.{SchemeFS, SchemeFSDetail}
 import models.viewModels.ConfirmationViewModel
 import models.{AccessMode, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
 import org.mockito.Mockito
+import org.mockito.Mockito.{times, verify, when}
 import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, EmailQuery}
 import play.api.Application
 import play.api.i18n.Messages

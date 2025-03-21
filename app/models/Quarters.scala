@@ -21,8 +21,8 @@ import play.api.data.Form
 import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Hint, RadioItem, Text}
 import utils.DateHelper._
-import viewmodels.Radios.Radio
 import viewmodels.Radios
+import viewmodels.Radios.Radio
 
 import java.time.{LocalDate, Month}
 import scala.language.implicitConversions

@@ -19,17 +19,17 @@ package controllers.financialOverview.psa
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import helpers.FormatHelper
 import models.financialStatement.PenaltyType.getPenaltyType
-import models.{ChargeDetailsFilter, Index}
 import models.financialStatement.{PenaltyType, PsaFSDetail}
+import models.{ChargeDetailsFilter, Index}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.financialOverview.psa.PsaPenaltiesAndChargesService
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.financialOverview.psa.ClearedPenaltyOrChargeView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.financialOverview.psa.ClearedPenaltyOrChargeView
 
 
 
