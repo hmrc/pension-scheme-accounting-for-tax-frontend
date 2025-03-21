@@ -16,7 +16,6 @@
 
 package viewmodels
 
-import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsObject, OWrites, __}
 

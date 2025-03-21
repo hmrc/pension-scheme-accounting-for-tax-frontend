@@ -32,15 +32,15 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc._
 import services.AddMembersService.mapChargeXMembersToTableTwirlMigration
 import services.ChargePaginationService
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.dateFormatterDMY
 import viewmodels.TwirlRadios
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
+import views.html.chargeG.AddMembersView
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.chargeG.AddMembersView
 
 class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      userAnswersCacheConnector: UserAnswersCacheConnector,

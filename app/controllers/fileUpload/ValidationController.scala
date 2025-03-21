@@ -133,9 +133,9 @@ class ValidationController @Inject()(
       parserResult match {
         case Invalid(errors) =>
           Future.successful(processInvalid(chargeType, errors))
-        case Valid(updatedUA) =>
+        case Valid(ua) =>
           TimeLogger.logOperationTime(
-            processSuccessResult(chargeType, updatedUA, srn)
+            processSuccessResult(chargeType, ua, srn)
               .map(_ => FileUploadOutcome(status = Success, fileName = Some(fileName))),
             "processSuccessResult"
           )

@@ -21,7 +21,7 @@ import forms.behaviours._
 import play.api.data.FormError
 import utils.AFTConstants._
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterDMY, formatDateDMY}
+import utils.DateHelper.formatDateDMY
 
 class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours with BooleanFieldBehaviours {
 

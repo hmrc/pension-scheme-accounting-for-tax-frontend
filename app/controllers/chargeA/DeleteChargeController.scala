@@ -30,11 +30,11 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.TwirlRadios
+import views.html.DeleteChargeView
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.DeleteChargeView
 
 class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersService: UserAnswersService,

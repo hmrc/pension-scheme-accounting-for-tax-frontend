@@ -22,7 +22,6 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.SessionExpiredView
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
 
 class SessionExpiredController @Inject()(
     val controllerComponents: MessagesControllerComponents,
