@@ -13,7 +13,7 @@ lazy val root = (project in file("."))
   .settings(DefaultBuildSettings.defaultSettings(): _*)
   .settings(inConfig(Test)(testSettings): _*)
   .settings(
-    scalaVersion := "2.13.12",
+    scalaVersion := "2.13.16",
     Test / parallelExecution := true,
     majorVersion := 0,
     name := appName,

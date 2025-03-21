@@ -120,7 +120,8 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
             },
             value =>
               for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressPage(index), value, mode))
+                address <- Future.successful(if (value.line2.isEmpty) { value.copy(line2 = Some(" ")) } else value)
+                updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressPage(index), address, mode))
                 _ <- userAnswersCacheConnector.savePartial(
                   request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAuthSurplus), memberNo = Some(index.id))
               } yield Redirect(navigator.nextPage(SponsoringEmployerAddressPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
