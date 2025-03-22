@@ -20,24 +20,23 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.Result
-import play.api.mvc.Results._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class FinancialInfoCacheConnector @Inject()(
                                                config: FrontendAppConfig,
-                                               http: HttpClient
+                                               http: HttpClientV2
                                              ) extends CacheConnector {
 
-  override protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/cache/financialInfo"
+  def url = url"${config.aftUrl}/pension-scheme-accounting-for-tax/cache/financialInfo"
 
   override def fetch
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[JsValue]] = {
 
-    http.GET[HttpResponse](url)
+    http.get(url).execute[HttpResponse]
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
         response.status match {
@@ -54,9 +53,8 @@ class FinancialInfoCacheConnector @Inject()(
   def save(value: JsValue)
           (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[JsValue] = {
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
-    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    http.POST[JsValue, HttpResponse](url, value)(implicitly, implicitly, hc, implicitly)
+    http.post(url).withBody(value).setHeader(headers: _*).execute[HttpResponse]
       .map { response =>
         response.status match {
           case CREATED =>
@@ -67,13 +65,6 @@ class FinancialInfoCacheConnector @Inject()(
       }
   }
 
-  override def removeAll
-    (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Result] = {
-    http.DELETE[HttpResponse](url).map { _ =>
-      Ok
-    }
-  }
-
   private def mapExceptionsToStatus: PartialFunction[Throwable, Future[HttpResponse]] = {
     case _: NotFoundException =>
       Future.successful(HttpResponse(NOT_FOUND, "Not found"))
@@ -82,12 +73,8 @@ class FinancialInfoCacheConnector @Inject()(
 
 trait CacheConnector {
 
-  protected def url: String
-
   def fetch(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
 
   def save(value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
-
-  def removeAll(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
 
 }

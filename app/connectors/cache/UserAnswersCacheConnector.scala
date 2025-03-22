@@ -18,36 +18,37 @@ package connectors.cache
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{ChargeType, SessionAccessData, LockDetail, SessionData}
+import models.{ChargeType, LockDetail, SessionAccessData, SessionData}
 import play.api.http.Status._
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results._
+import uk.gov.hmrc.http.{StringContextOps, HeaderCarrier, HttpResponse, HttpException, NotFoundException}
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http._
 
+import java.net.URL
 import scala.concurrent.{ExecutionContext, Future}
 
 class UserAnswersCacheConnectorImpl @Inject()(
                                                config: FrontendAppConfig,
-                                               http: HttpClient
+                                               http: HttpClientV2
                                              ) extends UserAnswersCacheConnector {
 
-  override protected def saveUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
+  private def saveUrl = url"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
 
-  override protected def saveSessionUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
+  private def saveSessionUrl = url"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
 
-  override protected def saveSessionAndLockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data-lock"
+  private def saveSessionAndLockUrl = url"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data-lock"
 
-  override protected def lockDetailUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
+  private def lockDetailUrl = url"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
 
-    override def fetch(id: String)
+  override def fetch(id: String)
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[JsValue]] = {
 
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"), ("id", id))
-    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    http.GET[HttpResponse](saveUrl)(implicitly, hc, implicitly)
+    http.get(saveUrl).setHeader(headers: _*).execute[HttpResponse]
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
         response.status match {
@@ -94,10 +95,9 @@ class UserAnswersCacheConnectorImpl @Inject()(
     savePost(allExtraHeaders, saveUrl, value)
   }
 
-  private def savePost(headers: Seq[(String, String)], url: String, value: JsValue)
+  private def savePost(headers: Seq[(String, String)], url: URL, value: JsValue)
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[JsValue] = {
-    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
-    http.POST[JsValue, HttpResponse](url, value)(implicitly, implicitly, hc, implicitly)
+    http.post(url).setHeader(headers: _*).withBody(value).execute[HttpResponse]
       .map { response =>
         response.status match {
           case CREATED =>
@@ -124,8 +124,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
   override def removeAll(id: String)
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Result] = {
     val headers: Seq[(String, String)] = Seq(("id", id))
-    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
-    http.DELETE[HttpResponse](saveUrl)(implicitly, hc, implicitly).map { _ =>
+    http.delete(saveUrl).setHeader(headers: _*).execute[HttpResponse].map { _ =>
       Ok
     }
   }
@@ -133,9 +132,8 @@ class UserAnswersCacheConnectorImpl @Inject()(
   override def getSessionData(id: String)
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[SessionData]] = {
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"), ("id", id))
-    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    http.GET[HttpResponse](saveSessionUrl)(implicitly, hc, implicitly)
+    http.get(saveSessionUrl).setHeader(headers: _*).execute[HttpResponse]
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
         response.status match {
@@ -155,9 +153,8 @@ class UserAnswersCacheConnectorImpl @Inject()(
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[LockDetail]] = {
 
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"), ("id", srn + startDate))
-    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    http.GET[HttpResponse](lockDetailUrl)(implicitly, hc, implicitly)
+    http.get(lockDetailUrl).setHeader(headers: _*).execute[HttpResponse]
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
         response.status match {
@@ -178,14 +175,6 @@ class UserAnswersCacheConnectorImpl @Inject()(
 }
 
 trait UserAnswersCacheConnector {
-
-  protected def saveUrl: String
-
-  protected def saveSessionUrl: String
-
-  protected def saveSessionAndLockUrl: String
-
-  protected def lockDetailUrl: String
 
   def fetch(cacheId: String)
            (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]

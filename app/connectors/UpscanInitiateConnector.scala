@@ -18,15 +18,19 @@ package connectors
 
 import audit.{AFTUpscanFileUploadAuditEvent, AuditService}
 import config.FrontendAppConfig
+import izumi.reflect.Tag
 import models.requests.DataRequest
 import models.{ChargeType, UpscanFileReference, UpscanInitiateResponse}
+import org.apache.pekko.util.ByteString
 import pages.PSTRQuery
 import play.api.libs.json._
+import play.api.libs.ws.{BodyWritable, InMemoryBody}
 import play.api.mvc.AnyContent
 import play.mvc.Http.HeaderNames
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import uk.gov.hmrc.http.HttpReads.Implicits._
-
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
+import java.net.URL
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Failure
@@ -68,7 +72,7 @@ object PreparedUpload {
   implicit val format: Reads[PreparedUpload] = Json.reads[PreparedUpload]
 }
 
-class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: FrontendAppConfig, auditService: AuditService)(implicit ec: ExecutionContext) {
+class UpscanInitiateConnector @Inject()(httpClient: HttpClientV2, appConfig: FrontendAppConfig, auditService: AuditService)(implicit ec: ExecutionContext) {
 
   private val headers = Map(
     HeaderNames.CONTENT_TYPE -> "application/json"
@@ -85,7 +89,7 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
       minimumFileSize = Some(1),
       maximumFileSize = Some(appConfig.maxUploadFileSize * (1024 * 1024))
     )
-    initiate(appConfig.initiateV2Url, req, chargeType)
+    initiate(url"${appConfig.initiateV2Url}", req, chargeType)
   }
 
   private def sendFailureAuditEvent(
@@ -107,14 +111,19 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
     )
   }
 
-  private def initiate[T](url: String, initialRequest: T, chargeType: ChargeType)(
+  private def initiate[T: Tag](url: URL, initialRequest: T, chargeType: ChargeType)(
     implicit request: DataRequest[AnyContent], headerCarrier: HeaderCarrier, wts: Writes[T]): Future[UpscanInitiateResponse] = {
     val startTime = System.currentTimeMillis
+    implicit def jsonBodyWritable[Y](implicit writes: Writes[Y]): BodyWritable[Y] = {
+      BodyWritable(a => InMemoryBody(ByteString.fromString(Json.stringify(Json.toJson(a)))), "application/json")
+    }
 
-    httpClient.POST[T, PreparedUpload](url, initialRequest, headers.toSeq).map {
-      response => val fileReference = UpscanFileReference(response.reference.reference)
-        val postTarget = response.uploadRequest.href
-        val formFields = response.uploadRequest.fields
+    httpClient.post(url).withBody(initialRequest).setHeader(headers.toSeq: _*).execute[HttpResponse]
+      .map { response =>
+        val body = Json.parse(response.body).as[PreparedUpload]
+        val fileReference = UpscanFileReference(body.reference.reference)
+        val postTarget = body.uploadRequest.href
+        val formFields = body.uploadRequest.fields
         UpscanInitiateResponse(fileReference, postTarget, formFields)
     } andThen {
       case Failure(t) =>
@@ -123,9 +132,7 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
 
   }
 
-  def download(downloadUrl: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    httpClient.GET[HttpResponse](downloadUrl)(implicitly, hc, implicitly)
+  def download(downloadUrl: URL)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    httpClient.get(downloadUrl).execute[HttpResponse]
   }
-
-  case class UpscanInitiateError(e: Throwable) extends RuntimeException(e)
 }
