@@ -118,12 +118,11 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClientV2, appConfig: Fro
       BodyWritable(a => InMemoryBody(ByteString.fromString(Json.stringify(Json.toJson(a)))), "application/json")
     }
 
-    httpClient.post(url).withBody(initialRequest).setHeader(headers.toSeq: _*).execute[HttpResponse]
+    httpClient.post(url).withBody(initialRequest).setHeader(headers.toSeq: _*).execute[PreparedUpload]
       .map { response =>
-        val body = Json.parse(response.body).as[PreparedUpload]
-        val fileReference = UpscanFileReference(body.reference.reference)
-        val postTarget = body.uploadRequest.href
-        val formFields = body.uploadRequest.fields
+        val fileReference = UpscanFileReference(response.reference.reference)
+        val postTarget = response.uploadRequest.href
+        val formFields = response.uploadRequest.fields
         UpscanInitiateResponse(fileReference, postTarget, formFields)
     } andThen {
       case Failure(t) =>

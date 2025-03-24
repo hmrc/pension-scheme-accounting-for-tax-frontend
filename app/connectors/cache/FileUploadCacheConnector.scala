@@ -39,7 +39,7 @@ class FileUploadCacheConnector @Inject()(
 
   protected def url = url"${config.aftUrl}/pension-scheme-accounting-for-tax/cache/fileUpload"
 
-  protected def urlUploadResult = s"${config.aftUrl}/pension-scheme-accounting-for-tax/cache/fileUploadResult"
+  protected def urlUploadResult = url"${config.aftUrl}/pension-scheme-accounting-for-tax/cache/fileUploadResult"
 
   override def getUploadResult(id: UploadId)
                               (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[FileUploadDataCache]] = {
@@ -85,7 +85,7 @@ class FileUploadCacheConnector @Inject()(
       case s: UploadedSuccessfully => FileUploadStatus("UploadedSuccessfully", None, None, Some(s.downloadUrl), Some(s.mimeType), Some(s.name), s.size)
     }
 
-    http.post(url).withBody(Json.toJson(status)).setHeader(headers: _*).execute[HttpResponse]
+    http.post(urlUploadResult).withBody(Json.toJson(status)).setHeader(headers: _*).execute[HttpResponse]
       .map { response =>
         response.status match {
           case OK => logger.info(s"registerUploadResult for Reference ${reference.reference} return response with status OK")

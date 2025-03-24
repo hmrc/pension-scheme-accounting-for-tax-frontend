@@ -485,7 +485,7 @@ object ValidationControllerSpec extends ControllerSpecBase with JsonMatchers {
           FileUploadDataCache(
             uploadId = "uploadID",
             reference = "reference",
-            status = FileUploadStatus(_type = "UploadedSuccessfully", name = Some("test.csv")),
+            status = FileUploadStatus(_type = "UploadedSuccessfully", name = Some("test.csv"), downloadUrl = Some("https://example.com/")),
             created = LocalDateTime.now,
             lastUpdated = LocalDateTime.now,
             expireAt = LocalDateTime.now
