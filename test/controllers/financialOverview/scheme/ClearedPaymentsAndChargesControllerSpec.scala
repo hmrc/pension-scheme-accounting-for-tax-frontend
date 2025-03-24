@@ -18,7 +18,7 @@ package controllers.financialOverview.scheme
 
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{dummyCall, psaId, schemeDetails, schemeFSResponseWithClearedPayments, schemeName, srn}
+import data.SampleData._
 import models.financialStatement.PaymentOrChargeType
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}

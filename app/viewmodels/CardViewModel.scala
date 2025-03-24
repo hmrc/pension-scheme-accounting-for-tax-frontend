@@ -16,7 +16,6 @@
 
 package viewmodels
 
-import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
@@ -48,7 +47,7 @@ case class CardViewModel(
 
 object CardViewModel {
 
-  implicit def writes(implicit messages: Messages): OWrites[CardViewModel] = (
+  implicit def writes: OWrites[CardViewModel] = (
     (__ \ "id").write[String] and
     (__ \ "heading").write[String] and
     (__ \ "subHeadings").write[Seq[CardSubHeading]] and

@@ -20,22 +20,21 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeG.ChargeAmountsFormProvider
-
-import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeG.ChargeAmounts
-import models.{AccessType, Mode, ChargeType, Index}
+import models.{AccessType, ChargeType, Index, Mode}
 import navigators.CompoundNavigator
-import pages.chargeG.{MemberDetailsPage, ChargeAmountsPage}
+import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-
-import scala.concurrent.{ExecutionContext, Future}
-import java.time.LocalDate
 import views.html.chargeG.ChargeAmountsView
+
+import java.time.LocalDate
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,

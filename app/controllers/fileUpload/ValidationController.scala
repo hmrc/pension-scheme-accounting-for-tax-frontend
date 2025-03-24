@@ -40,6 +40,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.AFTService
 import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import uk.gov.hmrc.http.StringContextOps
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -133,9 +134,9 @@ class ValidationController @Inject()(
       parserResult match {
         case Invalid(errors) =>
           Future.successful(processInvalid(chargeType, errors))
-        case Valid(updatedUA) =>
+        case Valid(ua) =>
           TimeLogger.logOperationTime(
-            processSuccessResult(chargeType, updatedUA, srn)
+            processSuccessResult(chargeType, ua, srn)
               .map(_ => FileUploadOutcome(status = Success, fileName = Some(fileName))),
             "processSuccessResult"
           )
@@ -247,7 +248,10 @@ class ValidationController @Inject()(
             case "" | "Failed" | "InProgress" =>
               Future.successful(FileUploadOutcome(status = SessionExpired))
             case "UploadedSuccessfully" =>
-              upscanInitiateConnector.download(uploadStatus.status.downloadUrl.getOrElse("")).flatMap { response =>
+              upscanInitiateConnector.download(
+                uploadStatus.status.downloadUrl.map { url => url"$url"}
+                  .getOrElse(throw new RuntimeException("upscan download URL not available."))
+              ).flatMap { response =>
                 sendAuditEventUpscanDownload(chargeType, response.status, startTime, uploadStatus)
                 response.status match {
                   case OK =>

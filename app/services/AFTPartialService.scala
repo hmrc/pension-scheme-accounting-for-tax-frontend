@@ -17,8 +17,6 @@
 package services
 
 import config.FrontendAppConfig
-import connectors.AFTConnector
-import connectors.cache.UserAnswersCacheConnector
 import helpers.FormatHelper
 import models.financialStatement.{PsaFSDetail, SchemeFSDetail}
 import play.api.i18n.Messages
@@ -34,14 +32,11 @@ import viewmodels._
 
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
 
 class AFTPartialService @Inject()(
                                    appConfig: FrontendAppConfig,
-                                   paymentsAndChargesService: PaymentsAndChargesService,
-                                   aftConnector: AFTConnector,
-                                   aftCacheConnector: UserAnswersCacheConnector
-                                 )(implicit ec: ExecutionContext) {
+                                   paymentsAndChargesService: PaymentsAndChargesService
+                                 ) {
 
 
   def retrievePspDashboardPaymentsAndChargesModel(schemeFsDetail: Seq[SchemeFSDetail], srn: String, pstr: String)

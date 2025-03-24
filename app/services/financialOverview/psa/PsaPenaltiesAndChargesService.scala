@@ -193,6 +193,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               pstr -> (name, referenceNumber)
           }.toMap
         )
+      case Right(ListOfSchemes(processingDate, totalSchemesRegistered, None)) => throw new RuntimeException("Scheme details are missing")
       case Left(response) => Future.failed(UpstreamErrorResponse(response.body, response.status))
     }
 
@@ -566,7 +567,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
   private def htmlStatus(data: PsaPaymentsAndChargesDetails)(implicit messages: Messages): HtmlContent = {
     val status = data.status.toString
-    val formattedStatus = status.charAt(0) + status.substring(1).toLowerCase
+    val formattedStatus = s"${status.charAt(0)}${status.substring(1).toLowerCase}"
     val (classes, content) = (data.status, data.paymentDue) match {
       case (InterestIsAccruing, _) =>
         ("govuk-tag govuk-tag--blue", formattedStatus)
@@ -748,15 +749,6 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
           case WRITTEN_OFF => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c4.new")))
           case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c5.new")))
           case OTHER_REASONS => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c6.new")))
-        }
-      case (Some(clearingReason), None, None) =>
-        clearingReason match {
-          case CLEARED_WITH_PAYMENT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c1")))
-          case CLEARED_WITH_DELTA_CREDIT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c2")))
-          case REPAYMENT_TO_THE_CUSTOMER => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c3")))
-          case WRITTEN_OFF => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c4")))
-          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(Text(Messages("financialPaymentsAndCharges.noClearingDate.clearingReason.c5")))
-          case OTHER_REASONS => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c6")))
         }
       case _ => None
     }

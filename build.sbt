@@ -11,13 +11,11 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
   .settings(DefaultBuildSettings.scalaSettings: _*)
   .settings(DefaultBuildSettings.defaultSettings(): _*)
-  .settings(scalaVersion := "2.13.16")
-  .settings(
-    Test / parallelExecution := true
-  )
   .settings(inConfig(Test)(testSettings): _*)
-  .settings(majorVersion := 0)
   .settings(
+    scalaVersion := "2.13.16",
+    Test / parallelExecution := true,
+    majorVersion := 0,
     name := appName,
     RoutesKeys.routesImport ++= Seq("models._", "models.OptionBinder._", "models.LocalDateBinder._", "java.time.LocalDate",
       "models.financialStatement.PsaFSChargeType", "models.financialStatement.PenaltyType._", "models.ChargeType._"),
@@ -47,6 +45,8 @@ lazy val root = (project in file("."))
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
     scalacOptions ++= Seq("-feature", "-deprecation"),
+    scalacOptions += "-Wconf:src=routes/.*:s",
+    scalacOptions += "-Wconf:src=html/.*:s",
     libraryDependencies ++= AppDependencies(),
     retrieveManaged := true,
     resolvers ++= Seq(
@@ -58,8 +58,6 @@ lazy val root = (project in file("."))
       ))
     ),
     uglifyCompressOptions := Seq("unused=false", "dead_code=false"),
-    scalacOptions += "-Wconf:src=routes/.*:s",
-    scalacOptions += "-Wconf:cat=unused-imports&src=html/.*:s",
     // Removed uglify due to node 20 compile issues.
     // Suspected cause minification of already minified location-autocomplete.min.js -Pavel Vjalicin
     Assets / pipelineStages := Seq(concat),

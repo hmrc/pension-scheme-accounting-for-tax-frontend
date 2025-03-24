@@ -17,8 +17,6 @@
 package services
 
 import base.SpecBase
-import connectors.AFTConnector
-import connectors.cache.UserAnswersCacheConnector
 import data.SampleData.multiplePenalties
 import helpers.FormatHelper
 import models._
@@ -48,19 +46,17 @@ class AFTPartialServiceSpec
   import AFTPartialServiceSpec._
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-  private val aftConnector = mock[AFTConnector]
 
-  private val aftCacheConnector = mock[UserAnswersCacheConnector]
   private val paymentsAndChargesService = mock[PaymentsAndChargesService]
   private val documentLineItemDetails = Seq()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(paymentsAndChargesService, aftConnector, aftCacheConnector)
+    reset(paymentsAndChargesService)
   }
 
   def service: AFTPartialService =
-    new AFTPartialService(frontendAppConfig, paymentsAndChargesService, aftConnector, aftCacheConnector)
+    new AFTPartialService(frontendAppConfig, paymentsAndChargesService)
 
   "retrievePsaPenaltiesCardModel" must {
     "return the correct viewmodel" when {

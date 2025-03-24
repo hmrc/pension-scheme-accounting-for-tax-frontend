@@ -26,28 +26,27 @@ import play.api.libs.json._
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class FileUploadCacheConnector @Inject()(
                                           config: FrontendAppConfig,
-                                          http: HttpClient
+                                          http: HttpClientV2
                                         ) extends UploadProgressTracker {
 
   private val logger = Logger(classOf[FileUploadCacheConnector])
 
-  protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/cache/fileUpload"
+  protected def url = url"${config.aftUrl}/pension-scheme-accounting-for-tax/cache/fileUpload"
 
-  protected def urlUploadResult = s"${config.aftUrl}/pension-scheme-accounting-for-tax/cache/fileUploadResult"
+  protected def urlUploadResult = url"${config.aftUrl}/pension-scheme-accounting-for-tax/cache/fileUploadResult"
 
   override def getUploadResult(id: UploadId)
                               (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[FileUploadDataCache]] = {
 
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"), ("uploadId", id.value))
-    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-
-    http.GET[HttpResponse](url)(implicitly, hc, implicitly)
+    http.get(url).setHeader(headers: _*).execute[HttpResponse]
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
         response.status match {
@@ -64,9 +63,8 @@ class FileUploadCacheConnector @Inject()(
   override def requestUpload(uploadId: UploadId, fileReference: Reference)
                             (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Unit] = {
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"), ("uploadId", uploadId.value))
-    implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    http.POST[JsValue, HttpResponse](url, Json.toJson(fileReference))(implicitly, implicitly, hc, implicitly)
+    http.post(url).withBody(Json.toJson(fileReference)).setHeader(headers: _*).execute[HttpResponse]
       .map { response =>
         response.status match {
           case OK => logger.info(s"requestUpload for uploadId ${uploadId.value} return response with status OK")
@@ -80,14 +78,14 @@ class FileUploadCacheConnector @Inject()(
   override def registerUploadResult(reference: Reference, uploadStatus: UploadStatus)
                                    (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Unit] = {
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"), ("reference", reference.reference))
-    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
     val status = uploadStatus match {
       case InProgress => FileUploadStatus(InProgress.toString, None, None, None, None, None, None)
       case f: Failed => FileUploadStatus("Failed", Some(f.failureReason), Some(f.message), None, None, None, None)
       case s: UploadedSuccessfully => FileUploadStatus("UploadedSuccessfully", None, None, Some(s.downloadUrl), Some(s.mimeType), Some(s.name), s.size)
     }
-    http.POST[JsValue, HttpResponse](urlUploadResult, Json.toJson(status))(implicitly, implicitly, hc, implicitly)
+
+    http.post(urlUploadResult).withBody(Json.toJson(status)).setHeader(headers: _*).execute[HttpResponse]
       .map { response =>
         response.status match {
           case OK => logger.info(s"registerUploadResult for Reference ${reference.reference} return response with status OK")

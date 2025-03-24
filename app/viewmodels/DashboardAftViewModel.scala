@@ -16,7 +16,6 @@
 
 package viewmodels
 
-import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsObject, OWrites, __}
 
@@ -27,7 +26,7 @@ case class DashboardAftViewModel(
 
 object DashboardAftViewModel {
 
-  implicit def writes(implicit messages: Messages): OWrites[DashboardAftViewModel] = (
+  implicit def writes: OWrites[DashboardAftViewModel] = (
     (__ \ "subHeadings").write[Seq[JsObject]] and
       (__ \ "links").write[Seq[Link]]
     ) { model => (model.subHeadings, model.links) }
