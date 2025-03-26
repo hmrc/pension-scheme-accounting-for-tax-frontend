@@ -52,7 +52,7 @@ govukFieldset: GovukFieldset
             label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.line1.title")))
         )
         .withWidth(TwoThirds)
-        .withAutocomplete("line1")
+        .withAutocomplete("address-line1")
     )
 
 
@@ -62,7 +62,7 @@ govukFieldset: GovukFieldset
             label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.line2.title")))
         )
         .withWidth(TwoThirds)
-        .withAutocomplete("line1")
+        .withAutocomplete("address-line2")
     )
 
 
@@ -72,7 +72,7 @@ govukFieldset: GovukFieldset
             label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.townOrCity.title")))
         )
         .withWidth(OneHalf)
-        .withAutocomplete("townOrCity")
+        .withAutocomplete("address-level2")
     )
 
     @govukInput(
@@ -81,7 +81,7 @@ govukFieldset: GovukFieldset
             label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.county.title")))
         )
         .withWidth(OneHalf)
-        .withAutocomplete("county")
+        .withAutocomplete("address-level1")
     )
 
 
@@ -91,7 +91,7 @@ govukFieldset: GovukFieldset
             label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.postcode.title")))
         )
         .withWidth(OneQuarter)
-        .withAutocomplete("postcode")
+        .withAutocomplete("postal-code")
     )
 
     <div class="govuk-form-group autocomplete-wrapper govuk-body govuk-!-width-two-thirds">
