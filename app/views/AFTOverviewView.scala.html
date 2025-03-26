@@ -61,11 +61,11 @@
         }
 
         <p class="govuk-body govuk-!-margin-bottom-6">
-            <a class="govuk-link" href=@paymentsAndChargesUrl>
-                @if(outstandingAmount != "£0.00") {
+            @if(outstandingAmount != "£0.00") {
+                <a class="govuk-link" href=@paymentsAndChargesUrl>
                     @messages("aftOverview.viewOutstanding")
-                }
-            </a>
+                </a>
+            }
         </p>
         <hr>
 
