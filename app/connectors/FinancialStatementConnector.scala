@@ -72,11 +72,6 @@ class FinancialStatementConnector @Inject()(httpClientV2: HttpClientV2, config: 
     }
   }
 
-  private def makeQueryString(queryParams: Seq[(String, Boolean)]): String = {
-    val paramPairs = queryParams.map { case (k, v) => s"$k=$v" }
-    if (paramPairs.isEmpty) "" else paramPairs.mkString("?", "&", "")
-  }
-
   def getSchemeFS(pstr: String, srn: String, loggedInAsPsa: Boolean)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeFS] = {
     val url = url"${Uri({config.schemeFinancialStatementUrl.format(srn)})

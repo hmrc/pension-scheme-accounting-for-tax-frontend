@@ -16,7 +16,6 @@
 
 package controllers.chargeD
 
-import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions._
 import models.LocalDateBinder._
@@ -28,7 +27,7 @@ import views.html.RemoveLastChargeView
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class RemoveLastChargeController @Inject()(override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
@@ -36,8 +35,7 @@ class RemoveLastChargeController @Inject()(override val messagesApi: MessagesApi
                                            allowAccess: AllowAccessActionProvider,
                                            requireData: DataRequiredAction,
                                            val controllerComponents: MessagesControllerComponents,
-                                           config: FrontendAppConfig,
-                                           view: RemoveLastChargeView)(implicit ec: ExecutionContext)
+                                           view: RemoveLastChargeView)
   extends FrontendBaseController
     with I18nSupport {
 

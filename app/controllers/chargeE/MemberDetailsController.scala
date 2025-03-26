@@ -16,13 +16,10 @@
 
 package controllers.chargeE
 
-import java.time.LocalDate
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.MemberDetailsFormProvider
-
-import javax.inject.Inject
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, Index, Mode, NormalMode}
 import navigators.CompoundNavigator
@@ -32,10 +29,12 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.MemberDetailsView
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
-import views.html.MemberDetailsView
 
 class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,

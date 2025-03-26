@@ -21,7 +21,6 @@ import org.scalatest._
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.libs.json.Json
-import play.api.mvc.Results._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 import utils.WireMockHelper
 
@@ -106,18 +105,6 @@ class FinancialInfoCacheConnectorSpec extends AsyncWordSpec with Matchers with W
       )
       recoverToSucceededIf[HttpException] {
         connector.save(json)
-      }
-    }
-  }
-
-  ".removeAll" must {
-
-    "return OK after removing all the data from the collection" in {
-      server.stubFor(delete(urlEqualTo(url)).
-        willReturn(ok)
-      )
-      connector.removeAll.map {
-        _ mustEqual Ok
       }
     }
   }

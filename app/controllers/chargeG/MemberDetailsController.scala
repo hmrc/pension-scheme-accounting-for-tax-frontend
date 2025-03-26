@@ -20,20 +20,19 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeG.MemberDetailsFormProvider
-
-import javax.inject.Inject
-import models.{AccessType, ChargeType, Index, Mode}
 import models.LocalDateBinder._
+import models.{AccessType, ChargeType, Index, Mode}
 import navigators.CompoundNavigator
 import pages.chargeG.MemberDetailsPage
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.chargeG.MemberDetailsView
 
 import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.chargeG.MemberDetailsView
 
 class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,

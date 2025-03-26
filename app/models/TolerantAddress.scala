@@ -56,21 +56,49 @@ case class TolerantAddress(addressLine1: Option[String],
 
   def toAddress: Option[SponsoringEmployerAddress] = (addressLine1, townOrCity, country) match {
     case (Some(line1), Some(townOrCity), Some(country)) => Some(SponsoringEmployerAddress(line1, addressLine2, townOrCity, county, country, postcode))
-    case (_, _, None) => None
-    case (None, None, _) if townOrCity.nonEmpty && county.nonEmpty => shuffle
-    case (Some(_), None, _) if townOrCity.nonEmpty || county.nonEmpty => shuffle
-    case (None, Some(_), _) if townOrCity.nonEmpty || county.nonEmpty => shuffle
-    case _ => None
+    case _ => shuffle
   }
 
-  private def shuffle: Option[SponsoringEmployerAddress] = (addressLine1, addressLine2, townOrCity, county) match {
-    case (None, None, Some(line3), Some(line4)) => Some(SponsoringEmployerAddress(line3, None, line4, None, country.get, postcode))
-    case (Some(line1), None, Some(line3), al4) => Some(SponsoringEmployerAddress(line1, None, line3, al4, country.get, postcode))
-    case (Some(line1), None, None, Some(line4)) => Some(SponsoringEmployerAddress(line1, None, line4, None, country.get, postcode))
-    case (None, Some(line2), Some(line3), al4) => Some(SponsoringEmployerAddress(line2, None, line3, al4, country.get, postcode))
-    case (None, Some(line2), None, Some(line4)) => Some(SponsoringEmployerAddress(line2, None, line4, None, country.get, postcode))
-    case _ => None
+  private def shuffle: Option[SponsoringEmployerAddress] = {
+    val values = Seq(addressLine1, addressLine2, townOrCity, county, postcode, country).flatten
+
+    values.length match {
+      case 5 => Some(SponsoringEmployerAddress(
+        values(0),
+        Some(values(1)),
+        values(2),
+        None,
+        values(4),
+        Some(values(3))
+      ))
+      case 4 if (values(3) == "GB") => Some(SponsoringEmployerAddress(
+        values(0),
+        None,
+        values(1),
+        None,
+        values(3),
+        Some(values(2))
+      ))
+      case 4 => Some(SponsoringEmployerAddress(
+        values(0),
+        Some(values(1)),
+        values(2),
+        None,
+        values(3),
+        None
+      ))
+      case 3 => Some(SponsoringEmployerAddress(
+        values(0),
+        None,
+        values(1),
+        None,
+        values(2),
+        None
+      ))
+      case _ => None
+    }
   }
+
 
 
   def equalsAddress(address: SponsoringEmployerAddress): Boolean =

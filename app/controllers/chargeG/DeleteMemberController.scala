@@ -31,11 +31,11 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.TwirlRadios
+import views.html.chargeG.DeleteMemberView
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.chargeG.DeleteMemberView
 
 class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersService: UserAnswersService,

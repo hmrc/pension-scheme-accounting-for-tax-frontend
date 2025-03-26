@@ -26,19 +26,17 @@ class SessionExpiredControllerSpec extends ControllerSpecBase {
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = None).build()
-
       val request = httpGETRequest(routes.SessionExpiredController.onPageLoad.url)
 
-      val view = application.injector.instanceOf[SessionExpiredView].apply()(request, messages)
+      val view = app.injector.instanceOf[SessionExpiredView].apply()(request, messages)
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual OK
 
       compareResultAndView(result, view)
 
-      application.stop()
+      app.stop()
     }
   }
 }
