@@ -269,7 +269,10 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                         )(implicit messages: Messages): Table = {
 
     val head = Seq(
-      HeadCell(Text(Messages("")), classes = "govuk-!-width-one-half"),
+      HeadCell(
+        HtmlContent(
+          s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penaltyOrCharge")}</span>"
+        )),
       HeadCell(Text(Messages("paymentsAndCharges.dateDue.table")), classes = "govuk-!-font-weight-bold table-nowrap"),
       HeadCell(Text(Messages("paymentsAndCharges.chargeDetails.originalChargeAmount.new")), classes = "govuk-!-font-weight-bold table-nowrap"),
       HeadCell(Text(Messages("paymentsAndCharges.paymentDue.table")), classes = "govuk-!-font-weight-bold table-nowrap"),
