@@ -735,7 +735,8 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       rows = chargeAmountRow ++ paymentRecievedRow ++ stoodOverAmountRow,
       attributes = Map("role" -> "table"),
       caption = caption,
-      captionClasses = captionClasses
+      captionClasses = captionClasses,
+      firstCellIsHeader = true
     )
   }
 
