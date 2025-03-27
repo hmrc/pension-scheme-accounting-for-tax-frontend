@@ -88,7 +88,9 @@
         phaseBanner = Some(standardBetaBanner(url = appConfig.betaFeedbackUnauthenticatedUrl))
     )),
     beforeContentBlock = Some(beforeContentBlock),
-    scriptsBlock = Some(scripts),
+    scriptsBlock = Some(hmrcScripts(
+        scriptsBlock = Some(scripts)
+    )),
     mainContentLayout = if(fullWidthLayout) None else Some(defaultMainContentLayout(_)),
     footerBlock = Some(hmrcStandardFooter())
 )(mainContentWithGetHelp)
