@@ -567,7 +567,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
   private def htmlStatus(data: PsaPaymentsAndChargesDetails)(implicit messages: Messages): HtmlContent = {
     val status = data.status.toString
-    val formattedStatus = s"${status.charAt(0)}${status.substring(1).toLowerCase}"
+    val formattedStatus = if(status.nonEmpty) {
+      s"${status.charAt(0)}${status.substring(1).toLowerCase}"
+    } else {
+      ""
+    }
     val (classes, content) = (data.status, data.paymentDue) match {
       case (InterestIsAccruing, _) =>
         ("govuk-tag govuk-tag--blue", formattedStatus)
