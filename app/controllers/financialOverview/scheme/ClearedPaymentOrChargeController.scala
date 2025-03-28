@@ -45,10 +45,12 @@ class ClearedPaymentOrChargeController @Inject()(override val messagesApi: Messa
   def onPageLoad(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter, index: Index): Action[AnyContent] = {
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType, request.isLoggedInAsPsa).map { paymentsCache =>
+
         val filteredPayment: SchemeFSDetail = paymentsCache.schemeFSDetail.filter(_.periodEndDate match {
-          case Some(endDate) => endDate.getYear == period.toInt
+          case Some(endDate) => DateHelper.getTaxYear(endDate) == period.toInt
           case _ => false
-        }).filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)(index)
+        }).filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)
+          .filter(_.outstandingAmount <= 0)(index)
 
         val paymentDates = filteredPayment.documentLineItemDetails.flatMap { documentLineItemDetail =>
           (documentLineItemDetail.paymDateOrCredDueDate, documentLineItemDetail.clearingDate) match {

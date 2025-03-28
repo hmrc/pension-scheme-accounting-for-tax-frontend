@@ -41,7 +41,7 @@ import scala.concurrent.Future
 
 class ClearedPaymentOrChargeControllerSpec extends ControllerSpecBase {
   private def httpPathGET: String =
-    routes.ClearedPaymentOrChargeController.onPageLoad(srn, "2020", PaymentOrChargeType.AccountingForTaxCharges, 0).url
+    routes.ClearedPaymentOrChargeController.onPageLoad(srn, "2021", PaymentOrChargeType.AccountingForTaxCharges, 0).url
 
   private val mockPaymentsAndChargesService = mock[PaymentsAndChargesService]
 
@@ -115,7 +115,7 @@ class ClearedPaymentOrChargeControllerSpec extends ControllerSpecBase {
         chargeDetailsRow,
         table,
         returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
-        "/manage-pension-scheme-accounting-for-tax/aa/financial-overview/accounting-for-tax/2020/cleared-payments-and-charges"
+        "/manage-pension-scheme-accounting-for-tax/aa/financial-overview/accounting-for-tax/2021/cleared-payments-and-charges"
       )(messages, httpGETRequest(httpPathGET))
 
       compareResultAndView(result, view)
