@@ -28,7 +28,7 @@ import play.api.mvc._
 import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.financialOverview.scheme.{PaymentsAndChargesNewView, PaymentsAndChargesView}
+import views.html.financialOverview.scheme.PaymentsAndChargesNewView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,8 +40,7 @@ class PaymentsAndChargesController @Inject()(
                                               val controllerComponents: MessagesControllerComponents,
                                               config: FrontendAppConfig,
                                               paymentsAndChargesService: PaymentsAndChargesService,
-                                              view: PaymentsAndChargesView,
-                                              newView: PaymentsAndChargesNewView
+                                              view: PaymentsAndChargesNewView
                                             )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -52,69 +51,40 @@ class PaymentsAndChargesController @Inject()(
       implicit request =>
         paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType, request.isLoggedInAsPsa).flatMap {
           paymentsCache =>
-            val overdueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(paymentsCache.schemeFSDetail)
+            val overdueCharges: Seq[SchemeFSDetail]  = paymentsAndChargesService.getOverdueCharges(paymentsCache.schemeFSDetail)
             val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(paymentsCache.schemeFSDetail)
-            val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
-            val totalInterestAccruing: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
+            val totalOverdue: BigDecimal             = overdueCharges.map(_.amountDue).sum
+            val totalInterestAccruing: BigDecimal    = interestCharges.map(_.accruedInterestTotal).sum
             val upcomingCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(paymentsCache.schemeFSDetail)
-            val totalUpcoming: BigDecimal = upcomingCharges.map(_.amountDue).sum
+            val totalUpcoming: BigDecimal            = upcomingCharges.map(_.amountDue).sum
 
             logger.warn(s"${srn} PaymentsAndChargesController.onPageLoad totalUpcoming: ${totalUpcoming}")
 
             if (paymentsCache.schemeFSDetail.nonEmpty) {
-
-              val reflectChargeTextMsgKey: String = if (config.podsNewFinancialCredits) {
-                s"financialPaymentsAndCharges.$journeyType.reflect.charge.text.new"
-              } else {
-                s"financialPaymentsAndCharges.$journeyType.reflect.charge.text"
-              }
-
-              val table: Table = paymentsAndChargesService.getPaymentsAndCharges(srn, paymentsCache.schemeFSDetail, journeyType, config)
+              val table: Table              = paymentsAndChargesService.getPaymentsAndCharges(srn, paymentsCache.schemeFSDetail, journeyType)
               val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
-              val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
+              val loggedInAsPsa: Boolean    = request.isLoggedInAsPsa
 
               val messages = request2Messages
 
-              val paymentsAndChargesTemplate = if (config.podsNewFinancialCredits) {
-                newView(
-                  titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
-                  schemeName = paymentsCache.schemeDetails.schemeName,
-                  pstr = "",
-                  reflectChargeText = messages(reflectChargeTextMsgKey),
-                  totalOverdue = s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
-                  totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
-                  totalUpcoming = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
-                  totalDue = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
-                  penaltiesTable = tableOfPaymentsAndCharges,
-                  paymentAndChargesTable = tableOfPaymentsAndCharges,
-                  returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
-                  returnDashboardUrl = if(loggedInAsPsa) {
-                    Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
-                  } else {
-                    Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
-                  }
-                )
-              } else {
-                view(
-                  titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
-                  schemeName = paymentsCache.schemeDetails.schemeName,
-                  pstr = "",
-                  reflectChargeText = messages(reflectChargeTextMsgKey),
-                  totalDue = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
-                  totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
-                  totalUpcoming = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
-                  penaltiesTable = tableOfPaymentsAndCharges,
-                  paymentAndChargesTable = tableOfPaymentsAndCharges,
-                  returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
-                  returnDashboardUrl = if(loggedInAsPsa) {
-                    Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
-                  } else {
-                    Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
-                  }
-                )
-              }
-
-              Future.successful(Ok(paymentsAndChargesTemplate))
+              Future.successful(Ok(view(
+                titleMessage           = messages(s"schemeFinancial.overview.$journeyType.title.v2"), journeyType = journeyType,
+                schemeName             = paymentsCache.schemeDetails.schemeName,
+                pstr                   = "",
+                reflectChargeText      = messages(s"financialPaymentsAndCharges.$journeyType.reflect.charge.text.new"),
+                totalOverdue           = s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
+                totalInterestAccruing  = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
+                totalUpcoming          = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
+                totalDue               = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
+                penaltiesTable         = tableOfPaymentsAndCharges,
+                paymentAndChargesTable = tableOfPaymentsAndCharges,
+                returnUrl              = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
+                returnDashboardUrl     = if(loggedInAsPsa) {
+                  Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+                } else {
+                  Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+                }
+              )))
             } else {
               logger.warn(s"Empty payments cache for journey type: ${journeyType}")
               Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -122,22 +92,14 @@ class PaymentsAndChargesController @Inject()(
         }
     }
 
-  private def getTitleMessage(journeyType: ChargeDetailsFilter): String = {
-    if (config.podsNewFinancialCredits) {
-      s"schemeFinancial.overview.$journeyType.title.v2"
-    } else {
-      s"schemeFinancial.overview.$journeyType.title"
-    }
-  }
-
   private val removePaymentStatusColumn: Table => Table = table => {
-    Table(caption = table.caption,
-      captionClasses = table.captionClasses,
+    Table(caption       = table.caption,
+      captionClasses    = table.captionClasses,
       firstCellIsHeader = table.firstCellIsHeader,
-      head = Some(table.head.getOrElse(Seq()).take(table.head.size - 1)),
-      rows = table.rows.map(p => p.take(p.size - 1)),
-      classes = table.classes,
-      attributes = table.attributes
+      head              = Some(table.head.getOrElse(Seq()).take(table.head.size - 1)),
+      rows              = table.rows.map(p => p.take(p.size - 1)),
+      classes           = table.classes,
+      attributes        = table.attributes
     )
   }
 }

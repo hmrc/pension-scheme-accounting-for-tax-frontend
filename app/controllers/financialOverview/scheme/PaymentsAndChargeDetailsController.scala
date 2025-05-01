@@ -16,8 +16,6 @@
 
 package controllers.financialOverview.scheme
 
-import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
-import viewmodels.ChargeDetailsViewModel
 import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper.formatCurrencyAmountAsString
@@ -32,9 +30,11 @@ import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc._
 import services.financialOverview.scheme.PaymentsAndChargesService
+import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, formatDateYMD}
-import views.html.financialOverview.scheme.{PaymentsAndChargeDetailsView, PaymentsAndChargeDetailsNewView}
+import viewmodels.ChargeDetailsViewModel
+import views.html.financialOverview.scheme.PaymentsAndChargeDetailsNewView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -47,8 +47,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                                                     val controllerComponents: MessagesControllerComponents,
                                                     paymentsAndChargesService: PaymentsAndChargesService,
                                                     config: FrontendAppConfig,
-                                                    newView: PaymentsAndChargeDetailsNewView,
-                                                    view: PaymentsAndChargeDetailsView
+                                                    view: PaymentsAndChargeDetailsNewView
                                                   )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -61,11 +60,7 @@ class PaymentsAndChargeDetailsController @Inject()(
       implicit request =>
         paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType, request.isLoggedInAsPsa).flatMap { paymentsCache =>
           val schemeFSDetail: Seq[SchemeFSDetail] = getFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType)
-          if(config.podsNewFinancialCredits) {
-            buildPageV2(schemeFSDetail, period, index, paymentsCache.schemeDetails, srn, paymentOrChargeType, journeyType, submittedDate, version)
-          } else {
-            buildPage(schemeFSDetail, period, index, paymentsCache.schemeDetails.schemeName, srn, paymentOrChargeType, journeyType, submittedDate, version)
-          }
+            buildPage(schemeFSDetail, period, index, paymentsCache.schemeDetails, srn, paymentOrChargeType, journeyType, submittedDate, version)
         }
     }
 
@@ -80,86 +75,9 @@ class PaymentsAndChargeDetailsController @Inject()(
     case _ => false
   }
 
-  //scalastyle:off parameter.number
+  // scalastyle:off parameter.number
   // scalastyle:off method.length
   private def buildPage(filteredCharges: Seq[SchemeFSDetail],
-                        period: String,
-                        index: String,
-                        schemeName: String,
-                        srn: String,
-                        paymentOrChargeType: PaymentOrChargeType,
-                        journeyType: ChargeDetailsFilter,
-                        submittedDate: Option[String],
-                        version: Option[Int]
-                       )(
-                         implicit request: IdentifierRequest[AnyContent]
-                       ): Future[Result] = {
-
-    def summaryListData(schemeFSDetail: SchemeFSDetail,
-                        interestUrl: String,
-                        version: Option[Int],
-                        isChargeAssigned: Boolean
-                       ): ChargeDetailsViewModel = {
-
-    ChargeDetailsViewModel(
-        chargeDetailsList = paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFSDetail, journeyType, submittedDate),
-        tableHeader = Some(tableHeader(schemeFSDetail)),
-        schemeName = schemeName,
-        chargeType = version match {
-          case Some(value) => schemeFSDetail.chargeType.toString + s" submission $value"
-          case _ => schemeFSDetail.chargeType.toString
-        },
-        versionValue = version match {
-          case Some(value) => Some(s" submission $value")
-          case _ => None
-        },
-        isPaymentOverdue = isPaymentOverdue(schemeFSDetail),
-        insetText = setInsetText(isChargeAssigned, schemeFSDetail, interestUrl),
-        interest = Some(schemeFSDetail.accruedInterestTotal),
-        returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
-        returnUrl = paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType),
-        returnHistoryUrl = returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)),
-        hintText = Some(optHintText(schemeFSDetail))
-      )
-    }
-
-    val optSchemeFsDetail = filteredCharges.find(_.index == index.toInt)
-    val optionSourceChargeInfo = optSchemeFsDetail.flatMap(_.sourceChargeInfo)
-    (optSchemeFsDetail, optionSourceChargeInfo) match {
-      case (Some(schemeFs), None) =>
-        val interestUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargesInterestController.onPageLoad(srn, period, index,
-          paymentOrChargeType, version, submittedDate, journeyType).url
-        Future.successful(Ok(view(summaryListData(schemeFs, interestUrl, version, isChargeAssigned = false))))
-      case (Some(schemeFs), Some(sourceChargeInfo)) =>
-        sourceChargePeriod(schemeFs.chargeType, sourceChargeInfo) match {
-          case Some(sourceChargePeriod) =>
-            val originalAmountUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargeDetailsController.onPageLoad(
-              srn = srn,
-              period = sourceChargePeriod,
-              index = sourceChargeInfo.index.toString,
-              paymentsType = paymentOrChargeType,
-              version = sourceChargeInfo.version,
-              submittedDate = sourceChargeInfo.receiptDate.map(formatDateYMD),
-              journeyType = All
-            ).url
-
-            Future.successful(Ok(view(summaryListData(schemeFs, originalAmountUrl, version, isChargeAssigned = true))
-            ))
-
-          case _ =>
-            logger.warn(s"No source charge period found for ${schemeFs.chargeType} and $sourceChargeInfo")
-            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-        }
-
-      case _ =>
-        logger.warn(s"No scheme FS item found for index $index")
-        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-    }
-  }
-
-  //scalastyle:off parameter.number
-  // scalastyle:off method.length
-  private def buildPageV2(filteredCharges: Seq[SchemeFSDetail],
                         period: String,
                         index: String,
                         schemeDetails: SchemeDetails,
@@ -181,31 +99,31 @@ class PaymentsAndChargeDetailsController @Inject()(
       val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
 
       ChargeDetailsViewModel(
-        chargeDetailsList = paymentsAndChargesService.getChargeDetailsForSelectedChargeV2(schemeFSDetail, schemeDetails),
-        schemeName = schemeDetails.schemeName,
-        chargeType = version match {
-          case Some(value) => schemeFSDetail.chargeType.toString + s" submission $value"
-          case _ => schemeFSDetail.chargeType.toString
+        chargeDetailsList        = paymentsAndChargesService.getChargeDetailsForSelectedChargeV2(schemeFSDetail, schemeDetails),
+        schemeName               = schemeDetails.schemeName,
+        chargeType               = version match {
+          case Some(value)       => schemeFSDetail.chargeType.toString + s" submission $value"
+          case _                 => schemeFSDetail.chargeType.toString
         },
-        versionValue = version match {
-          case Some(value) => Some(s" submission $value")
-          case _ => None
+        versionValue             = version match {
+          case Some(value)       => Some(s" submission $value")
+          case _                 => None
         },
-        isPaymentOverdue = isPaymentOverdue(schemeFSDetail),
-        paymentDueDate = Some(paymentDueDate(schemeFSDetail)),
-        chargeAmountDetails = Some(paymentsAndChargesService.chargeAmountDetailsRowsV2(schemeFSDetail)),
-        paymentDueAmount = Some(paymentDueAmountCharges(schemeFSDetail)),
-        insetText = setInsetTextV2(isChargeAssigned, schemeFSDetail, interestUrl),
-        interest = Some(schemeFSDetail.accruedInterestTotal),
+        isPaymentOverdue         = isPaymentOverdue(schemeFSDetail),
+        paymentDueDate           = Some(paymentDueDate(schemeFSDetail)),
+        chargeAmountDetails      = Some(paymentsAndChargesService.chargeAmountDetailsRowsV2(schemeFSDetail)),
+        paymentDueAmount         = Some(paymentDueAmountCharges(schemeFSDetail)),
+        insetText                = setInsetTextV2(isChargeAssigned, schemeFSDetail, interestUrl),
+        interest                 = Some(schemeFSDetail.accruedInterestTotal),
         returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeDetails.schemeName),
-        returnUrl = paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType),
-        returnDashboardUrl = if(loggedInAsPsa) {
+        returnUrl                = paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType),
+        returnDashboardUrl       = if(loggedInAsPsa) {
           Some(Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn))
         } else {
           Some(Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn))
         },
-        returnHistoryUrl = returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)),
-        hintText = Some(optHintText(schemeFSDetail))
+        returnHistoryUrl         = returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)),
+        hintText                 = Some(optHintText(schemeFSDetail))
       )
 
     }
@@ -216,22 +134,22 @@ class PaymentsAndChargeDetailsController @Inject()(
       case (Some(schemeFs), None) =>
         val interestUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargesInterestController.onPageLoad(srn, period, index,
           paymentOrChargeType, version, submittedDate, journeyType).url
-        Future.successful(Ok(newView(summaryListData(schemeFs, interestUrl, version, isChargeAssigned = false)))
+        Future.successful(Ok(view(summaryListData(schemeFs, interestUrl, version, isChargeAssigned = false)))
         )
       case (Some(schemeFs), Some(sourceChargeInfo)) =>
         sourceChargePeriod(schemeFs.chargeType, sourceChargeInfo) match {
           case Some(sourceChargePeriod) =>
             val originalAmountUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargeDetailsController.onPageLoad(
-              srn = srn,
-              period = sourceChargePeriod,
-              index = sourceChargeInfo.index.toString,
-              paymentsType = paymentOrChargeType,
-              version = sourceChargeInfo.version,
-              submittedDate = sourceChargeInfo.receiptDate.map(formatDateYMD),
-              journeyType = All
+              srn                 = srn,
+              period              = sourceChargePeriod,
+              index               = sourceChargeInfo.index.toString,
+              paymentsType        = paymentOrChargeType,
+              version             = sourceChargeInfo.version,
+              submittedDate       = sourceChargeInfo.receiptDate.map(formatDateYMD),
+              journeyType         = All
             ).url
 
-            Future.successful(Ok(newView(summaryListData(schemeFs, originalAmountUrl, version, isChargeAssigned = true)))
+            Future.successful(Ok(view(summaryListData(schemeFs, originalAmountUrl, version, isChargeAssigned = true)))
             )
           case _ =>
             logger.warn(s"No source charge period found for ${schemeFs.chargeType} and $sourceChargeInfo")
@@ -273,54 +191,6 @@ class PaymentsAndChargeDetailsController @Inject()(
         )
       case _ =>
         None
-    }
-  }
-
-
-  private def setInsetText(isChargeAssigned: Boolean, schemeFSDetail: SchemeFSDetail, interestUrl: String)(implicit messages: Messages): HtmlContent = {
-    (isChargeAssigned, schemeFSDetail.dueDate, schemeFSDetail.accruedInterestTotal > 0, schemeFSDetail.amountDue > 0,
-      isQuarterApplicable(schemeFSDetail), isChargeTypeVowel(schemeFSDetail)) match {
-      case (false, Some(date), true, true, _, _) => // ACT
-        HtmlContent(
-          s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
-            s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
-            s" <span class=govuk-!-font-weight-bold>${
-              messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
-                schemeFSDetail.accruedInterestTotal)
-            }</span>" +
-            s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", date.format(dateFormatterDMY))}<span>" +
-            s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
-            s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
-        )
-      case (true, _, _, _, true, _) => // EXP
-        HtmlContent(
-          s"<p class=govuk-body>${
-            messages("financialPaymentsAndCharges.interest.chargeReference.text2",
-              schemeFSDetail.chargeType.toString.toLowerCase())
-          }</p>" +
-            s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
-            s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
-        )
-      case (true, _, _, _, false, true) =>
-        HtmlContent(
-          s"<p class=govuk-body>${
-            messages("financialPaymentsAndCharges.interest.chargeReference.text1_vowel",
-              schemeFSDetail.chargeType.toString.toLowerCase())
-          }</p>" +
-            s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
-            s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
-        )
-      case (true, _, _, _, false, false) =>
-        HtmlContent(
-          s"<p class=govuk-body>${
-            messages("financialPaymentsAndCharges.interest.chargeReference.text1_consonant",
-              schemeFSDetail.chargeType.toString.toLowerCase())
-          }</p>" +
-            s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
-            s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
-        )
-      case _ =>
-        HtmlContent("")
     }
   }
 
@@ -370,7 +240,6 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
   }
 
-
   private def optHintText(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): String =
     if (schemeFSDetail.chargeType == PSS_AFT_RETURN_INTEREST && schemeFSDetail.amountDue == BigDecimal(0.00)) {
       messages("paymentsAndCharges.interest.hint")
@@ -387,13 +256,6 @@ class PaymentsAndChargeDetailsController @Inject()(
 
   private def isPaymentOverdue(schemeFSDetail: SchemeFSDetail): Boolean =
     schemeFSDetail.amountDue > 0 && schemeFSDetail.dueDate.exists(_.isBefore(LocalDate.now()))
-
-  private def tableHeader(schemeFSDetail: SchemeFSDetail): String =
-    paymentsAndChargesService.setPeriod(
-      schemeFSDetail.chargeType,
-      schemeFSDetail.periodStartDate,
-      schemeFSDetail.periodEndDate
-    )
 
   private def getFilteredPayments(payments: Seq[SchemeFSDetail], period: String, paymentOrChargeType: PaymentOrChargeType): Seq[SchemeFSDetail] =
     if (paymentOrChargeType == AccountingForTaxCharges) {

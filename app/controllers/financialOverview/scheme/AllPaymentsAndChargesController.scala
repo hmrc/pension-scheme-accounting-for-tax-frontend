@@ -63,7 +63,7 @@ class AllPaymentsAndChargesController @Inject()(
         val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
 
         if (filteredPayments.nonEmpty) {
-          val tableOfPaymentsAndCharges = paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, journeyType, config)
+          val tableOfPaymentsAndCharges = paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, journeyType)
 
           val messages = request2Messages
 

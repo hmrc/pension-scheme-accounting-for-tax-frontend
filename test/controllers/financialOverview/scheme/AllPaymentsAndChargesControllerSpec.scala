@@ -74,7 +74,7 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
       .thenReturn(schemeFSResponse)
     when(mockPaymentsAndChargesService.getInterestCharges(any()))
       .thenReturn(schemeFSResponse)
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any(), any())(any())).thenReturn(emptyChargesTable)
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any())(any())).thenReturn(emptyChargesTable)
   }
 
   "AllPaymentsAndChargesController" must {

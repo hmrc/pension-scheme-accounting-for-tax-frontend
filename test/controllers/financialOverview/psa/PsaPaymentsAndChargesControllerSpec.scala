@@ -81,10 +81,7 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
   }
 
   "PsaPaymentsAndChargesController" must {
-
-    "return OK and the new payments and charges information for a GET" in {
-      when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
-
+    "return OK and the payments and charges information for a GET" in {
       val req = httpGETRequest(httpPathGET)
       val result = route(application, req).value
       status(result) mustEqual OK
@@ -92,20 +89,6 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
       val view = application.injector.instanceOf[PsaPaymentsAndChargesNewView].apply(
         journeyType = "overdue", psaName = "psa-name", titleMessage = messages("psa.financial.overview.overdue.title.v2"), pstr = Some(pstr), reflectChargeText = "The information may not reflect payments made in the last 3 days.", totalOverdueCharge = "100", totalInterestAccruing = "100", totalUpcomingCharge = "100", totalOutstandingCharge = "100", penaltiesTable = penaltiesTable, paymentAndChargesTable = penaltiesTable
       )(req, messages)
-
-      compareResultAndView(result, view)
-    }
-
-    "return OK and the old payments and charges information for a GET" in {
-      when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
-
-      val req = httpGETRequest(httpPathGET)
-      val result = route(application, req).value
-      status(result) mustEqual OK
-
-      val view = application.injector.instanceOf[PsaPaymentsAndChargesView].apply(
-        journeyType = "overdue", schemeName = schemeName, psaName = "psa-name", titleMessage = messages("psa.financial.overview.overdue.title"), pstr = pstr, reflectChargeText = "The information may not reflect payments made in the last 3 days.", totalOverdueCharge = "100", totalInterestAccruing = "100", totalUpcomingCharge = "100", totalOutstandingCharge = "100", penaltiesTable = penaltiesTable, paymentAndChargesTable = penaltiesTable, returnUrl = ""
-      )(messages, req)
 
       compareResultAndView(result, view)
     }

@@ -75,48 +75,11 @@ class PsaFinancialOverviewControllerSpec
   }
 
   "PsaFinancialOverviewController" must {
-      "return old html with information received from overview api for new financial credits is false" in {
-        when(mockAppConfig.countdownSeconds).thenReturn(60)
-        when(mockAFTPartialService.retrievePsaChargesAmount(any()))
-          .thenReturn(("10", "10", "10"))
-        when(mockAFTPartialService.retrievePaidPenaltiesAndCharges(any())).thenReturn(Seq())
-        when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
-        when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
-          .thenReturn(Future.successful(psaFs))
-        when(mockAFTPartialService.getCreditBalanceAmount(any()))
-          .thenReturn(BigDecimal("1000"))
-        when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
-          .thenReturn(Future.successful(psaName))
-
-        val request = httpGETRequest(getPartial)
-        val result = route(application, request).value
-
-        status(result) mustEqual OK
-
-        val view = application.injector.instanceOf[PsaFinancialOverviewView].apply(
-          psaName = psaName,
-          totalUpcomingCharge = "10",
-          totalOverdueCharge = "10",
-          totalInterestAccruing = "10",
-          requestRefundUrl = routes.PsaRequestRefundController.onPageLoad.url,
-          allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
-          duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
-          allPaymentLink = routes.PenaltyTypeController.onPageLoad(ChargeDetailsFilter.All).url,
-          creditBalanceFormatted = "£1,000.00",
-          creditBalance = 1000,
-          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
-        )(messages, request)
-
-        compareResultAndView(result, view)
-
-      }
-
-      "return new html with information received from overview api for new financial credits is true" in {
+    "return html with information received from overview api" in {
         when(mockAppConfig.countdownSeconds).thenReturn(60)
         when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
         when(mockAFTPartialService.retrievePaidPenaltiesAndCharges(any())).thenReturn(psaFsSeq)
-        when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
         when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
           .thenReturn(Future.successful(psaFs))
         when(mockAFTPartialService.getCreditBalanceAmount(any()))

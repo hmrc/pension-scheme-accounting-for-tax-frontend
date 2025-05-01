@@ -27,7 +27,6 @@ import play.api.mvc._
 import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.financialOverview.psa.PsaFinancialOverviewNewView
-import views.html.financialOverview.psa.PsaFinancialOverviewView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,8 +39,7 @@ class PsaFinancialOverviewController @Inject()(
                                                 service: AFTPartialService,
                                                 config: FrontendAppConfig,
                                                 minimalConnector: MinimalConnector,
-                                                psaFinancialOverviewNew: PsaFinancialOverviewNewView,
-                                                psaFinancialOverview: PsaFinancialOverviewView
+                                                psaFinancialOverview: PsaFinancialOverviewNewView,
                                               )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -66,11 +64,11 @@ class PsaFinancialOverviewController @Inject()(
                                        psaFSDetail: Seq[PsaFSDetail],
                                        creditPsaFS: PsaFS
                                      )(implicit request: Request[_]): Future[Result] = {
-    val creditPsaFSDetails = creditPsaFS.seqPsaFSDetail
+    val creditPsaFSDetails                   = creditPsaFS.seqPsaFSDetail
     val psaCharges: (String, String, String) = service.retrievePsaChargesAmount(psaFSDetail)
-    val creditBalance = service.getCreditBalanceAmount(creditPsaFSDetails)
-    val creditBalanceFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(creditBalance)}"
-    val displayHistory = service.retrievePaidPenaltiesAndCharges(psaFSDetail).nonEmpty
+    val creditBalance                        = service.getCreditBalanceAmount(creditPsaFSDetails)
+    val creditBalanceFormatted: String       = s"${FormatHelper.formatCurrencyAmountAsString(creditBalance)}"
+    val displayHistory                       = service.retrievePaidPenaltiesAndCharges(psaFSDetail).nonEmpty
 
     logger.debug(s"AFT service returned UpcomingCharge - ${psaCharges._1}")
     logger.debug(s"AFT service returned OverdueCharge - ${psaCharges._2}")
@@ -82,52 +80,21 @@ class PsaFinancialOverviewController @Inject()(
       routes.PsaRequestRefundController.onPageLoad.url
     }
 
-    val allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url
-    val duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url
-    val allPaymentLink = if (config.podsNewFinancialCredits) {
-      routes.RefundsController.onPageLoad().url
-    } else {
-      routes.PenaltyTypeController.onPageLoad("all").url
-    }
-
-    val historyLink = routes.PenaltyTypeController.onPageLoad("history").url
-
-    val returnUrl = config.managePensionsSchemeOverviewUrl
-
-    val templateToRender = if (config.podsNewFinancialCredits) {
-      psaFinancialOverviewNew(
-        psaName = psaName,
-        totalUpcomingCharge = psaCharges._1,
-        totalOverdueCharge = psaCharges._2,
-        totalInterestAccruing = psaCharges._3,
-        requestRefundUrl = requestRefundUrl,
-        allOverduePenaltiesAndInterestLink = allOverduePenaltiesAndInterestLink,
-        duePaymentLink = duePaymentLink,
-        allPaymentLink = allPaymentLink,
-        creditBalanceFormatted = creditBalanceFormatted,
-        creditBalance = creditBalance,
-        displayHistory = displayHistory,
-        historyLink = historyLink,
-        returnUrl = returnUrl
-      )
-    } else {
-      psaFinancialOverview(
-        psaName = psaName,
-        totalUpcomingCharge = psaCharges._1,
-        totalOverdueCharge = psaCharges._2,
-        totalInterestAccruing = psaCharges._3,
-        requestRefundUrl = requestRefundUrl,
-        allOverduePenaltiesAndInterestLink = allOverduePenaltiesAndInterestLink,
-        duePaymentLink = duePaymentLink,
-        allPaymentLink = allPaymentLink,
-        creditBalanceFormatted = creditBalanceFormatted,
-        creditBalance = creditBalance,
-        returnUrl = returnUrl
-      )
-    }
-
-    Future.successful(Ok(templateToRender))
-
+    Future.successful(Ok(psaFinancialOverview(
+      psaName                            = psaName,
+      totalUpcomingCharge                = psaCharges._1,
+      totalOverdueCharge                 = psaCharges._2,
+      totalInterestAccruing              = psaCharges._3,
+      requestRefundUrl                   = requestRefundUrl,
+      allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
+      duePaymentLink                     = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
+      allPaymentLink                     = routes.RefundsController.onPageLoad().url,
+      creditBalanceFormatted             = creditBalanceFormatted,
+      creditBalance                      = creditBalance,
+      displayHistory                     = displayHistory,
+      historyLink                        = routes.PenaltyTypeController.onPageLoad("history").url,
+      returnUrl                          = config.managePensionsSchemeOverviewUrl
+    )))
   }
 
 }

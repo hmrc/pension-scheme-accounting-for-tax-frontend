@@ -80,7 +80,7 @@ class SchemeFinancialOverviewControllerSpec
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any())).
       thenReturn(Future.successful(schemeToFinancial(schemeFSResponseAftAndOTC)))
     when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
-      any(), any(), any())(any())).thenReturn(Table())
+      any(), any())(any())).thenReturn(Table())
     when(mockPaymentsAndChargesService.getOverdueCharges(any())).thenReturn(schemeFSResponseAftAndOTC.seqSchemeFSDetail)
     when(mockPaymentsAndChargesService.getInterestCharges(any())).thenReturn(schemeFSResponseAftAndOTC.seqSchemeFSDetail)
     when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => schemeFSResponseAftAndOTC.seqSchemeFSDetail)
@@ -88,8 +88,7 @@ class SchemeFinancialOverviewControllerSpec
 
   "SchemeFinancial Controller" when {
     "schemeFinancialOverview" must {
-
-      "return new html with information received from overview api" in {
+      "return html with information received from overview api" in {
         when(mockPsaSchemePartialService.aftCardModel(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(allTypesMultipleReturnsModel))
         when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
@@ -102,7 +101,6 @@ class SchemeFinancialOverviewControllerSpec
           .thenReturn("£1,000.00")
         when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
           .thenReturn(Future.successful("John Doe"))
-        when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
 
         val request = httpGETRequest(getPartial)
         val result = route(application, httpGETRequest(getPartial)).value
@@ -128,44 +126,6 @@ class SchemeFinancialOverviewControllerSpec
 
         compareResultAndView(result, view)
 
-      }
-
-      "return old html with information received from overview api" in {
-        when(mockPsaSchemePartialService.aftCardModel(any(), any(), any())(any(), any()))
-          .thenReturn(Future.successful(allTypesMultipleReturnsModel))
-        when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
-          .thenReturn(allTypesMultipleReturnsModel)
-        when(mockPsaSchemePartialService.overdueAftChargesModel(any(), any())(any()))
-          .thenReturn(allTypesMultipleReturnsModel)
-        when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any(), any(), any())(any(), any()))
-          .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
-        when(mockPsaSchemePartialService.creditBalanceAmountFormatted(any()))
-          .thenReturn("£1,000.00")
-        when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
-          .thenReturn(Future.successful("John Doe"))
-        when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
-
-        val request = httpGETRequest(getPartial)
-        val result = route(application, httpGETRequest(getPartial)).value
-
-        status(result) mustEqual OK
-
-        val view = application.injector.instanceOf[SchemeFinancialOverviewView].apply(
-          schemeName = "Big Scheme",
-          totalUpcomingCharge = "£2,058.10",
-          totalOverdueCharge = "£2,058.10",
-          totalInterestAccruing = "£47,024.96",
-          requestRefundUrl = routes.RequestRefundController.onPageLoad(srn).url,
-          allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(srn, journeyType = "overdue").url,
-          duePaymentLink = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
-          allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, All).url,
-          creditBalanceFormatted = "£0.00",
-          creditBalance = 0,
-          isOverdueChargeAvailable = false,
-          returnUrl = "/aa/dashboard/pension-scheme-details"
-        )(messages, request)
-
-        compareResultAndView(result, view)
       }
     }
 

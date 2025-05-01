@@ -44,7 +44,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListR
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import utils.DateHelper.formatDateDMY
 import viewmodels.PsaChargeDetailsViewModel
-import views.html.financialOverview.psa.PsaChargeDetailsView
+import views.html.financialOverview.psa.PsaChargeDetailsNewView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -83,6 +83,7 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
     super.beforeEach()
     reset(mockPsaPenaltiesAndChargesService)
     when(mockPsaPenaltiesAndChargesService.chargeDetailsRows(any(), any())(any)).thenReturn(getRows())
+    when(mockPsaPenaltiesAndChargesService.chargeHeaderDetailsRows(any())(any)).thenReturn(Seq.empty)
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(isOverdue)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any()))
       .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
@@ -103,22 +104,20 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
 
         status(result) mustEqual OK
 
-        val view = application.injector.instanceOf[PsaChargeDetailsView].apply(
+        val view = application.injector.instanceOf[PsaChargeDetailsNewView].apply(
           model = PsaChargeDetailsViewModel(
             heading = "Accounting for Tax Late Filing Penalty",
             psaName = "psa-name",
             schemeName = schemeDetails.schemeName,
             isOverdue = true,
-            period = Some("Quarter: 1 October to 31 December 2020"),
             paymentDueAmount = Some("0"),
             paymentDueDate = Some("0"),
             chargeReference = chargeRef,
             penaltyAmount = 10.00,
             insetText = HtmlContent(""),
-            isInterestPresent = false,
-            list = Some(mockPsaPenaltiesAndChargesService.chargeDetailsRows(psaFSResponse.head, "Overdue")),
             chargeHeaderDetails = None,
             chargeAmountDetails = Some(emptyChargesTable),
+            isInterestPresent = false,
             returnUrl = routes.PsaPaymentsAndChargesController.onPageLoad(Overdue).url,
             returnUrlText = "your Overdue payments and charges"
           )

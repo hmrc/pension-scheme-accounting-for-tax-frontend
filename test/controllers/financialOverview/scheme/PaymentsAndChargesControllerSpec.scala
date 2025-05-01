@@ -70,7 +70,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any())).
       thenReturn(Future.successful(paymentsCache(schemeFSResponseOverdue)))
     when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
-      any(), any(), any())(any())).thenReturn(penaltiesTable)
+      any(), any())(any())).thenReturn(penaltiesTable)
     when(mockPaymentsAndChargesService.getOverdueCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockPaymentsAndChargesService.getInterestCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => schemeFSResponseUpcoming)
@@ -78,8 +78,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
 
   "PaymentsAndChargesController" must {
 
-    "return OK and the new view with filtered payments and charges information for a GET" in {
-      when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
+    "return OK and the correct view with filtered payments and charges information for a GET" in {
       val req = httpGETRequest(httpPathGET)
       val result = route(application, req).value
       status(result) mustEqual OK
@@ -99,31 +98,6 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
         returnUrl = "/financial-overview/test-srn",
         returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
       )(req, messages)
-
-      compareResultAndView(result, view)
-
-    }
-
-    "return OK and the old view with filtered payments and charges information for a GET" in {
-      when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
-      val req = httpGETRequest(httpPathGET)
-      val result = route(application, req).value
-      status(result) mustEqual OK
-
-      val view = application.injector.instanceOf[PaymentsAndChargesView].apply(
-        journeyType = "overdue",
-        schemeName = schemeDetails.schemeName,
-        titleMessage = messages("schemeFinancial.overview.overdue.title"),
-        pstr = pstr,
-        reflectChargeText = "The information may not reflect payments made in the last 3 days.",
-        totalDue = "£2,058.10",
-        totalInterestAccruing = "£0.00",
-        totalUpcoming = "£0.00",
-        penaltiesTable = penaltiesTable,
-        paymentAndChargesTable = penaltiesTable,
-        returnUrl = "/financial-overview/test-srn",
-        returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
-      )(messages, req)
 
       compareResultAndView(result, view)
 

@@ -17,7 +17,6 @@
 package services.financialOverview.scheme
 
 import base.SpecBase
-import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
@@ -31,7 +30,6 @@ import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement._
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
-import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
@@ -42,13 +40,12 @@ import play.api.libs.json.Json
 import services.SchemeService
 import services.financialOverview.psa.PenaltiesCache
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, TableRow}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
 import utils.AFTConstants._
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatDateDMY}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -62,8 +59,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                               isInterestAccrued: Boolean,
                               chargeType: String,
                               chargeReference: String,
+                              displayChargeReference: String,
                               redirectUrl: String,
-                              period: String,
                               visuallyHiddenText: String,
                             ): HtmlContent = {
     val linkId = if (isInterestAccrued) {
@@ -72,24 +69,26 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       chargeReference
     }
 
-//    HtmlContent
+    val period = s"${if (isInterestAccrued) "Quarter: " else ""}1 April to 30 June 2020"
+
     HtmlContent(
       s"<a id=$linkId class=govuk-link href=" +
         s"$redirectUrl>" +
         s"$chargeType " +
-        s"<span class=govuk-visually-hidden>$visuallyHiddenText</span> </a>" +
-        s"<p class=govuk-hint>" +
-        s"$period</p>")
+        s"<span class=govuk-visually-hidden>$visuallyHiddenText</span></a>" +
+        s"<p class=govuk-hint>$displayChargeReference</br>" +
+        s"$period")
   }
 
   private val tableHead = Seq(
-    HeadCell(Text(messages("paymentsAndCharges.chargeType.table")), classes = "govuk-!-width-one-half"),
-    HeadCell(Text(messages("paymentsAndCharges.chargeReference.table")), classes = "govuk-!-font-weight-bold"),
-    HeadCell(Text(messages("paymentsAndCharges.chargeDetails.originalChargeAmount")), classes = "govuk-!-font-weight-bold"),
-    HeadCell(Text(messages("paymentsAndCharges.paymentDue.table")), classes = "govuk-!-font-weight-bold"),
-    HeadCell(HtmlContent(
-      s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"
-    ))
+    HeadCell(
+      HtmlContent(
+        s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penaltyOrCharge")}</span>"
+      )),
+    HeadCell(Text(Messages("paymentsAndCharges.dateDue.table")), classes = "govuk-!-font-weight-bold table-nowrap"),
+    HeadCell(Text(Messages("paymentsAndCharges.chargeDetails.originalChargeAmount.new")), classes = "govuk-!-font-weight-bold table-nowrap"),
+    HeadCell(Text(Messages("paymentsAndCharges.paymentDue.table")), classes = "govuk-!-font-weight-bold table-nowrap"),
+    HeadCell(Text(Messages("paymentsAndCharges.interestAccruing.table")), classes = "govuk-!-font-weight-bold table-nowrap")
   )
 
   private def paymentTable(rows: Seq[Seq[TableRow]]): Table =
@@ -98,40 +97,32 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
   private def row(isInterestAccrued: Boolean,
                   chargeType: String,
+                  chargeReference: String = "AYU3494534632",
                   displayChargeReference: String,
+                  dateDue: String,
                   originalChargeAmount: String,
                   paymentDue: String,
                   status: PaymentAndChargeStatus,
                   redirectUrl: String,
-                  visuallyHiddenText: String
+                  visuallyHiddenText: String,
+                  accruedInterestTotal: String = "153.00"
                  ): Seq[TableRow] = {
-    val period = "Quarter: 1 April to 30 June 2020"
-    val statusHtml = status match {
-      case InterestIsAccruing => HtmlContent(s"<span class='govuk-tag govuk-tag--blue'>${status.toString}</span>")
-      case PaymentOverdue => HtmlContent(s"<span class='govuk-tag govuk-tag--red'>${status.toString}</span>")
-      case _ => if (paymentDue == "£0.00") {
-        HtmlContent(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
-      } else {
-        HtmlContent(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
-      }
-    }
 
     Seq(
-      TableRow(htmlChargeType(isInterestAccrued, chargeType, "AYU3494534632", redirectUrl, period, visuallyHiddenText),
+      TableRow(htmlChargeType(isInterestAccrued, chargeType, chargeReference, displayChargeReference, redirectUrl, visuallyHiddenText),
         classes = "govuk-!-width-one-third"),
-      TableRow(Text(s"$displayChargeReference"), classes = "govuk-!-padding-right-7"),
+      TableRow(Text(s"$dateDue"), classes = "govuk-!-padding-right-7, table-nowrap"),
       if (originalChargeAmount.isEmpty) {
         TableRow(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
       } else {
-        TableRow(Text(originalChargeAmount), classes = "govuk-!-padding-right-7 table-nowrap")
+        TableRow(Text(originalChargeAmount), classes = "govuk-table__cell govuk-!-padding-right-7 table-nowrap")
       },
-      TableRow(Text(paymentDue), classes = "govuk-!-padding-right-5 table-nowrap"),
-      TableRow(statusHtml)
+      TableRow(Text(paymentDue), classes = "govuk-table__cell govuk-!-padding-right-7 table-nowrap"),
+      TableRow(Text(accruedInterestTotal), classes = "govuk-table__cell govuk-table__cell--numeric table-nowrap")
     )
   }
 
   val mockSchemeService: SchemeService = mock[SchemeService]
-  val config: FrontendAppConfig = mock[FrontendAppConfig]
 
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
   val mockFIConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
@@ -155,43 +146,43 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
           def expectedTable(chargeLink: String, interestLink: String): Table =
             paymentTable(Seq(
               row(
-                isInterestAccrued = false,
-                chargeType = chargeType.toString + s" submission $versionInt",
+                isInterestAccrued      = false,
+                chargeType             = chargeType.toString + s" submission $versionInt",
                 displayChargeReference = "AYU3494534632",
-                originalChargeAmount = FormatHelper.formatCurrencyAmountAsString(56432.00),
-                paymentDue = FormatHelper.formatCurrencyAmountAsString(1029.05),
-                status = PaymentAndChargeStatus.PaymentOverdue,
-                redirectUrl = chargeLink,
-                visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632")
+                dateDue                = formatDateDMY(LocalDate.parse("2020-05-15")),
+                originalChargeAmount   = FormatHelper.formatCurrencyAmountAsString(56432.00),
+                paymentDue             = FormatHelper.formatCurrencyAmountAsString(1029.05),
+                status                 = PaymentAndChargeStatus.PaymentOverdue,
+                redirectUrl            = chargeLink,
+                visuallyHiddenText     = messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632"),
               ),
               row(
-                isInterestAccrued = true,
-                chargeType = if (chargeType == PSS_AFT_RETURN) {
+                isInterestAccrued      = true,
+                chargeType             = if (chargeType == PSS_AFT_RETURN) {
                   PSS_AFT_RETURN_INTEREST.toString + s" submission $versionInt"
                 } else {
                   PSS_OTC_AFT_RETURN_INTEREST.toString + s" submission $versionInt"
                 },
                 displayChargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
-                originalChargeAmount = "",
-                paymentDue = FormatHelper.formatCurrencyAmountAsString(153.00),
-                status = PaymentAndChargeStatus.InterestIsAccruing,
-                redirectUrl = interestLink,
-                visuallyHiddenText = messages(s"paymentsAndCharges.interest.visuallyHiddenText")
+                dateDue                = formatDateDMY(LocalDate.parse("2020-05-15")),
+                originalChargeAmount   = "",
+                paymentDue             = FormatHelper.formatCurrencyAmountAsString(153.00),
+                status                 = PaymentAndChargeStatus.InterestIsAccruing,
+                redirectUrl            = interestLink,
+                visuallyHiddenText     = messages(s"paymentsAndCharges.interest.visuallyHiddenText"),
               )
             ))
 
           val result1 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             schemeFSDetail = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            chargeDetailsFilter = Overdue,
-            config = config
+            chargeDetailsFilter = Overdue
           )
 
           val result2 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             schemeFSDetail = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            chargeDetailsFilter = Upcoming,
-            config = config
+            chargeDetailsFilter = Upcoming
           )
           result1 mustBe expectedTable(chargeLink(Overdue), interestLink(Overdue))
           result2 mustBe expectedTable(chargeLink(Upcoming), interestLink(Upcoming))
@@ -206,8 +197,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       val result = paymentsAndChargesService.getPaymentsAndCharges(
         srn,
         paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00).head._2,
-        Overdue,
-        config = config
+        Overdue
       )
 
       result mustBe expectedTable
