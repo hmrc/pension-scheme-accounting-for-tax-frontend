@@ -54,22 +54,19 @@
             </div>
         </div>
 
-    <p class="govuk-body">
-        @govukSummaryList(
-            SummaryList(
-                rows = model.chargeHeaderDetails.getOrElse(Seq.empty)
-            )
-        )
-    </p>
 
-    @if(model.chargeAmountDetails.isDefined) {
+    @model.chargeHeaderDetails.map { rows =>
+        <p class="govuk-body">
+            @govukSummaryList(SummaryList(rows))
+        </p>
+    }
+
+    @model.chargeAmountDetails.map { table =>
         <div role="region" aria-labelledby="charge_details_h2" class="govuk-!-margin-bottom-1">
             <h2 class="govuk-heading-l" id="charge_details_h2">
                     @messages("psa.pension.scheme.charge.details.new")
             </h2>
-                @model.chargeAmountDetails.map { table =>
-                    @govukTable(table)
-                }
+            @govukTable(table)
         </div>
     }
 

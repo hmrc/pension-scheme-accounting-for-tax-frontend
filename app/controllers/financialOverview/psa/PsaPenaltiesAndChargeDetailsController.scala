@@ -67,7 +67,11 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
                 schemeDetails =>
 
                   val modelObject = if (config.podsNewFinancialCredits) {
-                    commonJsonNewV2(penaltiesCache.psaName, schemeDetails.schemeName, penaltyOpt.head, journeyType)
+                    commonJsonNewV2(
+                      psaName = penaltiesCache.psaName,
+                      schemeName = schemeDetails.schemeName,
+                      psaFSDetail = penaltyOpt.head,
+                      journeyType = journeyType)
                   } else {
                     commonJson(penaltiesCache.psaName, schemeDetails.schemeName, penaltyOpt.head, journeyType)
                   }
