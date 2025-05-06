@@ -69,9 +69,9 @@ class ClearedPaymentOrChargeController @Inject()(override val messagesApi: Messa
         }
 
         val chargeDetailsList: Seq[SummaryListRow] = paymentsAndChargesService
-          .getChargeDetailsForSelectedChargeV2(filteredPayment, paymentsCache.schemeDetails, isClearedCharge = true)
+          .getChargeDetailsForSelectedCharge(filteredPayment, paymentsCache.schemeDetails, isClearedCharge = true)
 
-        val paymentsTable = paymentsAndChargesService.chargeAmountDetailsRowsV2(filteredPayment)
+        val paymentsTable = paymentsAndChargesService.chargeAmountDetailsRows(filteredPayment)
         val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
         val returnUrl = routes.ClearedPaymentsAndChargesController.onPageLoad(srn, period, paymentOrChargeType).url
 

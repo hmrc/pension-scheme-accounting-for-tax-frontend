@@ -35,7 +35,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListR
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.formatDateDMY
 import viewmodels.InterestDetailsViewModel
-import views.html.financialOverview.scheme.PaymentsAndChargeInterestNewView
+import views.html.financialOverview.scheme.PaymentsAndChargeInterestView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -48,7 +48,7 @@ class PaymentsAndChargesInterestController @Inject()(
                                                       val controllerComponents: MessagesControllerComponents,
                                                       paymentsAndChargesService: PaymentsAndChargesService,
                                                       config: FrontendAppConfig,
-                                                      view: PaymentsAndChargeInterestNewView
+                                                      view: PaymentsAndChargeInterestView
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {

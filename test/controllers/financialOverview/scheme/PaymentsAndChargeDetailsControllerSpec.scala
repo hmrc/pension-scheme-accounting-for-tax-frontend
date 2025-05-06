@@ -39,7 +39,7 @@ import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import utils.AFTConstants._
 import viewmodels.ChargeDetailsViewModel
-import views.html.financialOverview.scheme.PaymentsAndChargeDetailsNewView
+import views.html.financialOverview.scheme.PaymentsAndChargeDetailsView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -82,8 +82,6 @@ class PaymentsAndChargeDetailsControllerSpec
       .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
     when(mockPaymentsAndChargesService.getChargeDetailsForSelectedCharge(any(), any(), any())(any()))
       .thenReturn(Nil)
-    when(mockPaymentsAndChargesService.getChargeDetailsForSelectedChargeV2(any(), any(), any())(any()))
-      .thenReturn(Nil)
     when(mockPaymentsAndChargesService.setPeriod(any(), any(), any()))
       .thenReturn("")
     when(mockPaymentsAndChargesService.getReturnLinkBasedOnJourney(any(), any())(any()))
@@ -92,7 +90,7 @@ class PaymentsAndChargeDetailsControllerSpec
       .thenReturn("")
   }
 
-  private def insetTextV2(schemeFSDetail: SchemeFSDetail): HtmlContent = {
+  private def insetText(schemeFSDetail: SchemeFSDetail): HtmlContent = {
     val interestUrl = "/manage-pension-scheme-accounting-for-tax/test-srn/financial-overview/accounting-for-tax/" +
       "2020-04-01/1/2016-12-17/1/interest/overdue-charge-details"
 
@@ -128,7 +126,7 @@ class PaymentsAndChargeDetailsControllerSpec
           createChargeWithAmountDueAndInterest(index = 1, "XY002610150183", amountDue = 1234.00),
           createChargeWithAmountDueAndInterest(index = 2, "XY002610150184", amountDue = 1234.00)
         ))))
-      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(emptyChargeAmountTable)
+      when(mockPaymentsAndChargesService.chargeAmountDetailsRows(any())(any())).thenReturn(emptyChargeAmountTable)
 
       val schemeFSDetail = createChargeWithAmountDueAndInterest(
         index = 1,
@@ -138,7 +136,7 @@ class PaymentsAndChargeDetailsControllerSpec
 
       val request = httpGETRequest(httpPathGET(index = "1"))
 
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsNewView].apply(
+      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
         model = ChargeDetailsViewModel(
           chargeDetailsList = Nil,
           tableHeader = Some(""),
@@ -146,7 +144,7 @@ class PaymentsAndChargeDetailsControllerSpec
           chargeType = schemeFSDetail.chargeType.toString + s" submission $version",
           versionValue = Some(s" submission $version"),
           isPaymentOverdue = true,
-          insetText = insetTextV2(schemeFSDetail),
+          insetText = insetText(schemeFSDetail),
           interest = Some(schemeFSDetail.accruedInterestTotal),
           returnLinkBasedOnJourney = "",
           returnUrl = "",
@@ -172,7 +170,7 @@ class PaymentsAndChargeDetailsControllerSpec
           createChargeWithAmountDueAndInterestPayment(index = 1, "XY002610150188", interest = BigDecimal(0.00)),
           createChargeWithAmountDueAndInterestPayment(index = 2, "XY002610150189", interest = BigDecimal(0.00))
         ))))
-      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(emptyChargeAmountTable)
+      when(mockPaymentsAndChargesService.chargeAmountDetailsRows(any())(any())).thenReturn(emptyChargeAmountTable)
 
       val schemeFSDetail = createChargeWithAmountDueAndInterestPayment(
         index = 1,
@@ -182,7 +180,7 @@ class PaymentsAndChargeDetailsControllerSpec
 
       val request =  httpGETRequest(httpPathGET(index = "1"))
 
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsNewView].apply(
+      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
         model = ChargeDetailsViewModel(
           chargeDetailsList = Nil,
           tableHeader = Some(""),
@@ -234,14 +232,14 @@ class PaymentsAndChargeDetailsControllerSpec
                 createChargeWithAmountDueAndInterest(index = 1, "XY002610150183", amountDue = 1234.00),
                 schemeFSDetail
               ))))
-      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(emptyChargeAmountTable)
+      when(mockPaymentsAndChargesService.chargeAmountDetailsRows(any())(any())).thenReturn(emptyChargeAmountTable)
 
       val request =  httpGETRequest(httpPathGET(index = "2"))
 
       val result = route(application, request).value
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsNewView].apply(
+      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
         model = ChargeDetailsViewModel(
           chargeDetailsList = Nil,
           tableHeader = Some(""),
@@ -267,7 +265,7 @@ class PaymentsAndChargeDetailsControllerSpec
     "return OK and the correct view with no inset text if amount is all paid and no interest accrued for a GET" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest(index = 1, "XY002610150187", interest = 0.00)))))
-      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(emptyChargeAmountTable)
+      when(mockPaymentsAndChargesService.chargeAmountDetailsRows(any())(any())).thenReturn(emptyChargeAmountTable)
 
       val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 1, chargeReference = "XY002610150187", interest = 0.00)
       val request = httpGETRequest(httpPathGET(index = "1"))
@@ -275,7 +273,7 @@ class PaymentsAndChargeDetailsControllerSpec
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsNewView].apply(
+      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
         model = ChargeDetailsViewModel(
           chargeDetailsList = Nil,
           tableHeader = Some(""),

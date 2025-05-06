@@ -34,7 +34,7 @@ import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, formatDateYMD}
 import viewmodels.ChargeDetailsViewModel
-import views.html.financialOverview.scheme.PaymentsAndChargeDetailsNewView
+import views.html.financialOverview.scheme.PaymentsAndChargeDetailsView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -47,7 +47,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                                                     val controllerComponents: MessagesControllerComponents,
                                                     paymentsAndChargesService: PaymentsAndChargesService,
                                                     config: FrontendAppConfig,
-                                                    view: PaymentsAndChargeDetailsNewView
+                                                    view: PaymentsAndChargeDetailsView
                                                   )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -99,7 +99,7 @@ class PaymentsAndChargeDetailsController @Inject()(
       val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
 
       ChargeDetailsViewModel(
-        chargeDetailsList        = paymentsAndChargesService.getChargeDetailsForSelectedChargeV2(schemeFSDetail, schemeDetails),
+        chargeDetailsList        = paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFSDetail, schemeDetails),
         schemeName               = schemeDetails.schemeName,
         chargeType               = version match {
           case Some(value)       => schemeFSDetail.chargeType.toString + s" submission $value"
@@ -111,9 +111,9 @@ class PaymentsAndChargeDetailsController @Inject()(
         },
         isPaymentOverdue         = isPaymentOverdue(schemeFSDetail),
         paymentDueDate           = Some(paymentDueDate(schemeFSDetail)),
-        chargeAmountDetails      = Some(paymentsAndChargesService.chargeAmountDetailsRowsV2(schemeFSDetail)),
+        chargeAmountDetails      = Some(paymentsAndChargesService.chargeAmountDetailsRows(schemeFSDetail)),
         paymentDueAmount         = Some(paymentDueAmountCharges(schemeFSDetail)),
-        insetText                = setInsetTextV2(isChargeAssigned, schemeFSDetail, interestUrl),
+        insetText                = setInsetText(isChargeAssigned, schemeFSDetail, interestUrl),
         interest                 = Some(schemeFSDetail.accruedInterestTotal),
         returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeDetails.schemeName),
         returnUrl                = paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType),
@@ -194,7 +194,7 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
   }
 
-  private def setInsetTextV2(isChargeAssigned: Boolean, schemeFSDetail: SchemeFSDetail, interestUrl: String)(implicit messages: Messages): HtmlContent = {
+  private def setInsetText(isChargeAssigned: Boolean, schemeFSDetail: SchemeFSDetail, interestUrl: String)(implicit messages: Messages): HtmlContent = {
     (isChargeAssigned, schemeFSDetail.dueDate, schemeFSDetail.accruedInterestTotal > 0, schemeFSDetail.amountDue > 0,
       isQuarterApplicable(schemeFSDetail), isChargeTypeVowel(schemeFSDetail)) match {
       case (false, Some(date), true, true, _, _) => // ACT

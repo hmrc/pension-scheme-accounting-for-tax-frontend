@@ -28,7 +28,7 @@ import play.api.mvc._
 import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.financialOverview.scheme.PaymentsAndChargesNewView
+import views.html.financialOverview.scheme.PaymentsAndChargesView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,7 +40,7 @@ class PaymentsAndChargesController @Inject()(
                                               val controllerComponents: MessagesControllerComponents,
                                               config: FrontendAppConfig,
                                               paymentsAndChargesService: PaymentsAndChargesService,
-                                              view: PaymentsAndChargesNewView
+                                              view: PaymentsAndChargesView
                                             )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {

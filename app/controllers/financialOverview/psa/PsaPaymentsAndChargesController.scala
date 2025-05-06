@@ -29,7 +29,7 @@ import play.api.mvc._
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.financialOverview.psa.PsaPaymentsAndChargesNewView
+import views.html.financialOverview.psa.PsaPaymentsAndChargesView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,7 +43,7 @@ class PsaPaymentsAndChargesController @Inject()(
                                                  financialStatementConnector: FinancialStatementConnector,
                                                  minimalConnector: MinimalConnector,
                                                  config: FrontendAppConfig,
-                                                 view: PsaPaymentsAndChargesNewView
+                                                 view: PsaPaymentsAndChargesView
                                                )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {

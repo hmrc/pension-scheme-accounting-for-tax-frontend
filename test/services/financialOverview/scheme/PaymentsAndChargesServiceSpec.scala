@@ -23,7 +23,6 @@ import controllers.chargeB.{routes => _}
 import controllers.financialOverview.scheme.routes._
 import data.SampleData._
 import helpers.FormatHelper
-import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
@@ -204,24 +203,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     }
   }
 
-  "getChargeDetailsForSelectedCharge" must {
-    "return the row for original charge amount, payments and credits, stood over amount and total amount due" in {
-      val result =
-        paymentsAndChargesService.getChargeDetailsForSelectedCharge(createCharge(index = 1, PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05), Upcoming, Some(submittedDate))
-
-      result mustBe dateSubmittedRow ++ chargeReferenceRow ++ originalAmountChargeDetailsRow ++
-        clearingChargeDetailsRow ++ stoodOverAmountChargeDetailsRow ++ totalAmountDueChargeDetailsRow
-    }
-
-    "return the row for original charge amount, payments and credits, stood over amount and total amount due with payment or credit due date not exist" in {
-      val result =
-        paymentsAndChargesService.getChargeDetailsForSelectedCharge(createCharge(index = 1, PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05, item = item2), Upcoming, Some(submittedDate))
-
-      result mustBe dateSubmittedRow ++ chargeReferenceRow ++ originalAmountChargeDetailsRow ++
-        clearingChargeDetailsWithClearingDateRow ++ stoodOverAmountChargeDetailsRow ++ totalAmountDueChargeDetailsRow
-    }
-  }
-
   "isPaymentOverdue" must {
     "return true if the amount due is positive and due date is before today" in {
       val schemeFSDetail: SchemeFSDetail = schemeFSResponseAftAndOTC.seqSchemeFSDetail.head
@@ -321,7 +302,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     "return payload from cache is srn and logged in id match the payload" in {
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, isLoggedInAsPsa = true)) {
         _ mustBe paymentsCache
       }
     }
@@ -331,7 +312,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any(), any(), any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq(chargeWithCredit(index = 1)))))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, isLoggedInAsPsa = true)) {
         _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit(index = 1)))
       }
     }
@@ -341,7 +322,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any(), any(), any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq(chargeWithCredit(index = 1)))))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, isLoggedInAsPsa = true)) {
         _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit(index = 1)))
       }
     }
@@ -351,7 +332,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, isLoggedInAsPsa = true)) {
         _ mustBe paymentsCache
       }
     }
@@ -361,7 +342,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, isLoggedInAsPsa = true)) {
         _ mustBe paymentsCache
       }
     }
@@ -370,7 +351,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       DateHelper.setDate(Some(LocalDate.parse("2020-01-31")))
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Upcoming, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Upcoming, isLoggedInAsPsa = true)) {
         val upcomingPaymentsCache = PaymentsCache(psaId, srn, schemeDetails, unpaidCharges)
         _ mustBe upcomingPaymentsCache
       }
@@ -380,7 +361,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       DateHelper.setDate(Some(LocalDate.parse("2020-12-31")))
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Overdue, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Overdue, isLoggedInAsPsa = true)) {
         val overduePaymentsCache = PaymentsCache(psaId, srn, schemeDetails, unpaidCharges)
         _ mustBe overduePaymentsCache
       }
@@ -402,10 +383,10 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     }
   }
 
-  "getChargeDetailsForSelectedChargeV2" must {
-    "expected Summary List Rows" in {
+  "getChargeDetailsForSelectedCharge" must {
+    "return expected Summary List Rows" in {
       val schemeFSDetails = schemeFSResponseAftAndOTC.seqSchemeFSDetail.head
-      val result = paymentsAndChargesService.getChargeDetailsForSelectedChargeV2(schemeFSDetails, schemeDetails, true)
+      val result = paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFSDetails, schemeDetails, isClearedCharge = true)
       val pstrRow = Seq(
         SummaryListRow(
           key = Key(Text(Messages("pension.scheme.tax.reference.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
@@ -433,7 +414,7 @@ object PaymentsAndChargesServiceSpec {
   val srn = "S1234567"
   val startDate: String = QUARTER_START_DATE.format(dateFormatterStartDate)
   val endDate: String = QUARTER_END_DATE.format(dateFormatterDMY)
-  val unpaidCharges = schemeFSResponseAftAndOTC.seqSchemeFSDetail.dropRight(1)
+  val unpaidCharges: Seq[SchemeFSDetail] = schemeFSResponseAftAndOTC.seqSchemeFSDetail.dropRight(1)
   val paymentsCache: PaymentsCache = PaymentsCache(psaId, srn, schemeDetails, schemeFSResponseAftAndOTC.seqSchemeFSDetail)
   val item: DocumentLineItemDetail = DocumentLineItemDetail(150.00, Some(LocalDate.parse("2020-05-14")), Some(LocalDate.parse("2020-04-24")), Some(FSClearingReason.CLEARED_WITH_PAYMENT))
   val item2: DocumentLineItemDetail = DocumentLineItemDetail(150.00, Some(LocalDate.parse("2020-04-15")), None, Some(FSClearingReason.CLEARED_WITH_PAYMENT))
@@ -498,101 +479,4 @@ object PaymentsAndChargesServiceSpec {
     )
   )
 
-  private def dateSubmittedRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(Text(messages("financialPaymentsAndCharges.dateSubmitted")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(
-          Text(s"${DateHelper.formatDateDMYString(submittedDate)}"), classes = "govuk-!-width-one-quarter")
-      ))
-  }
-
-  private def chargeReferenceRow(implicit messages: Messages): Seq[SummaryListRow]  = {
-    Seq(
-      SummaryListRow(
-        key = Key(
-          content = Text(messages("financialPaymentsAndCharges.chargeReference")),
-          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
-        ),
-        value = Value(
-          content = Text("AYU3494534632"),
-          classes = "govuk-!-width-one-quarter"),
-        actions = None
-      ))
-  }
-
-  private def originalAmountChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(
-          content = Text(messages("paymentsAndCharges.chargeDetails.originalChargeAmount")),
-          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
-        ),
-        value = Value(
-          content = Text(s"${formatCurrencyAmountAsString(56432.00)}"),
-          classes = "govuk-!-width-one-quarter"
-        ),
-        actions = None
-      ))
-  }
-
-  private def stoodOverAmountChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(
-          content = Text(messages("paymentsAndCharges.chargeDetails.stoodOverAmount")),
-          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
-        ),
-        value = Value(
-          content = Text(s"-${formatCurrencyAmountAsString(25089.08)}"),
-          classes = "govuk-!-width-one-quarter"
-        ),
-        actions = None
-      ))
-  }
-
-  private def totalAmountDueChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(
-          content = Text(messages("financialPaymentsAndCharges.paymentDue.upcoming.dueDate", LocalDate.parse("2020-05-15").format(dateFormatterDMY))),
-          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
-        ),
-        value = Value(
-          Text(s"${FormatHelper.formatCurrencyAmountAsString(1029.05)}"),
-          classes = "govuk-!-padding-left-0 govuk-!-width--one-half govuk-!-font-weight-bold"
-        ),
-        actions = None
-      ))
-  }
-
-  private def clearingChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(
-          content = Text(messages("financialPaymentsAndCharges.clearingReason.c1", formatDateDMY(LocalDate.parse("2020-04-24")))),
-          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
-        ),
-        value = Value(
-          content = Text(s"-${formatCurrencyAmountAsString(150)}"),
-          classes = "govuk-!-width-one-quarter"
-        ),
-        actions = None
-      ))
-  }
-
-  private def clearingChargeDetailsWithClearingDateRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(
-          content = Text(messages("financialPaymentsAndCharges.clearingReason.c1", formatDateDMY(LocalDate.parse("2020-04-15")))),
-          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
-        ),
-        value = Value(
-          content = Text(s"-${formatCurrencyAmountAsString(150)}"),
-          classes = "govuk-!-width-one-quarter"
-        ),
-        actions = None
-      ))
-  }
 }

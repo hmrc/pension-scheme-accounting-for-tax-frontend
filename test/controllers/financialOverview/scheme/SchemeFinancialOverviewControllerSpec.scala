@@ -37,7 +37,7 @@ import services.financialOverview.scheme.PaymentsAndChargesService
 import services.{PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Table, Text}
 import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
-import views.html.financialOverview.scheme.SchemeFinancialOverviewNewView
+import views.html.financialOverview.scheme.SchemeFinancialOverviewView
 
 import scala.concurrent.Future
 
@@ -107,7 +107,7 @@ class SchemeFinancialOverviewControllerSpec
 
         status(result) mustEqual OK
 
-        val view = application.injector.instanceOf[SchemeFinancialOverviewNewView].apply(
+        val view = application.injector.instanceOf[SchemeFinancialOverviewView].apply(
           schemeName = "Big Scheme",
           totalUpcomingCharge = "£2,058.10",
           totalOverdueCharge = "£2,058.10",

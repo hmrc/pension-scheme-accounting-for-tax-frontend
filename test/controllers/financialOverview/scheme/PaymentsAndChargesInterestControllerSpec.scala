@@ -41,7 +41,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListR
 import utils.AFTConstants._
 import utils.DateHelper.formatDateDMY
 import viewmodels.InterestDetailsViewModel
-import views.html.financialOverview.scheme.PaymentsAndChargeInterestNewView
+import views.html.financialOverview.scheme.PaymentsAndChargeInterestView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -90,7 +90,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with J
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[PaymentsAndChargeInterestNewView].apply(
+      val view = application.injector.instanceOf[PaymentsAndChargeInterestView].apply(
         model = InterestDetailsViewModel(
           chargeType = "Accounting for Tax Return Interest submission 1",
           schemeName = schemeDetails.schemeName,

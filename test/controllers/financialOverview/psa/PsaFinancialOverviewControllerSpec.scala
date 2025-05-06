@@ -32,7 +32,7 @@ import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.AFTPartialService
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
-import views.html.financialOverview.psa.PsaFinancialOverviewNewView
+import views.html.financialOverview.psa.PsaFinancialOverviewView
 
 import scala.concurrent.Future
 
@@ -92,7 +92,7 @@ class PsaFinancialOverviewControllerSpec
 
         status(result) mustEqual OK
 
-        val view = application.injector.instanceOf[PsaFinancialOverviewNewView].apply(
+        val view = application.injector.instanceOf[PsaFinancialOverviewView].apply(
           psaName = psaName,
           totalUpcomingCharge = "10",
           totalOverdueCharge = "10",

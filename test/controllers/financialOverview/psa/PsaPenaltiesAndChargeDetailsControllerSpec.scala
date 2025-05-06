@@ -45,7 +45,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListR
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.TableRow
 import utils.DateHelper.formatDateDMY
 import viewmodels.PsaChargeDetailsViewModel
-import views.html.financialOverview.psa.PsaChargeDetailsNewView
+import views.html.financialOverview.psa.PsaChargeDetailsView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -138,7 +138,7 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
 
           status(result) mustEqual OK
 
-          val view = application.injector.instanceOf[PsaChargeDetailsNewView].apply(
+          val view = application.injector.instanceOf[PsaChargeDetailsView].apply(
               model = PsaChargeDetailsViewModel(
               heading             = "Accounting for Tax Late Filing Penalty",
               psaName             = "psa-name",

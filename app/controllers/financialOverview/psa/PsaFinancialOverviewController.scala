@@ -26,7 +26,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.financialOverview.psa.PsaFinancialOverviewNewView
+import views.html.financialOverview.psa.PsaFinancialOverviewView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,7 +39,7 @@ class PsaFinancialOverviewController @Inject()(
                                                 service: AFTPartialService,
                                                 config: FrontendAppConfig,
                                                 minimalConnector: MinimalConnector,
-                                                psaFinancialOverview: PsaFinancialOverviewNewView,
+                                                psaFinancialOverview: PsaFinancialOverviewView,
                                               )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {

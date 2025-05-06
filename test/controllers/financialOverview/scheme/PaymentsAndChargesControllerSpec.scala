@@ -35,7 +35,7 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers.{route, _}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
-import views.html.financialOverview.scheme.PaymentsAndChargesNewView
+import views.html.financialOverview.scheme.PaymentsAndChargesView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -83,7 +83,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
       val result = route(application, req).value
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[PaymentsAndChargesNewView].apply(
+      val view = application.injector.instanceOf[PaymentsAndChargesView].apply(
         journeyType = "overdue",
         schemeName = schemeDetails.schemeName,
         titleMessage = messages("schemeFinancial.overview.overdue.title.v2"),

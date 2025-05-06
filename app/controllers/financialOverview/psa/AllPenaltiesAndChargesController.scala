@@ -29,7 +29,7 @@ import services.financialOverview.psa.PsaPenaltiesAndChargesService
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import views.html.financialOverview.psa.PsaPaymentsAndChargesNewView
+import views.html.financialOverview.psa.PsaPaymentsAndChargesView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -41,7 +41,7 @@ class AllPenaltiesAndChargesController @Inject()(
                                                   allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                                  view: PsaPaymentsAndChargesNewView
+                                                  view: PsaPaymentsAndChargesView
                                                 )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {

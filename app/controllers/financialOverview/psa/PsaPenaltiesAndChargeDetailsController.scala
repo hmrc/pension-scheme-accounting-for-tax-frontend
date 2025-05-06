@@ -33,7 +33,7 @@ import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
 import viewmodels.PsaChargeDetailsViewModel
-import views.html.financialOverview.psa.PsaChargeDetailsNewView
+import views.html.financialOverview.psa.PsaChargeDetailsView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,7 +44,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
                                                        val controllerComponents: MessagesControllerComponents,
                                                        psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                                        schemeService: SchemeService,
-                                                       view: PsaChargeDetailsNewView,
+                                                       view: PsaChargeDetailsView,
                                                       )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {

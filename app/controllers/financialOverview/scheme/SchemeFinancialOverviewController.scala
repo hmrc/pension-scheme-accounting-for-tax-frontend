@@ -29,7 +29,7 @@ import play.api.mvc._
 import services.SchemeService
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.financialOverview.scheme.SchemeFinancialOverviewNewView
+import views.html.financialOverview.scheme.SchemeFinancialOverviewView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -41,7 +41,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
                                                   financialStatementConnector: FinancialStatementConnector,
                                                   paymentsAndChargesService: PaymentsAndChargesService,
                                                   config: FrontendAppConfig,
-                                                  schemeFinancialOverview: SchemeFinancialOverviewNewView,
+                                                  schemeFinancialOverview: SchemeFinancialOverviewView,
                                                   accessAction: AllowAccessActionProviderForIdentifierRequest
                                                  )(implicit ec: ExecutionContext)
   extends FrontendBaseController

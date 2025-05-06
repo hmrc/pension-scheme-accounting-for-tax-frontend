@@ -35,7 +35,7 @@ import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_An
 import services.SchemeService
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
-import views.html.financialOverview.psa.PsaPaymentsAndChargesNewView
+import views.html.financialOverview.psa.PsaPaymentsAndChargesView
 
 import scala.concurrent.Future
 
@@ -87,7 +87,7 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with JsonM
       val result = route(application, req).value
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[PsaPaymentsAndChargesNewView].apply(
+      val view = application.injector.instanceOf[PsaPaymentsAndChargesView].apply(
         psaName = "psa-name",
         journeyType = "all",
         titleMessage = "Accounting for Tax penalties for 1 July to 30 September 2020",

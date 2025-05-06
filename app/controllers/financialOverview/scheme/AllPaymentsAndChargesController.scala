@@ -29,7 +29,7 @@ import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import views.html.financialOverview.scheme.PaymentsAndChargesNewView
+import views.html.financialOverview.scheme.PaymentsAndChargesView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -41,7 +41,7 @@ class AllPaymentsAndChargesController @Inject()(
                                                  allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                  val controllerComponents: MessagesControllerComponents,
                                                  config: FrontendAppConfig,
-                                                 view: PaymentsAndChargesNewView,
+                                                 view: PaymentsAndChargesView,
                                                  paymentsAndChargesService: PaymentsAndChargesService
                                                )(implicit ec: ExecutionContext)
   extends FrontendBaseController
