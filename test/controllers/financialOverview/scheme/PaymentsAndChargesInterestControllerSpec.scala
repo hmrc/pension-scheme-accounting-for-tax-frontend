@@ -75,7 +75,6 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with J
       .thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getReturnUrl(any(), any(), any(), any(), any()))
       .thenReturn(dummyCall.url)
-    when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
   }
 
   "PaymentsAndChargesInterestController" must {
@@ -83,7 +82,6 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with J
     "return OK and the correct view for interest accrued for aft return charge if amount is due and interest is accruing for a GET" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
-      when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
 
       val schemeFSDetail = createCharge(index = 1, chargeReference = "XY002610150184", chargeType = PSS_AFT_RETURN)
 

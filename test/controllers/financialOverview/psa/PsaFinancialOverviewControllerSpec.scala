@@ -20,7 +20,7 @@ import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{ChargeDetailsFilter, Enumerable}
+import models.Enumerable
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -32,7 +32,7 @@ import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.AFTPartialService
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
-import views.html.financialOverview.psa.{PsaFinancialOverviewNewView, PsaFinancialOverviewView}
+import views.html.financialOverview.psa.PsaFinancialOverviewNewView
 
 import scala.concurrent.Future
 

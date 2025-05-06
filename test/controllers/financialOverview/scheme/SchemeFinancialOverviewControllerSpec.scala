@@ -37,7 +37,7 @@ import services.financialOverview.scheme.PaymentsAndChargesService
 import services.{PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Table, Text}
 import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
-import views.html.financialOverview.scheme.{SchemeFinancialOverviewNewView, SchemeFinancialOverviewView}
+import views.html.financialOverview.scheme.SchemeFinancialOverviewNewView
 
 import scala.concurrent.Future
 

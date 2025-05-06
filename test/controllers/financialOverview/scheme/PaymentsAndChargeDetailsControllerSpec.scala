@@ -122,16 +122,19 @@ class PaymentsAndChargeDetailsControllerSpec
 
   "PaymentsAndChargesController" must {
 
-    "return OK and the correct view if financial toggles  are switched on" in {
-      when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
+    "return OK and the correct view with inset text linked to interest page if amount is due and interest is accruing for a GET" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(
           createChargeWithAmountDueAndInterest(index = 1, "XY002610150183", amountDue = 1234.00),
           createChargeWithAmountDueAndInterest(index = 2, "XY002610150184", amountDue = 1234.00)
         ))))
-      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(Table())
+      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(emptyChargeAmountTable)
 
-      val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 1, chargeReference = "XY002610150184", amountDue = 1234.00)
+      val schemeFSDetail = createChargeWithAmountDueAndInterest(
+        index = 1,
+        chargeReference = "XY002610150184",
+        amountDue = 1234.00
+      )
 
       val request = httpGETRequest(httpPathGET(index = "1"))
 
@@ -160,45 +163,6 @@ class PaymentsAndChargeDetailsControllerSpec
       status(result) mustEqual OK
 
       compareResultAndView(result, view)
-    }
-
-    "return OK and the correct view with inset text linked to interest page if amount is due and interest is accruing for a GET" in {
-      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(paymentsCache(Seq(
-          createChargeWithAmountDueAndInterest(index = 1, "XY002610150183", amountDue = 1234.00),
-          createChargeWithAmountDueAndInterest(index = 2, "XY002610150184", amountDue = 1234.00)
-        ))))
-      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(Table())
-
-      val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 1, chargeReference = "XY002610150184", amountDue = 1234.00)
-
-      val request = httpGETRequest(httpPathGET(index = "1"))
-
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsNewView].apply(
-        model = ChargeDetailsViewModel(
-          chargeDetailsList = Nil,
-          tableHeader = Some(""),
-          schemeName = schemeName,
-          chargeType = schemeFSDetail.chargeType.toString + s" submission $version",
-          versionValue = Some(s" submission $version"),
-          isPaymentOverdue = true,
-          insetText = insetTextV2(schemeFSDetail),
-          interest = Some(schemeFSDetail.accruedInterestTotal),
-          returnLinkBasedOnJourney = "",
-          returnUrl = "",
-          returnHistoryUrl = "/manage-pension-scheme-accounting-for-tax/test-srn/2020-04-01/submission/1/summary",
-          paymentDueAmount = Some("£0.00"),
-          paymentDueDate = Some("0"),
-          chargeAmountDetails = Some(emptyChargeAmountTable),
-          hintText = Some("")
-        )
-      )(messages, request)
-
-      val result = route(application, request).value
-
-      status(result) mustEqual OK
-
-      compareResultAndView(result, view)
 
     }
 
@@ -208,7 +172,7 @@ class PaymentsAndChargeDetailsControllerSpec
           createChargeWithAmountDueAndInterestPayment(index = 1, "XY002610150188", interest = BigDecimal(0.00)),
           createChargeWithAmountDueAndInterestPayment(index = 2, "XY002610150189", interest = BigDecimal(0.00))
         ))))
-      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(Table())
+      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(emptyChargeAmountTable)
 
       val schemeFSDetail = createChargeWithAmountDueAndInterestPayment(
         index = 1,
@@ -232,7 +196,6 @@ class PaymentsAndChargeDetailsControllerSpec
           returnUrl = "",
           returnHistoryUrl = "/manage-pension-scheme-accounting-for-tax/test-srn/2020-04-01/submission/1/summary",
           paymentDueAmount = Some("£0.00"),
-          paymentDueDate = Some("0"),
           chargeAmountDetails = Some(emptyChargeAmountTable),
           hintText = Some(messages("paymentsAndCharges.interest.hint"))
         )
@@ -271,7 +234,8 @@ class PaymentsAndChargeDetailsControllerSpec
                 createChargeWithAmountDueAndInterest(index = 1, "XY002610150183", amountDue = 1234.00),
                 schemeFSDetail
               ))))
-      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(Table())
+      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(emptyChargeAmountTable)
+
       val request =  httpGETRequest(httpPathGET(index = "2"))
 
       val result = route(application, request).value
@@ -290,8 +254,8 @@ class PaymentsAndChargeDetailsControllerSpec
           returnLinkBasedOnJourney = "",
           returnUrl = "",
           returnHistoryUrl = "/manage-pension-scheme-accounting-for-tax/test-srn/2020-04-01/submission/1/summary",
-          paymentDueAmount = Some("£0.00"),
-          paymentDueDate = Some("0"),
+          paymentDueAmount = Some("£123.00"),
+          paymentDueDate = Some("15 February 2020"),
           chargeAmountDetails = Some(emptyChargeAmountTable),
           hintText = Some("")
         )
@@ -303,7 +267,7 @@ class PaymentsAndChargeDetailsControllerSpec
     "return OK and the correct view with no inset text if amount is all paid and no interest accrued for a GET" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest(index = 1, "XY002610150187", interest = 0.00)))))
-      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(Table())
+      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(emptyChargeAmountTable)
 
       val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 1, chargeReference = "XY002610150187", interest = 0.00)
       val request = httpGETRequest(httpPathGET(index = "1"))
@@ -325,7 +289,6 @@ class PaymentsAndChargeDetailsControllerSpec
           returnUrl = "",
           returnHistoryUrl = "/manage-pension-scheme-accounting-for-tax/test-srn/2020-04-01/submission/1/summary",
           paymentDueAmount = Some("£0.00"),
-          paymentDueDate = Some("0"),
           chargeAmountDetails = Some(emptyChargeAmountTable),
           hintText = Some("")
         )

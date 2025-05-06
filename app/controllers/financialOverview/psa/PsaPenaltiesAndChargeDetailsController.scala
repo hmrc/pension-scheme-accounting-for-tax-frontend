@@ -62,7 +62,12 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
             if (penaltyOpt.nonEmpty) {
               schemeService.retrieveSchemeDetails(request.idOrException, srn) flatMap {
                 schemeDetails =>
-                  Future.successful(Ok(view(commonJson(penaltiesCache.psaName, schemeDetails.schemeName, penaltyOpt.head, journeyType))))
+                  Future.successful(Ok(view(commonJson(
+                    penaltiesCache.psaName,
+                    schemeDetails.schemeName,
+                    penaltyOpt.head,
+                    journeyType
+                  ))))
               }
             } else {
               Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))

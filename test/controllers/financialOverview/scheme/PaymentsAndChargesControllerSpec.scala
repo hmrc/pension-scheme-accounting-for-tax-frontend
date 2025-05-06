@@ -25,9 +25,9 @@ import models.ChargeDetailsFilter.Overdue
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
-import org.mockito.ArgumentMatchers
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -35,7 +35,7 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers.{route, _}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
-import views.html.financialOverview.scheme.{PaymentsAndChargesNewView, PaymentsAndChargesView}
+import views.html.financialOverview.scheme.PaymentsAndChargesNewView
 
 import java.time.LocalDate
 import scala.concurrent.Future

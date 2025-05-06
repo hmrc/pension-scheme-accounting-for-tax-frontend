@@ -22,7 +22,7 @@ import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import controllers.financialOverview.psa.PsaPaymentsAndChargesControllerSpec.{responseOverdue, responseUpcoming}
-import data.SampleData.{psaId, pstr, schemeName}
+import data.SampleData.{psaId, pstr}
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
@@ -37,7 +37,7 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_AnyContentAsEmpty}
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
-import views.html.financialOverview.psa.{PsaPaymentsAndChargesNewView, PsaPaymentsAndChargesView}
+import views.html.financialOverview.psa.PsaPaymentsAndChargesNewView
 
 import java.time.LocalDate
 import scala.concurrent.Future

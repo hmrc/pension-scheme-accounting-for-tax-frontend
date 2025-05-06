@@ -405,32 +405,6 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
             s"<a id=$linkId class=govuk-link href=" +
               s"${data.redirectUrl}>" +
               s"${data.chargeType} " +
-              s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>" +
-              s"<p class=govuk-hint>" +
-              s"${data.schemeName} </br>" +
-              s"(${data.pstr})")
-      }
-
-      val htmlChargeTypeV2 = (journeyType, getPenaltyType(data.chargeType)) match {
-        case (All, AccountingForTaxPenalties) =>
-          HtmlContent(
-            s"<a id=$linkId class=govuk-link href=" +
-              s"${data.redirectUrl}>" +
-              s"${data.chargeType} " +
-              s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
-        case (All, _) =>
-          HtmlContent(
-            s"<a id=$linkId class=govuk-link href=" +
-              s"${data.redirectUrl}>" +
-              s"${data.chargeType} " +
-              s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>" +
-              s"<p class=govuk-hint>" +
-              s"${data.period} </br>")
-        case _ =>
-          HtmlContent(
-            s"<a id=$linkId class=govuk-link href=" +
-              s"${data.redirectUrl}>" +
-              s"${data.chargeType} " +
               s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a></br>" +
               s"${data.schemeName} </br>" +
               s"${data.chargeReference} </br>" +
@@ -438,7 +412,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       }
 
         Seq(
-          TableRow(htmlChargeTypeV2, classes = "govuk-!-width-one-half"),
+          TableRow(htmlChargeType, classes = "govuk-!-width-one-half"),
           TableRow(Text(s"${data.dueDate.get.format(dateFormatterDMY)}"), classes = "govuk-!-width-one-quarter"),
           if (data.originalChargeAmount.isEmpty) {
             TableRow(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))

@@ -89,7 +89,6 @@ class PsaPaymentsAndChargesInterestControllerSpec
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(isOverdue)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
-    when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
   }
 
   "PsaPaymentsAndChargesInterestController" when {
