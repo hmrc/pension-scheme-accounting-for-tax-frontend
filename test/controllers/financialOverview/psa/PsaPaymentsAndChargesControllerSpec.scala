@@ -87,7 +87,7 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
       status(result) mustEqual OK
 
       val view = application.injector.instanceOf[PsaPaymentsAndChargesView].apply(
-        journeyType = "overdue", psaName = "psa-name", titleMessage = messages("psa.financial.overview.overdue.title.v2"), pstr = Some(pstr), reflectChargeText = "The information may not reflect payments made in the last 3 days.", totalOverdueCharge = "100", totalInterestAccruing = "100", totalUpcomingCharge = "100", totalOutstandingCharge = "100", penaltiesTable = penaltiesTable, paymentAndChargesTable = penaltiesTable
+        journeyType = "overdue", psaName = "psa-name", titleMessage = "psa.financial.overview.overdue.title", pstr = Some(pstr), reflectChargeText = "The information may not reflect payments made in the last 3 days.", totalOverdueCharge = "100", totalInterestAccruing = "100", totalUpcomingCharge = "100", totalOutstandingCharge = "100", penaltiesTable = penaltiesTable, paymentAndChargesTable = penaltiesTable
       )(req, messages)
 
       compareResultAndView(result, view)

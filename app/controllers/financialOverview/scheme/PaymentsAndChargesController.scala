@@ -68,7 +68,7 @@ class PaymentsAndChargesController @Inject()(
               val messages = request2Messages
 
               Future.successful(Ok(view(
-                titleMessage           = messages(s"schemeFinancial.overview.$journeyType.title.v2"), journeyType = journeyType,
+                titleMessage           = messages(s"schemeFinancial.overview.$journeyType.title"), journeyType = journeyType,
                 schemeName             = paymentsCache.schemeDetails.schemeName,
                 pstr                   = "",
                 reflectChargeText      = messages(s"financialPaymentsAndCharges.$journeyType.reflect.charge.text.new"),

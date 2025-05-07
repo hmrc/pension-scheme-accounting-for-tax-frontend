@@ -87,9 +87,9 @@ class PsaPaymentsAndChargesController @Inject()(
       val messages = request2Messages
 
       Future.successful(Ok(view(
-        titleMessage           = messages(s"psa.financial.overview.$journeyType.title.v2"), journeyType = journeyType,
+        titleMessage           = messages(s"psa.financial.overview.$journeyType.title"), journeyType = journeyType,
         psaName                = psaName,
-        reflectChargeText      = messages(s"psa.financial.overview.$journeyType.text.new"),
+        reflectChargeText      = messages(s"psa.financial.overview.$journeyType.text"),
         totalOverdueCharge     = psaCharges.overdueCharge,
         totalInterestAccruing  = psaCharges.interestAccruing,
         totalUpcomingCharge    = psaCharges.upcomingCharge,

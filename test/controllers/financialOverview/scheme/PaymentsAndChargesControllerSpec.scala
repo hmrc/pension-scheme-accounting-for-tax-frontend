@@ -86,7 +86,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
       val view = application.injector.instanceOf[PaymentsAndChargesView].apply(
         journeyType = "overdue",
         schemeName = schemeDetails.schemeName,
-        titleMessage = messages("schemeFinancial.overview.overdue.title.v2"),
+        titleMessage = "Overdue charges",
         pstr = pstr,
         reflectChargeText = "This information may not reflect payments made in the last 3 days.",
         totalOverdue = "£3,087.15",

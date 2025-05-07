@@ -45,7 +45,7 @@ govukButton: GovukButton
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
             <span class="hmrc-caption govuk-caption-xl">@schemeName</span>
-            <h1 class="govuk-heading-xl">@messages("schemeFinancial.h1.new")</h1>
+            <h1 class="govuk-heading-xl">@messages("schemeFinancial.h1")</h1>
         </div>
     </div>
 
@@ -59,7 +59,7 @@ govukButton: GovukButton
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-one-half">
                 <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
-                    @messages("schemeFinancial.h2.overduePayments.new")
+                    @messages("schemeFinancial.h2.overduePayments")
                 </h3>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalOverdueCharge</p>
             </div>
@@ -105,7 +105,7 @@ govukButton: GovukButton
         @if(totalUpcomingCharge != "£0.00") {
         <p class="govuk-body-m govuk-!-margin-bottom-6">
             <a id="allDue" class="govuk-link" href="@duePaymentLink">
-                @messages("schemeFinancial.allDue.link.new")
+                @messages("schemeFinancial.allDue.link")
             </a>
         </p>
         }
@@ -118,7 +118,7 @@ govukButton: GovukButton
                     @messages("schemeFinancial.h2.creditHeading")
                 </h2>
                 <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
-                    @messages("schemeFinancial.h2.creditBalance.new")
+                    @messages("schemeFinancial.h2.creditBalance")
                 </h3>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@creditBalanceFormatted</p>
 
@@ -146,7 +146,7 @@ govukButton: GovukButton
                         @messages("schemeFinancial.paymentsAndChargesHistory")
                     </h2>
                     <p class="govuk-body">
-                        @messages("schemeFinancial.paymentsAndChargesHistory.p1.new")
+                        @messages("schemeFinancial.paymentsAndChargesHistory.p1")
                     </p>
                     <p class="govuk-body-m">
                         <a id="historyLink" class="govuk-link" href="@historyLink">
