@@ -61,13 +61,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                            )(implicit messages: Messages): Table = {
     val filteredSchemeFSDetail = filteredSeqSchemeFsDetailNoCredits(schemeFSDetail)
 
-    val seqPayments: Seq[FinancialPaymentAndChargesDetails] = filteredSchemeFSDetail.flatMap { paymentOrCharge =>
-      def data: Seq[FinancialPaymentAndChargesDetails] = paymentsAndChargesDetails(paymentOrCharge, srn, chargeDetailsFilter)
-      paymentOrCharge.chargeType match {
-        case x:PenaltyType if !PenaltyType.displayCharge(x) => Seq.empty
-        case _ => data
-      }
-    }
+    val seqPayments: Seq[FinancialPaymentAndChargesDetails] = filteredSchemeFSDetail.flatMap(paymentsAndChargesDetails(_, srn, chargeDetailsFilter))
 
     mapToTable(seqPayments, chargeDetailsFilter)
 
