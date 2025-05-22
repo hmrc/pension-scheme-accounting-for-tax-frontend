@@ -29,14 +29,13 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc._
 import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.domain.{PsaId, PspId}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.DateHelper
 import utils.DateHelper.formatDateDMY
 import viewmodels.InterestDetailsViewModel
-import views.html.financialOverview.scheme.{PaymentsAndChargeInterestNewView, PaymentsAndChargeInterestView}
+import views.html.financialOverview.scheme.PaymentsAndChargeInterestView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -49,7 +48,6 @@ class PaymentsAndChargesInterestController @Inject()(
                                                       val controllerComponents: MessagesControllerComponents,
                                                       paymentsAndChargesService: PaymentsAndChargesService,
                                                       config: FrontendAppConfig,
-                                                      newView: PaymentsAndChargeInterestNewView,
                                                       view: PaymentsAndChargeInterestView
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -96,19 +94,11 @@ class PaymentsAndChargesInterestController @Inject()(
         val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, period, index,
           paymentOrChargeType, version, submittedDate, journeyType).url
 
-        if(config.podsNewFinancialCredits) {
-          Future.successful(Ok(
-            newView(
-              summaryListDataV2(srn, request.psaId, request.pspId, schemeFs, schemeName, originalAmountUrl, version, journeyType)
-            )
-          ))
-        } else {
           Future.successful(Ok(
             view(
               summaryListData(srn, request.psaId, request.pspId, schemeFs, schemeName, originalAmountUrl, version, journeyType)
             )
           ))
-        }
       case _ =>
         logger.warn(s"Scheme not found for index $index")
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -127,63 +117,25 @@ class PaymentsAndChargesInterestController @Inject()(
           s" ${messages("paymentsAndCharges.interest.chargeReference.text2")}</p>"
       )
 
-    val interestChargeType= getInterestChargeTypeText(schemeFSDetail.chargeType)
+    val interestChargeType     = getInterestChargeTypeText(schemeFSDetail.chargeType)
     val loggedInAsPsa: Boolean = psaId.isDefined
 
     InterestDetailsViewModel(
-      chargeDetailsList = getSummaryListRows(schemeFSDetail),
-      tableHeader = Some(tableHeader(schemeFSDetail)),
-      schemeName = schemeName,
-      accruedInterest = schemeFSDetail.accruedInterestTotal,
-      chargeType = (version, interestChargeType) match {
-        case (Some(value), interestChargeTypeText) =>
-          interestChargeTypeText + s" submission $value"
-        case (None, interestChargeTypeText) =>
-          interestChargeTypeText
-          },
-      insetText = htmlInsetText,
-      originalAmountUrl = originalAmountUrl,
-      returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
-      returnUrl = config.financialOverviewUrl.format(srn),
-      returnDashboardUrl = if(loggedInAsPsa) {
-        Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
-      } else {
-        Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
-      }
-    )
-  }
-
-  private def summaryListDataV2(srn: String, psaId: Option[PsaId], pspId: Option[PspId], schemeFSDetail: SchemeFSDetail, schemeName: String,
-                              originalAmountUrl: String, version: Option[Int], journeyType: ChargeDetailsFilter)
-                             (implicit messages: Messages): InterestDetailsViewModel = {
-
-    val htmlInsetText =
-      HtmlContent(
-        s"<p class=govuk-body>${messages("paymentsAndCharges.interest.chargeReference.text1")}" +
-          s" <span><a id='breakdown' class=govuk-link href=$originalAmountUrl>" +
-          s" ${messages("paymentsAndCharges.interest.chargeReference.linkText")}</a></span>" +
-          s" ${messages("paymentsAndCharges.interest.chargeReference.text2")}</p>"
-      )
-
-    val interestChargeType = getInterestChargeTypeText(schemeFSDetail.chargeType)
-    val loggedInAsPsa: Boolean = psaId.isDefined
-
-    InterestDetailsViewModel(
-      chargeDetailsList = getSummaryListRowsV2(schemeFSDetail),
-      schemeName = schemeName,
-      interestDueAmount = Some(FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)),
-      accruedInterest = schemeFSDetail.accruedInterestTotal,
-      chargeType = (version, interestChargeType) match {
+      chargeDetailsList        = getSummaryListRows(schemeFSDetail),
+      schemeName               = schemeName,
+      interestDueAmount        = Some(FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)),
+      accruedInterest          = schemeFSDetail.accruedInterestTotal,
+      chargeType               = (version, interestChargeType) match {
           case (Some(value), interestChargeTypeText) =>
             interestChargeTypeText + s" submission $value"
           case (None, interestChargeTypeText) =>
             interestChargeTypeText
         },
-      insetText = htmlInsetText,
-      originalAmountUrl = originalAmountUrl,
+      insetText                = htmlInsetText,
+      originalAmountUrl        = originalAmountUrl,
       returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
-      returnUrl = paymentsAndChargesService.getReturnUrl(srn, psaId, pspId, config, journeyType),
-      returnDashboardUrl = if(loggedInAsPsa) {
+      returnUrl                = paymentsAndChargesService.getReturnUrl(srn, psaId, pspId, config, journeyType),
+      returnDashboardUrl       = if(loggedInAsPsa) {
         Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
       } else {
         Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
@@ -191,44 +143,7 @@ class PaymentsAndChargesInterestController @Inject()(
     )
   }
 
-  private def tableHeader(schemeFSDetail: SchemeFSDetail): String =
-    paymentsAndChargesService.setPeriod(
-      schemeFSDetail.chargeType,
-      schemeFSDetail.periodStartDate,
-      schemeFSDetail.periodEndDate
-    )
-
   private def getSummaryListRows(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(
-          content = Text(Messages("financialPaymentsAndCharges.chargeReference")),
-          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
-        ),
-        value = Value(
-          content = Text(Messages("paymentsAndCharges.chargeReference.toBeAssigned")),
-          classes = "govuk-!-width-one-quarter"
-        ),
-        actions = None
-      ),
-      SummaryListRow(
-        key = Key(
-          content = Text(Messages(
-            "paymentsAndCharges.interestFrom",
-            DateHelper.formatDateDMY(schemeFSDetail.periodEndDate.map(_.plusDays(46)))
-          )),
-          classes = "govuk-!-padding-left-0 govuk-!-width-three-quarters govuk-!-font-weight-bold"
-        ),
-        value = Value(
-          content = Text(FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)),
-          classes = "govuk-!-width-one-quarter govuk-!-font-weight-bold"
-        ),
-        actions = None
-      )
-    )
-  }
-
-  private def getSummaryListRowsV2(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
       SummaryListRow(
         key = Key(

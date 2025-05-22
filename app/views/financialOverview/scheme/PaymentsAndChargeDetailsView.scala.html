@@ -33,28 +33,43 @@
         <h1 class="hmrc-caption govuk-caption-xl">@{model.schemeName}</h1>
         <h1 class="govuk-heading-xl">@{model.chargeType}</h1>
 
-        @if(model.isPaymentOverdue) {
-        <p class="govuk-body govuk-tag govuk-tag--red">
-            @messages("paymentsAndCharges.status.PaymentOverdue")
-        </p>
-        }
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-one-half">
+                <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
+                    @messages("pension.scheme.paymentDueAmount.new")
+                </h3>
+                <p class="govuk-heading-m govuk-!-margin-top-0">@{model.paymentDueAmount}</p>
+            </div>
+            <div class="govuk-grid-column-one-half">
+                <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
+                    @messages("pension.scheme.paymentDueDate.new")
+                </h3>
+                <p class="govuk-heading-m govuk-!-margin-top-0">@{model.paymentDueDate}</p>
+            </div>
+        </div>
 
         @if(model.chargeDetailsList.nonEmpty) {
-        <h2 id="paymentAndChargeDetails" class="govuk-heading-m">@{model.tableHeader}</h2>
-            @govukSummaryList(
-                SummaryList(
-                    rows = model.chargeDetailsList
+            @govukSummaryList(SummaryList(rows = model.chargeDetailsList))
+        }
+
+    @if(model.chargeAmountDetails.isDefined) {
+        <div role="region" aria-labelledby="chargeE_h1" class="govuk-!-margin-bottom-1">
+            <h2 class="govuk-heading-l">
+                @messages("pension.scheme.charge.details.new")
+            </h2>
+            @model.chargeAmountDetails.map { table =>
+            @govukTable(table)
+            }
+        </div>
+    }
+
+        @if(model.insetText.nonEmpty) {
+            @govukInsetText(
+                InsetText(
+                    content = model.insetText
                 )
             )
         }
-
-    @if(model.insetText.nonEmpty) {
-        @govukInsetText(
-            InsetText(
-                content = model.insetText
-            )
-        )
-    }
 
         @model.hintText.map { text =>
         <p class="govuk-body">@text</p>
@@ -63,17 +78,28 @@
 </div>
 
 @if(model.returnHistoryUrl.nonEmpty && model.versionValue.nonEmpty) {
-<p class="govuk-body">
-    <a id="return-history" href="@model.returnHistoryUrl" class="govuk-link">
-        @messages("financialPaymentsAndCharges.viewReturnHistory", model.versionValue)
-    </a>
-</p>
-}
+    <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+        <a id="return-history" href="@model.returnHistoryUrl" class="govuk-link">
+            @messages("financialPaymentsAndCharges.viewReturnHistory", model.chargeType)
+        </a>
+    </p>
 
-<p class="govuk-body">
-    <a id="return" href="@model.returnUrl" class="govuk-link">
-        @messages("return.to.charge.overview")
-    </a>
-</p>
+    <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+        <a id="return_to_scheme" href="@model.returnUrl" class="govuk-link">
+        @messages("return.to.link", model.returnLinkBasedOnJourney)
+        </a>
+    </p>
+} else {
+    <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+            <a id="return" href="@model.returnUrl" class="govuk-link">
+            @messages("return.to.link", model.returnLinkBasedOnJourney)
+            </a>
+        </p>
 
+    <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+        <a id="return_to_scheme" href=@model.returnDashboardUrl class="govuk-link">
+        @messages("return.to.link", model.schemeName)
+        </a>
+    </p>
+    }
 }

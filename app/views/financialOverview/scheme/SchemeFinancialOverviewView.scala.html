@@ -18,23 +18,24 @@
 layout: templates.Layout,
 formHelper: FormWithCSRF,
 govukErrorSummary: GovukErrorSummary,
-govukButton: GovukButton,
-govukInsetText: components.inset_text
+govukButton: GovukButton
 )
 
 @(
-schemeName: String,
-totalUpcomingCharge: String,
-totalOverdueCharge: String,
-totalInterestAccruing: String,
-requestRefundUrl: String,
-allOverduePenaltiesAndInterestLink: String,
-duePaymentLink: String,
-allPaymentLink: String,
-creditBalanceFormatted: String,
-creditBalance: BigDecimal,
-isOverdueChargeAvailable: Boolean,
-returnUrl: String
+    schemeName: String,
+    totalUpcomingCharge: String,
+    totalOverdueCharge: String,
+    totalInterestAccruing: String,
+    requestRefundUrl: String,
+    allOverduePenaltiesAndInterestLink: String,
+    duePaymentLink: String,
+    allPaymentLink: String,
+    creditBalanceFormatted: String,
+    creditBalance: BigDecimal,
+    isOverdueChargeAvailable: Boolean,
+    returnUrl: String,
+    displayHistory: Boolean,
+    historyLink: String
 )(implicit messages: Messages, request: Request[_])
 
 @layout(messages("schemeFinancial.title"), fullWidthLayout = true) {
@@ -49,17 +50,29 @@ returnUrl: String
     </div>
 
         <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                <h2 class="govuk-heading-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">@messages("schemeFinancial.h2.overdueCharges")</h2>
+                <p class="govuk-body">@messages("schemeFinancial.p1.overdueCharges")</p>
+            </div>
+        </div>
+
+        <div class="govuk-grid-row">
             <div class="govuk-grid-column-one-half">
-                <h2 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">@messages("schemeFinancial.h2.overduePayments")</h2>
+                <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+                    @messages("schemeFinancial.h2.overduePayments")
+                </h3>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalOverdueCharge</p>
             </div>
             <div class="govuk-grid-column-one-half">
-                <h2 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">@messages("schemeFinancial.h2.totalInterestAccruing")</h2>
+                <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+                    @messages("schemeFinancial.h2.totalInterestAccruing.new")
+                </h3>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalInterestAccruing</p>
             </div>
         </div>
 
-    @if(totalOverdueCharge != "£0.00") {
+
+        @if(totalOverdueCharge != "£0.00") {
         <p class="govuk-body-m govuk-!-margin-bottom-6">
             <a id="allOverdue" class="govuk-link" href="@allOverduePenaltiesAndInterestLink">
                 @messages("schemeFinancial.allOverdue.link")
@@ -67,14 +80,25 @@ returnUrl: String
         </p>
         }
 
-    <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+        <hr>
 
-    <div class="govuk-grid-row">
+        <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
-                <h2 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
-                    @messages("schemeFinancial.h2.totalDuePayment")
+                <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+                    @messages("schemeFinancial.h2.totalDuePayment.new")
                 </h2>
+                <p class="govuk-body">
+                    @messages("schemeFinancial.p1.totalDue.noDeadline")
+                </p>
+            </div>
+        </div>
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+                    @messages("schemeFinancial.h2.totalDueCharges")
+                </h3>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalUpcomingCharge</p>
+
             </div>
         </div>
 
@@ -86,16 +110,17 @@ returnUrl: String
         </p>
         }
 
-        <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+        <hr>
 
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
-                <h2 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
-                    @messages("schemeFinancial.h2.creditBalance")
+                <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+                    @messages("schemeFinancial.h2.creditHeading")
                 </h2>
-                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">
-                    @creditBalanceFormatted
-                </p>
+                <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+                    @messages("schemeFinancial.h2.creditBalance")
+                </h3>
+                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@creditBalanceFormatted</p>
 
                 @if(creditBalance > 0) {
                 <p class="govuk-body-m">
@@ -105,15 +130,33 @@ returnUrl: String
                 </p>
                 }
 
+                <p class="govuk-body-m">
+                    <a id="allPaymentCharges" class=govuk-link href="@allPaymentLink"> @messages("schemeFinancial.allPaymentCharges.link")</a>
+                </p>
+
             </div>
         </div>
 
-        <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+        @if(displayHistory) {
 
-        <p class="govuk-body-m">
-            <a id="allPaymentCharges" class=govuk-link href="@allPaymentLink"> @messages("schemeFinancial.allPaymentCharges.link")</a>
-        </p>
-
+            <hr>
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-full">
+                    <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+                        @messages("schemeFinancial.paymentsAndChargesHistory")
+                    </h2>
+                    <p class="govuk-body">
+                        @messages("schemeFinancial.paymentsAndChargesHistory.p1")
+                    </p>
+                    <p class="govuk-body-m">
+                        <a id="historyLink" class="govuk-link" href="@historyLink">
+                            @messages("schemeFinancial.paymentsAndChargesHistory.link")
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <hr>
+        }
 </div>
 
     <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
@@ -121,6 +164,5 @@ returnUrl: String
         @messages("return.to.link", schemeName)
         </a>
     </p>
-
 
 }

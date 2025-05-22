@@ -41,7 +41,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListR
 import utils.AFTConstants._
 import utils.DateHelper.formatDateDMY
 import viewmodels.InterestDetailsViewModel
-import views.html.financialOverview.scheme.PaymentsAndChargeInterestNewView
+import views.html.financialOverview.scheme.PaymentsAndChargeInterestView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -75,7 +75,6 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with J
       .thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getReturnUrl(any(), any(), any(), any(), any()))
       .thenReturn(dummyCall.url)
-    when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
   }
 
   "PaymentsAndChargesInterestController" must {
@@ -83,7 +82,6 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with J
     "return OK and the correct view for interest accrued for aft return charge if amount is due and interest is accruing for a GET" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
-      when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
 
       val schemeFSDetail = createCharge(index = 1, chargeReference = "XY002610150184", chargeType = PSS_AFT_RETURN)
 
@@ -92,7 +90,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with J
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[PaymentsAndChargeInterestNewView].apply(
+      val view = application.injector.instanceOf[PaymentsAndChargeInterestView].apply(
         model = InterestDetailsViewModel(
           chargeType = "Accounting for Tax Return Interest submission 1",
           schemeName = schemeDetails.schemeName,

@@ -29,7 +29,7 @@ import play.api.mvc._
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.financialOverview.psa.{PsaPaymentsAndChargesNewView, PsaPaymentsAndChargesView}
+import views.html.financialOverview.psa.PsaPaymentsAndChargesView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,8 +43,7 @@ class PsaPaymentsAndChargesController @Inject()(
                                                  financialStatementConnector: FinancialStatementConnector,
                                                  minimalConnector: MinimalConnector,
                                                  config: FrontendAppConfig,
-                                                 view: PsaPaymentsAndChargesView,
-                                                 newView: PsaPaymentsAndChargesNewView
+                                                 view: PsaPaymentsAndChargesView
                                                )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -54,22 +53,17 @@ class PsaPaymentsAndChargesController @Inject()(
   def onPageLoad(journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request: IdentifierRequest[AnyContent] =>
       val response = for {
-        psaName <- minimalConnector.getPsaOrPspName
+        psaName                   <- minimalConnector.getPsaOrPspName
         psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
-        penaltiesCache <- psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType)
+        penaltiesCache            <- psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType)
       } yield {
-        renderFinancialOverdueAndInterestCharges(psaName, request.psaIdOrException.id,
-          request, psaFSWithPaymentOnAccount.seqPsaFSDetail, journeyType, penaltiesCache)
+        renderFinancialOverdueAndInterestCharges(psaName, request.psaIdOrException.id, psaFSWithPaymentOnAccount.seqPsaFSDetail, journeyType, penaltiesCache)
       }
       response.flatten
     }
 
-  //scalastyle:off parameter.number
-  //scalastyle:off method.length
-  //scalastyle:off cyclomatic.complexity
   private def renderFinancialOverdueAndInterestCharges(psaName: String,
                                                        psaId: String,
-                                                       requestHeader: RequestHeader,
                                                        creditPsaFS: Seq[PsaFSDetail],
                                                        journeyType: ChargeDetailsFilter,
                                                        penaltiesCache: PenaltiesCache)
@@ -90,59 +84,31 @@ class PsaPaymentsAndChargesController @Inject()(
         table
       }
 
-      val reflectChargeText = if(config.podsNewFinancialCredits) {
-        s"psa.financial.overview.$journeyType.text.new"
-      } else {
-        s"psa.financial.overview.$journeyType.text"
-      }
-
       val messages = request2Messages
 
-      if(config.podsNewFinancialCredits) {
-        Future.successful(Ok(newView(titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
-          psaName = psaName,
-          reflectChargeText = messages(reflectChargeText),
-          totalOverdueCharge = psaCharges.overdueCharge,
-          totalInterestAccruing =  psaCharges.interestAccruing,
-          totalUpcomingCharge =  psaCharges.upcomingCharge,
-          totalOutstandingCharge = "",
-          penaltiesTable =  penaltiesTable,
-          paymentAndChargesTable = penaltiesTable
-        )))
-      } else  {
-        Future.successful(Ok(view(titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
-          schemeName = "",
-          psaName = psaName,
-          pstr = "",
-          reflectChargeText = messages(reflectChargeText),
-          totalOverdueCharge = psaCharges.overdueCharge,
-          totalInterestAccruing =  psaCharges.interestAccruing,
-          totalUpcomingCharge=  psaCharges.upcomingCharge,
-          totalOutstandingCharge= "",
-          penaltiesTable =  penaltiesTable,
-          paymentAndChargesTable = penaltiesTable,
-          returnUrl = ""
-        )))
-      }
-    }
-  }
-
-  private def getTitleMessage(journeyType: ChargeDetailsFilter): String = {
-    if (config.podsNewFinancialCredits) {
-      s"psa.financial.overview.$journeyType.title.v2"
-    } else {
-      s"psa.financial.overview.$journeyType.title"
+      Future.successful(Ok(view(
+        titleMessage           = messages(s"psa.financial.overview.$journeyType.title"), journeyType = journeyType,
+        psaName                = psaName,
+        reflectChargeText      = messages(s"psa.financial.overview.$journeyType.text"),
+        totalOverdueCharge     = psaCharges.overdueCharge,
+        totalInterestAccruing  = psaCharges.interestAccruing,
+        totalUpcomingCharge    = psaCharges.upcomingCharge,
+        totalOutstandingCharge = "",
+        penaltiesTable         = penaltiesTable,
+        paymentAndChargesTable = penaltiesTable
+      )))
     }
   }
 
   private val removePaymentStatusColumn: Table => Table = table => {
-    Table(caption = table.caption,
-      captionClasses = table.captionClasses,
-      firstCellIsHeader = table.firstCellIsHeader,
-      head = Some(table.head.getOrElse(Seq()).take(table.head.size - 1)),
-      rows = table.rows.map(p => p.take(p.size - 1)),
-      classes = table.classes,
-      attributes = table.attributes
+    Table(
+      caption            = table.caption,
+      captionClasses     = table.captionClasses,
+      firstCellIsHeader  = table.firstCellIsHeader,
+      head               = Some(table.head.getOrElse(Seq()).take(table.head.size - 1)),
+      rows               = table.rows.map(p => p.take(p.size - 1)),
+      classes            = table.classes,
+      attributes         = table.attributes
     )
   }
 }

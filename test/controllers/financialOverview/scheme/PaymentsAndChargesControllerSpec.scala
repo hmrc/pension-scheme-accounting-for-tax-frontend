@@ -25,9 +25,9 @@ import models.ChargeDetailsFilter.Overdue
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
-import org.mockito.ArgumentMatchers
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -35,7 +35,7 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers.{route, _}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
-import views.html.financialOverview.scheme.{PaymentsAndChargesNewView, PaymentsAndChargesView}
+import views.html.financialOverview.scheme.PaymentsAndChargesView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -70,7 +70,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any())).
       thenReturn(Future.successful(paymentsCache(schemeFSResponseOverdue)))
     when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
-      any(), any(), any())(any())).thenReturn(penaltiesTable)
+      any(), any())(any())).thenReturn(penaltiesTable)
     when(mockPaymentsAndChargesService.getOverdueCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockPaymentsAndChargesService.getInterestCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => schemeFSResponseUpcoming)
@@ -78,16 +78,15 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
 
   "PaymentsAndChargesController" must {
 
-    "return OK and the new view with filtered payments and charges information for a GET" in {
-      when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
+    "return OK and the correct view with filtered payments and charges information for a GET" in {
       val req = httpGETRequest(httpPathGET)
       val result = route(application, req).value
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[PaymentsAndChargesNewView].apply(
+      val view = application.injector.instanceOf[PaymentsAndChargesView].apply(
         journeyType = "overdue",
         schemeName = schemeDetails.schemeName,
-        titleMessage = messages("schemeFinancial.overview.overdue.title.v2"),
+        titleMessage = "Overdue charges",
         pstr = pstr,
         reflectChargeText = "This information may not reflect payments made in the last 3 days.",
         totalOverdue = "£3,087.15",
@@ -99,31 +98,6 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
         returnUrl = "/financial-overview/test-srn",
         returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
       )(req, messages)
-
-      compareResultAndView(result, view)
-
-    }
-
-    "return OK and the old view with filtered payments and charges information for a GET" in {
-      when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
-      val req = httpGETRequest(httpPathGET)
-      val result = route(application, req).value
-      status(result) mustEqual OK
-
-      val view = application.injector.instanceOf[PaymentsAndChargesView].apply(
-        journeyType = "overdue",
-        schemeName = schemeDetails.schemeName,
-        titleMessage = messages("schemeFinancial.overview.overdue.title"),
-        pstr = pstr,
-        reflectChargeText = "The information may not reflect payments made in the last 3 days.",
-        totalDue = "£2,058.10",
-        totalInterestAccruing = "£0.00",
-        totalUpcoming = "£0.00",
-        penaltiesTable = penaltiesTable,
-        paymentAndChargesTable = penaltiesTable,
-        returnUrl = "/financial-overview/test-srn",
-        returnDashboardUrl = Option(mockAppConfig.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn),
-      )(messages, req)
 
       compareResultAndView(result, view)
 

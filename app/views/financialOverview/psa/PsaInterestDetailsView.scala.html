@@ -28,42 +28,48 @@
 
 @(model: PsaInterestDetailsViewModel)(implicit messages: Messages, request: Request[_])
 
+
 @layout(messages(model.heading)) {
 
 <div>
 
         @if(model.schemeAssociated) {
-        <h1 class="hmrc-caption govuk-caption-xl">@{model.schemeName}</h1>
-        <h1 class="govuk-heading-xl">@{model.heading}</h1>
+            <span class="hmrc-caption govuk-caption-xl">@{model.schemeName}</span>
+            <h1 class="govuk-heading-xl">@{model.heading}</h1>
         } else {
-        <h1 class="govuk-heading-xl">@{model.heading}</h1>
+            <h1 class="govuk-heading-xl">@{model.heading}</h1>
         }
 
-        <p class="govuk-body govuk-tag govuk-tag--blue">
-            @messages("penalties.status.interestAccruing")
-        </p>
-
-        @if(model.period.isDefined) {
-            <h2 class="govuk-heading-m">@{model.period.get}</h2>
-        }
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-one-half">
+                <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
+                    @messages("psa.pension.scheme.interest.dueAmount.new")
+                </h3>
+                <p class="govuk-body-l govuk-!-margin-top-0"><strong>@{model.interestDueAmount}</strong></p>
+            </div>
+        </div>
 
         <p class="govuk-body">
             @govukSummaryList(
-                SummaryList(rows = model.list)
+                SummaryList(
+                    rows = model.list
+                )
             )
         </p>
 
-    @govukInsetText(
-        InsetText(
-            content = model.htmlInsetText
+
+       @govukInsetText(
+            InsetText(
+                content = model.htmlInsetText
+            )
         )
-    )
+
 
 </div>
 
-<p class="govuk-body">
-    <a id="return" href="@{model.returnUrl}" class="govuk-link">
-        @messages("return.to.link", model.returnUrlText)
+<p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+    <a id="return" href="@config.psafinancialOverviewUrl" class="govuk-link">
+    @messages("site.return.to.overview.new")
     </a>
 </p>
 
