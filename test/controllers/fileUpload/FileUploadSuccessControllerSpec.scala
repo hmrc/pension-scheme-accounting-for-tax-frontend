@@ -34,7 +34,7 @@ import views.html.fileUpload.FileUploadSuccessView
 
 class FileUploadSuccessControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private val application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
 
   val request = FakeRequest(GET, controllers.fileUpload.routes.FileUploadSuccessController.onPageLoad(srn, startDate,

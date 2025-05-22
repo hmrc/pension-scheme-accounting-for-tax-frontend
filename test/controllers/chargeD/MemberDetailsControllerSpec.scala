@@ -38,7 +38,7 @@ import scala.concurrent.Future
 
 class MemberDetailsControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private def application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
   val formProvider = new MemberDetailsFormProvider()
   val form: Form[MemberDetails] = formProvider()
 

@@ -37,7 +37,7 @@ import views.html.chargeE.WhatYouWillNeedView
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private val application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
   private val index = 0
   private val uaPsrTrue: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance,Some(0)), true)

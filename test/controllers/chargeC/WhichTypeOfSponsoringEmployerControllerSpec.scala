@@ -47,7 +47,7 @@ class WhichTypeOfSponsoringEmployerControllerSpec
     with TryValues {
   private val index = 0
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private def application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
 
   private val answers: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(
     WhichTypeOfSponsoringEmployerPage(index), SponsoringEmployerTypeIndividual).success.value
