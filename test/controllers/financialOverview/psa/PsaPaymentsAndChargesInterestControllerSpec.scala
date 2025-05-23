@@ -43,7 +43,7 @@ import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import viewmodels.PsaInterestDetailsViewModel
-import views.html.financialOverview.psa.PsaInterestDetailsNewView
+import views.html.financialOverview.psa.PsaInterestDetailsView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -89,7 +89,6 @@ class PsaPaymentsAndChargesInterestControllerSpec
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(isOverdue)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
-    when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
   }
 
   "PsaPaymentsAndChargesInterestController" when {
@@ -103,7 +102,7 @@ class PsaPaymentsAndChargesInterestControllerSpec
 
         status(result) mustEqual OK
 
-        val view = application.injector.instanceOf[PsaInterestDetailsNewView].apply(
+        val view = application.injector.instanceOf[PsaInterestDetailsView].apply(
           PsaInterestDetailsViewModel(
             psaName = "psa-name",
             heading = "Interest on contract settlement charge",

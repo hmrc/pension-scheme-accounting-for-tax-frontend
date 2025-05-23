@@ -65,7 +65,7 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
   private def config: FrontendAppConfig = mock[FrontendAppConfig]
 
   private val psaPenaltiesAndChargesService = new PsaPenaltiesAndChargesService(fsConnector = mockFSConnector,
-    financialInfoCacheConnector = mockFinancialInfoCacheConnector, minimalConnector = mockMinimalConnector, config, mockListOfSchemesConnector)
+    financialInfoCacheConnector = mockFinancialInfoCacheConnector, minimalConnector = mockMinimalConnector, mockListOfSchemesConnector)
 
   private def htmlChargeType(penaltyType: String,
                              chargeReference: String,

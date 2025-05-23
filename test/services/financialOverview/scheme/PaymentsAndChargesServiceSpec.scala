@@ -17,21 +17,18 @@
 package services.financialOverview.scheme
 
 import base.SpecBase
-import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
 import controllers.financialOverview.scheme.routes._
 import data.SampleData._
 import helpers.FormatHelper
-import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement._
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
-import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
@@ -42,13 +39,12 @@ import play.api.libs.json.Json
 import services.SchemeService
 import services.financialOverview.psa.PenaltiesCache
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, TableRow}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
 import utils.AFTConstants._
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatDateDMY}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -62,8 +58,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                               isInterestAccrued: Boolean,
                               chargeType: String,
                               chargeReference: String,
+                              displayChargeReference: String,
                               redirectUrl: String,
-                              period: String,
                               visuallyHiddenText: String,
                             ): HtmlContent = {
     val linkId = if (isInterestAccrued) {
@@ -72,24 +68,26 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       chargeReference
     }
 
-//    HtmlContent
+    val period = s"${if (isInterestAccrued) "Quarter: " else ""}1 April to 30 June 2020"
+
     HtmlContent(
       s"<a id=$linkId class=govuk-link href=" +
         s"$redirectUrl>" +
         s"$chargeType " +
-        s"<span class=govuk-visually-hidden>$visuallyHiddenText</span> </a>" +
-        s"<p class=govuk-hint>" +
-        s"$period</p>")
+        s"<span class=govuk-visually-hidden>$visuallyHiddenText</span></a>" +
+        s"<p class=govuk-hint>$displayChargeReference</br>" +
+        s"$period")
   }
 
   private val tableHead = Seq(
-    HeadCell(Text(messages("paymentsAndCharges.chargeType.table")), classes = "govuk-!-width-one-half"),
-    HeadCell(Text(messages("paymentsAndCharges.chargeReference.table")), classes = "govuk-!-font-weight-bold"),
-    HeadCell(Text(messages("paymentsAndCharges.chargeDetails.originalChargeAmount")), classes = "govuk-!-font-weight-bold"),
-    HeadCell(Text(messages("paymentsAndCharges.paymentDue.table")), classes = "govuk-!-font-weight-bold"),
-    HeadCell(HtmlContent(
-      s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"
-    ))
+    HeadCell(
+      HtmlContent(
+        s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penaltyOrCharge")}</span>"
+      )),
+    HeadCell(Text(Messages("paymentsAndCharges.dateDue.table")), classes = "govuk-!-font-weight-bold table-nowrap"),
+    HeadCell(Text(Messages("paymentsAndCharges.chargeDetails.originalChargeAmount.new")), classes = "govuk-!-font-weight-bold table-nowrap"),
+    HeadCell(Text(Messages("paymentsAndCharges.paymentDue.table")), classes = "govuk-!-font-weight-bold table-nowrap"),
+    HeadCell(Text(Messages("paymentsAndCharges.interestAccruing.table")), classes = "govuk-!-font-weight-bold table-nowrap")
   )
 
   private def paymentTable(rows: Seq[Seq[TableRow]]): Table =
@@ -98,40 +96,32 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
   private def row(isInterestAccrued: Boolean,
                   chargeType: String,
+                  chargeReference: String = "AYU3494534632",
                   displayChargeReference: String,
+                  dateDue: String,
                   originalChargeAmount: String,
                   paymentDue: String,
                   status: PaymentAndChargeStatus,
                   redirectUrl: String,
-                  visuallyHiddenText: String
+                  visuallyHiddenText: String,
+                  accruedInterestTotal: String = "153.00"
                  ): Seq[TableRow] = {
-    val period = "Quarter: 1 April to 30 June 2020"
-    val statusHtml = status match {
-      case InterestIsAccruing => HtmlContent(s"<span class='govuk-tag govuk-tag--blue'>${status.toString}</span>")
-      case PaymentOverdue => HtmlContent(s"<span class='govuk-tag govuk-tag--red'>${status.toString}</span>")
-      case _ => if (paymentDue == "£0.00") {
-        HtmlContent(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
-      } else {
-        HtmlContent(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
-      }
-    }
 
     Seq(
-      TableRow(htmlChargeType(isInterestAccrued, chargeType, "AYU3494534632", redirectUrl, period, visuallyHiddenText),
+      TableRow(htmlChargeType(isInterestAccrued, chargeType, chargeReference, displayChargeReference, redirectUrl, visuallyHiddenText),
         classes = "govuk-!-width-one-third"),
-      TableRow(Text(s"$displayChargeReference"), classes = "govuk-!-padding-right-7"),
+      TableRow(Text(s"$dateDue"), classes = "govuk-!-padding-right-7, table-nowrap"),
       if (originalChargeAmount.isEmpty) {
         TableRow(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
       } else {
-        TableRow(Text(originalChargeAmount), classes = "govuk-!-padding-right-7 table-nowrap")
+        TableRow(Text(originalChargeAmount), classes = "govuk-table__cell govuk-!-padding-right-7 table-nowrap")
       },
-      TableRow(Text(paymentDue), classes = "govuk-!-padding-right-5 table-nowrap"),
-      TableRow(statusHtml)
+      TableRow(Text(paymentDue), classes = "govuk-table__cell govuk-!-padding-right-7 table-nowrap"),
+      TableRow(Text(accruedInterestTotal), classes = "govuk-table__cell govuk-table__cell--numeric table-nowrap")
     )
   }
 
   val mockSchemeService: SchemeService = mock[SchemeService]
-  val config: FrontendAppConfig = mock[FrontendAppConfig]
 
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
   val mockFIConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
@@ -155,43 +145,43 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
           def expectedTable(chargeLink: String, interestLink: String): Table =
             paymentTable(Seq(
               row(
-                isInterestAccrued = false,
-                chargeType = chargeType.toString + s" submission $versionInt",
+                isInterestAccrued      = false,
+                chargeType             = chargeType.toString + s" submission $versionInt",
                 displayChargeReference = "AYU3494534632",
-                originalChargeAmount = FormatHelper.formatCurrencyAmountAsString(56432.00),
-                paymentDue = FormatHelper.formatCurrencyAmountAsString(1029.05),
-                status = PaymentAndChargeStatus.PaymentOverdue,
-                redirectUrl = chargeLink,
-                visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632")
+                dateDue                = formatDateDMY(LocalDate.parse("2020-05-15")),
+                originalChargeAmount   = FormatHelper.formatCurrencyAmountAsString(56432.00),
+                paymentDue             = FormatHelper.formatCurrencyAmountAsString(1029.05),
+                status                 = PaymentAndChargeStatus.PaymentOverdue,
+                redirectUrl            = chargeLink,
+                visuallyHiddenText     = messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632"),
               ),
               row(
-                isInterestAccrued = true,
-                chargeType = if (chargeType == PSS_AFT_RETURN) {
+                isInterestAccrued      = true,
+                chargeType             = if (chargeType == PSS_AFT_RETURN) {
                   PSS_AFT_RETURN_INTEREST.toString + s" submission $versionInt"
                 } else {
                   PSS_OTC_AFT_RETURN_INTEREST.toString + s" submission $versionInt"
                 },
                 displayChargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
-                originalChargeAmount = "",
-                paymentDue = FormatHelper.formatCurrencyAmountAsString(153.00),
-                status = PaymentAndChargeStatus.InterestIsAccruing,
-                redirectUrl = interestLink,
-                visuallyHiddenText = messages(s"paymentsAndCharges.interest.visuallyHiddenText")
+                dateDue                = formatDateDMY(LocalDate.parse("2020-05-15")),
+                originalChargeAmount   = "",
+                paymentDue             = FormatHelper.formatCurrencyAmountAsString(153.00),
+                status                 = PaymentAndChargeStatus.InterestIsAccruing,
+                redirectUrl            = interestLink,
+                visuallyHiddenText     = messages(s"paymentsAndCharges.interest.visuallyHiddenText"),
               )
             ))
 
           val result1 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             schemeFSDetail = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            chargeDetailsFilter = Overdue,
-            config = config
+            chargeDetailsFilter = Overdue
           )
 
           val result2 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             schemeFSDetail = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            chargeDetailsFilter = Upcoming,
-            config = config
+            chargeDetailsFilter = Upcoming
           )
           result1 mustBe expectedTable(chargeLink(Overdue), interestLink(Overdue))
           result2 mustBe expectedTable(chargeLink(Upcoming), interestLink(Upcoming))
@@ -206,29 +196,10 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       val result = paymentsAndChargesService.getPaymentsAndCharges(
         srn,
         paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00).head._2,
-        Overdue,
-        config = config
+        Overdue
       )
 
       result mustBe expectedTable
-    }
-  }
-
-  "getChargeDetailsForSelectedCharge" must {
-    "return the row for original charge amount, payments and credits, stood over amount and total amount due" in {
-      val result =
-        paymentsAndChargesService.getChargeDetailsForSelectedCharge(createCharge(index = 1, PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05), Upcoming, Some(submittedDate))
-
-      result mustBe dateSubmittedRow ++ chargeReferenceRow ++ originalAmountChargeDetailsRow ++
-        clearingChargeDetailsRow ++ stoodOverAmountChargeDetailsRow ++ totalAmountDueChargeDetailsRow
-    }
-
-    "return the row for original charge amount, payments and credits, stood over amount and total amount due with payment or credit due date not exist" in {
-      val result =
-        paymentsAndChargesService.getChargeDetailsForSelectedCharge(createCharge(index = 1, PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05, item = item2), Upcoming, Some(submittedDate))
-
-      result mustBe dateSubmittedRow ++ chargeReferenceRow ++ originalAmountChargeDetailsRow ++
-        clearingChargeDetailsWithClearingDateRow ++ stoodOverAmountChargeDetailsRow ++ totalAmountDueChargeDetailsRow
     }
   }
 
@@ -331,7 +302,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     "return payload from cache is srn and logged in id match the payload" in {
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, isLoggedInAsPsa = true)) {
         _ mustBe paymentsCache
       }
     }
@@ -341,7 +312,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any(), any(), any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq(chargeWithCredit(index = 1)))))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, isLoggedInAsPsa = true)) {
         _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit(index = 1)))
       }
     }
@@ -351,7 +322,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any(), any(), any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq(chargeWithCredit(index = 1)))))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, isLoggedInAsPsa = true)) {
         _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit(index = 1)))
       }
     }
@@ -361,7 +332,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, isLoggedInAsPsa = true)) {
         _ mustBe paymentsCache
       }
     }
@@ -371,7 +342,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All, isLoggedInAsPsa = true)) {
         _ mustBe paymentsCache
       }
     }
@@ -380,7 +351,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       DateHelper.setDate(Some(LocalDate.parse("2020-01-31")))
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Upcoming, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Upcoming, isLoggedInAsPsa = true)) {
         val upcomingPaymentsCache = PaymentsCache(psaId, srn, schemeDetails, unpaidCharges)
         _ mustBe upcomingPaymentsCache
       }
@@ -390,7 +361,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       DateHelper.setDate(Some(LocalDate.parse("2020-12-31")))
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Overdue, true)) {
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Overdue, isLoggedInAsPsa = true)) {
         val overduePaymentsCache = PaymentsCache(psaId, srn, schemeDetails, unpaidCharges)
         _ mustBe overduePaymentsCache
       }
@@ -412,10 +383,10 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     }
   }
 
-  "getChargeDetailsForSelectedChargeV2" must {
-    "expected Summary List Rows" in {
+  "getChargeDetailsForSelectedCharge" must {
+    "return expected Summary List Rows" in {
       val schemeFSDetails = schemeFSResponseAftAndOTC.seqSchemeFSDetail.head
-      val result = paymentsAndChargesService.getChargeDetailsForSelectedChargeV2(schemeFSDetails, schemeDetails, true)
+      val result = paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFSDetails, schemeDetails, isClearedCharge = true)
       val pstrRow = Seq(
         SummaryListRow(
           key = Key(Text(Messages("pension.scheme.tax.reference.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
@@ -443,7 +414,7 @@ object PaymentsAndChargesServiceSpec {
   val srn = "S1234567"
   val startDate: String = QUARTER_START_DATE.format(dateFormatterStartDate)
   val endDate: String = QUARTER_END_DATE.format(dateFormatterDMY)
-  val unpaidCharges = schemeFSResponseAftAndOTC.seqSchemeFSDetail.dropRight(1)
+  val unpaidCharges: Seq[SchemeFSDetail] = schemeFSResponseAftAndOTC.seqSchemeFSDetail.dropRight(1)
   val paymentsCache: PaymentsCache = PaymentsCache(psaId, srn, schemeDetails, schemeFSResponseAftAndOTC.seqSchemeFSDetail)
   val item: DocumentLineItemDetail = DocumentLineItemDetail(150.00, Some(LocalDate.parse("2020-05-14")), Some(LocalDate.parse("2020-04-24")), Some(FSClearingReason.CLEARED_WITH_PAYMENT))
   val item2: DocumentLineItemDetail = DocumentLineItemDetail(150.00, Some(LocalDate.parse("2020-04-15")), None, Some(FSClearingReason.CLEARED_WITH_PAYMENT))
@@ -508,101 +479,4 @@ object PaymentsAndChargesServiceSpec {
     )
   )
 
-  private def dateSubmittedRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(Text(messages("financialPaymentsAndCharges.dateSubmitted")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(
-          Text(s"${DateHelper.formatDateDMYString(submittedDate)}"), classes = "govuk-!-width-one-quarter")
-      ))
-  }
-
-  private def chargeReferenceRow(implicit messages: Messages): Seq[SummaryListRow]  = {
-    Seq(
-      SummaryListRow(
-        key = Key(
-          content = Text(messages("financialPaymentsAndCharges.chargeReference")),
-          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
-        ),
-        value = Value(
-          content = Text("AYU3494534632"),
-          classes = "govuk-!-width-one-quarter"),
-        actions = None
-      ))
-  }
-
-  private def originalAmountChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(
-          content = Text(messages("paymentsAndCharges.chargeDetails.originalChargeAmount")),
-          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
-        ),
-        value = Value(
-          content = Text(s"${formatCurrencyAmountAsString(56432.00)}"),
-          classes = "govuk-!-width-one-quarter"
-        ),
-        actions = None
-      ))
-  }
-
-  private def stoodOverAmountChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(
-          content = Text(messages("paymentsAndCharges.chargeDetails.stoodOverAmount")),
-          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
-        ),
-        value = Value(
-          content = Text(s"-${formatCurrencyAmountAsString(25089.08)}"),
-          classes = "govuk-!-width-one-quarter"
-        ),
-        actions = None
-      ))
-  }
-
-  private def totalAmountDueChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(
-          content = Text(messages("financialPaymentsAndCharges.paymentDue.upcoming.dueDate", LocalDate.parse("2020-05-15").format(dateFormatterDMY))),
-          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
-        ),
-        value = Value(
-          Text(s"${FormatHelper.formatCurrencyAmountAsString(1029.05)}"),
-          classes = "govuk-!-padding-left-0 govuk-!-width--one-half govuk-!-font-weight-bold"
-        ),
-        actions = None
-      ))
-  }
-
-  private def clearingChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(
-          content = Text(messages("financialPaymentsAndCharges.clearingReason.c1", formatDateDMY(LocalDate.parse("2020-04-24")))),
-          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
-        ),
-        value = Value(
-          content = Text(s"-${formatCurrencyAmountAsString(150)}"),
-          classes = "govuk-!-width-one-quarter"
-        ),
-        actions = None
-      ))
-  }
-
-  private def clearingChargeDetailsWithClearingDateRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(
-          content = Text(messages("financialPaymentsAndCharges.clearingReason.c1", formatDateDMY(LocalDate.parse("2020-04-15")))),
-          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
-        ),
-        value = Value(
-          content = Text(s"-${formatCurrencyAmountAsString(150)}"),
-          classes = "govuk-!-width-one-quarter"
-        ),
-        actions = None
-      ))
-  }
 }

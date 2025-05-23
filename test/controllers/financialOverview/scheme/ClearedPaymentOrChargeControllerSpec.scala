@@ -97,9 +97,9 @@ class ClearedPaymentOrChargeControllerSpec extends ControllerSpecBase {
     reset(mockPaymentsAndChargesService)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(samplePaymentsCache))
-    when(mockPaymentsAndChargesService.getChargeDetailsForSelectedChargeV2(any(), any(), any())(any()))
+    when(mockPaymentsAndChargesService.getChargeDetailsForSelectedCharge(any(), any(), any())(any()))
       .thenReturn(chargeDetailsRow)
-    when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any()))
+    when(mockPaymentsAndChargesService.chargeAmountDetailsRows(any())(any()))
       .thenReturn(table)
   }
 

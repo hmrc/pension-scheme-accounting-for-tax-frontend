@@ -31,29 +31,33 @@
 
 <div>
 
-    <h1 class="hmrc-caption govuk-caption-xl">@model.schemeName</h1>
-    <h1 class="govuk-heading-xl">@model.chargeType</h1>
+        <h1 class="hmrc-caption govuk-caption-xl">@model.schemeName</h1>
+        <h1 class="govuk-heading-xl">@model.chargeType</h1>
 
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-one-half">
+                <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
+                    @messages("pension.scheme.interest.dueAmount.new")
+                </h3>
+                <p class="govuk-heading-m govuk-!-margin-top-0">
+                    @model.interestDueAmount
+                </p>
+            </div>
+        </div>
 
-    @if(model.accruedInterest > 0) {
-    <p class="govuk-body govuk-tag govuk-tag--blue">
-        @messages("paymentsAndCharges.status.InterestAccruing")
-    </p>
-    }
+        @if(model.chargeDetailsList.nonEmpty) {
+        <h2 id="paymentAndChargeDetails" class="govuk-heading-m">@model.tableHeader</h2>
+        @govukSummaryList(
+            SummaryList(
+                rows = model.chargeDetailsList
+            ))
+        }
 
-    @if(model.chargeDetailsList.nonEmpty) {
-    <h2 id="paymentAndChargeDetails" class="govuk-heading-m">@model.tableHeader</h2>
-    @govukSummaryList(
-        SummaryList(
-            rows = model.chargeDetailsList
-        ))
-    }
-
-    @govukInsetText(
-        InsetText(
-            content = model.insetText
+        @govukInsetText(
+            InsetText(
+                content = model.insetText
+            )
         )
-    )
 
 </div>
 

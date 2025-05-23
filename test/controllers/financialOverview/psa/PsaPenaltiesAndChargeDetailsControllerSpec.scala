@@ -20,8 +20,8 @@ import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.base.ControllerSpecBase
-import controllers.financialOverview.psa.PsaPenaltiesAndChargeDetailsControllerSpec.{chargeRef, getRows}
 import data.SampleData._
+import helpers.FormatHelper
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
 import models.financialStatement.PsaFSDetail
@@ -40,8 +40,9 @@ import play.api.test.Helpers.{route, status, _}
 import services.SchemeService
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.govukfrontend.views.Aliases.{HtmlContent, Table}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.TableRow
 import utils.DateHelper.formatDateDMY
 import viewmodels.PsaChargeDetailsViewModel
 import views.html.financialOverview.psa.PsaChargeDetailsView
@@ -58,9 +59,39 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
     with ScalaFutures {
 
   private def httpPathGETAssociated(indexValue: String): String = {
-    routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(identifier = pstr,
-      index = indexValue, Overdue).url
+    routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(
+      identifier = pstr,
+      index = indexValue,
+      journeyType = Overdue
+    ).url
   }
+
+  val pstr = "24000040IN"
+  val chargeRef = "XY002610150184"
+  val clearingDate: LocalDate = LocalDate.parse("2020-06-30")
+
+  def chargeDetailsTable()(implicit messages: Messages): Table =
+    Table(Seq(Seq(
+      TableRow(Text(Messages("psa.pension.scheme.chargeAmount.label.new")), classes = "govuk-!-font-weight-bold"),
+      TableRow(Text("")),
+      TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(psaFSResponse.head.totalAmount)}"), classes = "govuk-!-font-weight-regular")
+    )))
+
+  def chargeHeaderDetailsRows()(implicit messages: Messages): Seq[SummaryListRow] =
+    Seq(
+      SummaryListRow(
+        key = Key(Text(Messages("psa.pension.scheme.tax.reference.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
+        value = Value(Text(s"$pstr"), classes = "govuk-!-width-one-half")
+      ),
+      SummaryListRow(
+        key = Key(Text(Messages("psa.financial.overview.charge.reference")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
+        value = Value(Text(s"$chargeRef"), classes = "govuk-!-width-one-half")
+      ),
+      SummaryListRow(
+        key = Key(Text(Messages("psa.pension.scheme.tax.period.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
+        value = Value(Text(s"${formatDateDMY(psaFSResponse.head.periodStartDate) + " to " + formatDateDMY(psaFSResponse.head.periodEndDate)}"), classes = "govuk-!-width-one-half")
+      )
+    )
 
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
   val mockSchemeService: SchemeService = mock[SchemeService]
@@ -76,19 +107,25 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
-  val emptyChargesTable: Table = Table()
   val isOverdue: PsaFSDetail => Boolean = _ => true
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPsaPenaltiesAndChargesService)
-    when(mockPsaPenaltiesAndChargesService.chargeDetailsRows(any(), any())(any)).thenReturn(getRows())
-    when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(isOverdue)
+    when(mockPsaPenaltiesAndChargesService.chargeAmountDetailsRows(any(), any(), any())(any))
+      .thenReturn(chargeDetailsTable())
+    when(mockPsaPenaltiesAndChargesService.chargeHeaderDetailsRows(any())(any))
+      .thenReturn(chargeHeaderDetailsRows())
+    when(mockPsaPenaltiesAndChargesService.isPaymentOverdue)
+      .thenReturn(isOverdue)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any()))
       .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
-    when(mockPsaPenaltiesAndChargesService.setPeriod(any(), any(), any())).thenReturn("Quarter: 1 October to 31 December 2020")
+    when(mockPsaPenaltiesAndChargesService.setPeriod(any(), any(), any()))
+      .thenReturn("Quarter: 1 October to 31 December 2020")
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
+    when(mockFIConnector.fetch(any(), any()))
+      .thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
   }
 
   "PsaPenaltiesAndChargeDetailsController" when {
@@ -96,74 +133,41 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
 
       "render the correct view with penalty details for associated" in {
 
-        when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
-
         val req = httpGETRequest(httpPathGETAssociated("1"))
         val result = route(application, req).value
 
-        status(result) mustEqual OK
+          status(result) mustEqual OK
 
-        val view = application.injector.instanceOf[PsaChargeDetailsView].apply(
-          model = PsaChargeDetailsViewModel(
-            heading = "Accounting for Tax Late Filing Penalty",
-            psaName = "psa-name",
-            schemeName = schemeDetails.schemeName,
-            isOverdue = true,
-            period = Some("Quarter: 1 October to 31 December 2020"),
-            paymentDueAmount = Some("0"),
-            paymentDueDate = Some("0"),
-            chargeReference = chargeRef,
-            penaltyAmount = 10.00,
-            insetText = HtmlContent(""),
-            isInterestPresent = false,
-            list = Some(mockPsaPenaltiesAndChargesService.chargeDetailsRows(psaFSResponse.head, "Overdue")),
-            chargeHeaderDetails = None,
-            chargeAmountDetails = Some(emptyChargesTable),
-            returnUrl = routes.PsaPaymentsAndChargesController.onPageLoad(Overdue).url,
-            returnUrlText = "your Overdue payments and charges"
-          )
-        )(messages, req)
+          val view = application.injector.instanceOf[PsaChargeDetailsView].apply(
+              model = PsaChargeDetailsViewModel(
+              heading             = "Accounting for Tax Late Filing Penalty",
+              psaName             = "psa-name",
+              schemeName          = schemeDetails.schemeName,
+              isOverdue           = true,
+              paymentDueAmount    = Some("£1,029.05"),
+              paymentDueDate      = None,
+              chargeReference     = chargeRef,
+              penaltyAmount       = 10.00,
+              insetText           = HtmlContent(""),
+              chargeHeaderDetails = Some(chargeHeaderDetailsRows()),
+              chargeAmountDetails = Some(chargeDetailsTable()),
+              isInterestPresent   = false,
+              returnUrl           = routes.PsaPaymentsAndChargesController.onPageLoad(Overdue).url,
+              returnUrlText       = "your Overdue payments and charges"
+            )
+          )(messages, req)
 
-        compareResultAndView(result, view)
-      }
+          compareResultAndView(result, view)
+        }
 
       "catch IndexOutOfBoundsException" in {
-        when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
+        running(application) {
+          val result = route(application, httpGETRequest(httpPathGETAssociated("5"))).value
 
-        val result = route(application, httpGETRequest(httpPathGETAssociated("5"))).value
-
-        status(result) mustBe SEE_OTHER
-        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
+          status(result) mustBe SEE_OTHER
+          redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
+        }
       }
     }
   }
-}
-
-object PsaPenaltiesAndChargeDetailsControllerSpec {
-
-  val pstr = "24000040IN"
-  val chargeRef = "XY002610150184"
-  val clearingDate: LocalDate = LocalDate.parse("2020-06-30")
-
-  private def getRows()(implicit messages: Messages): Seq[SummaryListRow] =
-    Seq(
-      SummaryListRow(
-        key = Key(Text(messages("psa.financial.overview.charge.reference")), classes = "govuk-!-width-three-quarters"),
-        value = Value(Text(s"$chargeRef"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
-      ),
-      SummaryListRow(
-        key = Key(Text(messages("psa.financial.overview.penaltyAmount")), classes = "govuk-!-width-three-quarters"),
-        value = Value(Text("£800.08"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
-      ),
-      SummaryListRow(
-        key = Key(Text(messages("financialPaymentsAndCharges.clearingReason.c1", formatDateDMY(clearingDate))), classes = "govuk-!-width-three-quarters"),
-        value = Value(Text("£800.08"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
-      ),
-      SummaryListRow(
-        key = Key(Text(messages("financialPaymentsAndCharges.paymentDue.overdue.dueDate", "15 July 2020")), classes = "govuk-table__header--numeric govuk-!-padding-right-0"),
-        value = Value(Text("£1029.05"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
-      )
-    )
-
-
 }
