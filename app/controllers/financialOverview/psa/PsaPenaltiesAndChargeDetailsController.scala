@@ -63,6 +63,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
               schemeService.retrieveSchemeDetails(request.idOrException, srn) flatMap {
                 schemeDetails =>
                   Future.successful(Ok(view(commonJson(
+                    srn,
                     penaltiesCache.psaName,
                     schemeDetails.schemeName,
                     penaltyOpt.head,
@@ -113,12 +114,13 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     }
   }
 
-  private def commonJson(psaName: String,
-                              schemeName: String,
-                              psaFSDetail: PsaFSDetail,
-                              journeyType: ChargeDetailsFilter
-                             )(implicit request: IdentifierRequest[AnyContent]): PsaChargeDetailsViewModel = {
-    val interestUrl = routes.PsaPaymentsAndChargesInterestController.onPageLoad(psaFSDetail.pstr, psaFSDetail.index.toString, journeyType).url
+  private def commonJson(srn: String,
+                         psaName: String,
+                         schemeName: String,
+                         psaFSDetail: PsaFSDetail,
+                         journeyType: ChargeDetailsFilter
+                        )(implicit request: IdentifierRequest[AnyContent]): PsaChargeDetailsViewModel = {
+    val interestUrl = routes.PsaPaymentsAndChargesInterestController.onPageLoad(srn, psaFSDetail.index.toString, journeyType).url
     val isInterestPresent: Boolean = psaFSDetail.accruedInterestTotal > 0 || psaFSDetail.chargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST
     val detailsChargeType = psaFSDetail.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
@@ -126,7 +128,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
 
     val originalChargeUrl = psaFSDetail.psaSourceChargeInfo match {
       case Some(sourceChargeRef) =>
-        routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(psaFSDetail.pstr, sourceChargeRef.index.toString, All).url
+        routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(srn, sourceChargeRef.index.toString, All).url
       case _ => ""
     }
 
