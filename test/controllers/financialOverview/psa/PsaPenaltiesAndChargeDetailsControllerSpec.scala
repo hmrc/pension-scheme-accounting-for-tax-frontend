@@ -60,13 +60,13 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
 
   private def httpPathGETAssociated(indexValue: String): String = {
     routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(
-      identifier = pstr,
+      identifier = srn,
       index = indexValue,
       journeyType = Overdue
     ).url
   }
 
-  val pstr = "24000040IN"
+  val srn = "S2400000041"
   val chargeRef = "XY002610150184"
   val clearingDate: LocalDate = LocalDate.parse("2020-06-30")
 
