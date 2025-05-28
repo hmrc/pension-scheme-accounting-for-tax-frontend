@@ -151,31 +151,31 @@ class AllowAccessActionForIdentifierRequest(
     implicit val hc: HeaderCarrier =
       HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
-    def optFtrToFtrOpt[T](x: Option[Future[T]]): Future[Option[T]] =
-      x match {
-        case Some(f) => f.map(Some(_))
-        case None    => Future.successful(None)
-      }
-    
-    val accessAllowedFtr = optFtrToFtrOpt(srnOpt.map { srn =>
-      schemeDetailsConnector.checkForAssociation(request.idOrException, srn, getIdType(request))
+    val accessAllowedFtr = srnOpt.map { srn =>
+      schemeDetailsConnector
+        .checkForAssociation(request.idOrException, srn, getIdType(request))
         .recover { err =>
           logger.error("Cannot check for association", err)
           false
         }
-    }).map(_.getOrElse(true))
+    }.getOrElse(Future.successful(true))
 
     accessAllowedFtr.flatMap {
       case false =>
         logger.warn("Potentially prevented unauthorised access")
         errorHandler.onClientError(request, NOT_FOUND).map(Some(_))
-      case true => minimalConnector.getMinimalDetails(implicitly, implicitly, request).map { minimalDetails =>
-        minimalFlagsRedirect(MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag),
-          frontendAppConfig, request.schemeAdministratorType) match {
-          case optionRedirectUrl@Some(_) => optionRedirectUrl
-          case _ => None
-        }
-      } recoverWith {
+      case true => minimalConnector
+        .getMinimalDetails(hc, executionContext, request)
+        .map { minimalDetails =>
+          minimalFlagsRedirect(
+            MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag),
+            frontendAppConfig,
+            request.schemeAdministratorType
+          ) match {
+            case optionRedirectUrl@Some(_) => optionRedirectUrl
+            case _ => None
+          }
+        } recoverWith {
         case _: DelimitedAdminException =>
           Future.successful(Some(Redirect(Call("GET", frontendAppConfig.delimitedPsaUrl))))
       }
