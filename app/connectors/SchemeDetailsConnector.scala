@@ -59,7 +59,7 @@ class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: Front
 
   def getSchemeDetails(psaId: String, srn: SchemeReferenceNumber)
                       (implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
-    val encodedSrnId = URLEncoder.encode(srn.id, StandardCharsets.UTF_8.toString) // Proper encoding
+    val encodedSrnId = URLEncoder.encode(srn.id, StandardCharsets.UTF_8.toString)
     val url = url"${config.schemeDetailsUrl.format(encodedSrnId)}"
     val headers = Seq("idNumber" -> srn.id, "schemeIdType" -> "srn", "psaId" -> psaId)
     fetchData(url, headers, SchemeDetails.readsPsa)
@@ -78,7 +78,7 @@ class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: Front
     val encodedSrn = URLEncoder.encode(srn, StandardCharsets.UTF_8.toString)
     val url = url"${config.checkAssociationUrl.format(encodedSrn)}"
     val headers = Seq((idType, psaId), "schemeReferenceNumber" -> srn, "Content-Type" -> "application/json")
-    fetchData(url, headers, implicitly[play.api.libs.json.Reads[Boolean]]) // Using default Boolean Reads
+    fetchData(url, headers, implicitly[play.api.libs.json.Reads[Boolean]])
   }
 }
 
