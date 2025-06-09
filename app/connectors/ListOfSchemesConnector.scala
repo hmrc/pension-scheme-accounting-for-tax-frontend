@@ -62,7 +62,7 @@ class ListOfSchemesConnectorImpl @Inject()(
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
 
     httpClient2
-      .get(url"${url}")
+      .get(url"$url")
       .setHeader(hc.extraHeaders: _*)
       .transform(_.withRequestTimeout(config.ifsTimeout))
       .execute[HttpResponse].map{ response =>

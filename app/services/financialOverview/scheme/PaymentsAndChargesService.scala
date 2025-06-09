@@ -63,11 +63,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val filteredSchemeFSDetail = filteredSeqSchemeFsDetailNoCredits(schemeFSDetail)
 
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = filteredSchemeFSDetail.flatMap { paymentOrCharge =>
-      def data: Seq[FinancialPaymentAndChargesDetails] = paymentsAndChargesDetails(paymentOrCharge, srn, chargeDetailsFilter, config)
-      paymentOrCharge.chargeType match {
-        case x:PenaltyType if !PenaltyType.displayCharge(x) => Seq.empty
-        case _ => data
-      }
+      paymentsAndChargesDetails(paymentOrCharge, srn, chargeDetailsFilter, config)
     }
 
     if (config.podsNewFinancialCredits) {
@@ -584,7 +580,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                            (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
     getPaymentsFromCache(loggedInId, srn, isLoggedInAsPsa).map { cache =>
 
-      logger.warn(s"schemeFSDetail had ${cache.schemeFSDetail.length} values. For journey type: ${journeyType}")
+      logger.warn(s"schemeFSDetail had ${cache.schemeFSDetail.length} values. For journey type: $journeyType")
       journeyType match {
         case Overdue => cache.copy(schemeFSDetail = getOverdueCharges(cache.schemeFSDetail))
         case Upcoming => cache.copy(schemeFSDetail = extractUpcomingCharges(cache.schemeFSDetail))
@@ -688,7 +684,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       )
     }
 
-    val rows = clearedPaymentsAndCharges.zipWithIndex.map{ case (paymentOrCharge, index) => {
+    val rows = clearedPaymentsAndCharges.zipWithIndex.map { case (paymentOrCharge, index) =>
 
       val latestClearingDate = if(getPaymentDates(paymentOrCharge.documentLineItemDetails).nonEmpty) {
         DateHelper.formatDateDMY(getPaymentDates(paymentOrCharge.documentLineItemDetails).max)
@@ -704,10 +700,10 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
               paymentOrCharge.chargeReference + "</br>" +
               formatStartDate(paymentOrCharge.periodStartDate) + " to " + formatDateDMY(paymentOrCharge.periodEndDate)
           ), classes = "govuk-!-width-one-half"),
-          TableRow(HtmlContent(s"<p>${latestClearingDate}</p>")),
+          TableRow(HtmlContent(s"<p>$latestClearingDate</p>")),
           TableRow(HtmlContent(s"<p>${FormatHelper.formatCurrencyAmountAsString(paymentOrCharge.documentLineItemDetails.map(_.clearedAmountItem).sum)}</p>"))
         )
-    }}
+    }
 
     Table(head = Some(tableHeader), rows = rows)
   }

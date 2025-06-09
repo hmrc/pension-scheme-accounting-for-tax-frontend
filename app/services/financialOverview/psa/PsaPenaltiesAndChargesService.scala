@@ -25,7 +25,7 @@ import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.History
 import models.financialStatement.FSClearingReason._
-import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, displayCharge, getPenaltyType}
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
 import models.financialStatement.PsaFSChargeType._
 import models.financialStatement.{DocumentLineItemDetail, PenaltyType, PsaFSChargeType, PsaFSDetail}
 import models.viewModels.financialOverview.PsaPaymentsAndChargesDetails
@@ -87,14 +87,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                               config: FrontendAppConfig
                             )(implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Table] = {
 
-    def seqPayments(pstrToSchemeNameMap: Map[String, (String, String)]) = penalties.filter({ penalty =>
-      penalty.chargeType match {
-        case x:PenaltyType => displayCharge(x)
-        case _ => true
-      }
-    }).foldLeft[Seq[Table]](
-      Nil) { (acc, detail) =>
-
+    def seqPayments(pstrToSchemeNameMap: Map[String, (String, String)]): Seq[Table] = penalties.foldLeft[Seq[Table]](Nil) { (acc, detail) =>
       val tableRecords = {
         val schemeDetails = getSchemeDetails(detail.pstr, pstrToSchemeNameMap)
         val schemeName = schemeDetails._1
@@ -111,7 +104,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               status = status,
               pstr = detail.pstr,
               period =
-                if(config.podsNewFinancialCredits)
+                if (config.podsNewFinancialCredits)
                   setPeriodNew(detail.chargeType, detail.periodStartDate, detail.periodEndDate)
                 else
                   setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
@@ -135,7 +128,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 status = InterestIsAccruing,
                 pstr = detail.pstr,
                 period =
-                  if(config.podsNewFinancialCredits)
+                  if (config.podsNewFinancialCredits)
                     setPeriodNew(detail.chargeType, detail.periodStartDate, detail.periodEndDate)
                   else
                     setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
@@ -155,12 +148,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
           Seq(penaltyDetailsItemWithStatus(NoStatus)) ++ seqInterestCharge
         }
 
-        if(config.podsNewFinancialCredits) {
+        if (config.podsNewFinancialCredits) {
           mapToTableNew(seqForTable, includeHeadings = true, journeyType)
         } else {
           mapToTable(seqForTable, includeHeadings = false, journeyType)
         }
-
       }
       acc :+ tableRecords
     }

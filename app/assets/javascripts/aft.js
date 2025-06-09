@@ -12,7 +12,7 @@ if (document.querySelector('#country') != null) {
     })
 }
 
-var backLink = document.querySelector('.govuk-back-link');
+const backLink = document.querySelector('.govuk-back-link');
 if(backLink){
     backLink.classList.remove('js-visible');
     backLink.addEventListener('click', function(e){
@@ -23,7 +23,7 @@ if(backLink){
     });
 }
 
-var printLink = document.querySelector('.print-this-page');
+const printLink = document.querySelector('.print-this-page');
 if(printLink){
     printLink.addEventListener('click', function(e){
         window.print();

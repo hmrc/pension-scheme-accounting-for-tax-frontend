@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import scala.concurrent.{ExecutionContext, Future}
 
 sealed trait EmailStatus
-
 case object EmailSent extends EmailStatus
-
 case object EmailNotSent extends EmailStatus
 
 class EmailConnector @Inject()(
@@ -40,23 +38,38 @@ class EmailConnector @Inject()(
                                 http: HttpClientV2,
                                 crypto: ApplicationCrypto
                               ) {
-
   private val logger = Logger(classOf[EmailConnector])
 
   private def callBackUrl(
-    schemeAdministratorType: AdministratorOrPractitioner,
-    requestId: String,
-    journeyType: JourneyType.Value,
-    psaOrPspId: String,
-    email: String
-  ): String = {
+                           schemeAdministratorType: AdministratorOrPractitioner,
+                           requestId: String,
+                           journeyType: JourneyType.Value,
+                           psaOrPspId: String,
+                           email: String
+                         ): String = {
     val encryptedPsaOrPspId = crypto.QueryParameterCrypto.encrypt(PlainText(psaOrPspId)).value
     val encryptedEmail = crypto.QueryParameterCrypto.encrypt(PlainText(email)).value
-
     appConfig.aftEmailCallback(schemeAdministratorType, journeyType, requestId, encryptedEmail, encryptedPsaOrPspId)
   }
 
-  //scalastyle:off parameter.number
+  private def createSendEmailRequest(
+                                      emailAddress: String,
+                                      schemeAdministratorType: AdministratorOrPractitioner,
+                                      requestId: String,
+                                      psaOrPspId: String,
+                                      journeyType: JourneyType.Value,
+                                      templateName: String,
+                                      templateParams: Map[String, String]
+                                    ): SendEmailRequest = {
+    SendEmailRequest(
+      List(emailAddress),
+      templateName,
+      templateParams,
+      appConfig.emailSendForce,
+      callBackUrl(schemeAdministratorType, requestId, journeyType, psaOrPspId, emailAddress)
+    )
+  }
+
   def sendEmail(
                  schemeAdministratorType: AdministratorOrPractitioner,
                  requestId: String,
@@ -66,27 +79,41 @@ class EmailConnector @Inject()(
                  templateName: String,
                  templateParams: Map[String, String]
                )(implicit hc: HeaderCarrier, executionContext: ExecutionContext): Future[EmailStatus] = {
-    val emailServiceUrl = url"${appConfig.emailApiUrl}/hmrc/email"
+    val emailApiUrl = url"${appConfig.emailApiUrl}/hmrc/email"
+    val sendEmailReq = createSendEmailRequest(
+      emailAddress,
+      schemeAdministratorType,
+      requestId,
+      psaOrPspId,
+      journeyType,
+      templateName,
+      templateParams
+    )
 
-    val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, templateParams, appConfig.emailSendForce,
-      callBackUrl(schemeAdministratorType, requestId, journeyType, psaOrPspId, emailAddress))
-    val jsonData = Json.toJson(sendEmailReq)
-
-    http.post(emailServiceUrl).withBody(jsonData).execute[HttpResponse].map { response =>
+    http.post(emailApiUrl).withBody(Json.toJson(sendEmailReq)).execute[HttpResponse].map { response =>
       response.status match {
         case ACCEPTED =>
-          logger.debug(s"Email sent successfully for $journeyType")
+          logger.info(
+            s"[EmailConnector] Email sent successfully for journeyType='$journeyType', " +
+              s"requestId='$requestId', psaOrPspId='$psaOrPspId'."
+          )
           EmailSent
-        case status =>
-          logger.warn(s"Sending Email failed for $journeyType with response status $status")
+        case otherStatus =>
+          logger.warn(
+            s"[EmailConnector] Email sending failed for journeyType='$journeyType', " +
+              s"requestId='$requestId', psaOrPspId='$psaOrPspId'. " +
+              s"Response status: $otherStatus"
+          )
           EmailNotSent
       }
-    } recoverWith logExceptions
-  }
-
-  private def logExceptions: PartialFunction[Throwable, Future[EmailStatus]] = {
-    case t: Throwable =>
-      logger.warn("Unable to connect to Email Service", t)
-      Future.successful(EmailNotSent)
+    }.recoverWith {
+      case throwable: Throwable =>
+        logger.error(
+          s"[EmailConnector] Failed to send email due to an exception for journeyType='$journeyType', " +
+            s"requestId='$requestId', psaOrPspId='$psaOrPspId'. Exception: ${throwable.getMessage}",
+          throwable
+        )
+        Future.successful(EmailNotSent)
+    }
   }
 }

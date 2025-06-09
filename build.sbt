@@ -9,8 +9,6 @@ lazy val appName: String = "pension-scheme-accounting-for-tax-frontend"
 lazy val root = (project in file("."))
   .disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
-  .settings(DefaultBuildSettings.scalaSettings: _*)
-  .settings(DefaultBuildSettings.defaultSettings(): _*)
   .settings(inConfig(Test)(testSettings): _*)
   .settings(
     scalaVersion := "2.13.16",
@@ -44,14 +42,11 @@ lazy val root = (project in file("."))
     ScoverageKeys.coverageMinimumStmtTotal := 80,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
-    scalacOptions ++= Seq("-feature", "-deprecation"),
+    scalacOptions ++= Seq("-feature", "-deprecation", "-Xfatal-warnings"),
     scalacOptions += "-Wconf:src=routes/.*:s",
     scalacOptions += "-Wconf:src=html/.*:s",
     libraryDependencies ++= AppDependencies(),
     retrieveManaged := true,
-    resolvers ++= Seq(
-      Resolver.jcenterRepo
-    ),
     Concat.groups := Seq(
       "javascripts/application.js" -> group(Seq("lib/govuk-frontend/dist/govuk/all.bundle.js", "lib/hmrc-frontend/hmrc/all.js",
         "javascripts/aft.js"
