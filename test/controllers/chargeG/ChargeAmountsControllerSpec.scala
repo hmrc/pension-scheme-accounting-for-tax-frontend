@@ -38,7 +38,7 @@ import scala.concurrent.Future
 
 class ChargeAmountsControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private def application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
   private val form = new ChargeAmountsFormProvider()("first last", BigDecimal("0.01"))
 
   private def httpPathGET: String = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 0).url

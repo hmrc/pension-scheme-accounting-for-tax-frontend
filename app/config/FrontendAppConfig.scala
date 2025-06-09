@@ -17,7 +17,6 @@
 package config
 
 import com.google.inject.{Inject, Singleton}
-import controllers.routes
 import models.AdministratorOrPractitioner.Administrator
 import models.ChargeType.toRoute
 import models.requests.{DataRequest, IdentifierRequest}
@@ -38,29 +37,15 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   private def loadConfig(key: String): String =
     configuration.getOptional[String](key).getOrElse(throw new Exception(s"Missing configuration key: $key"))
 
-  private def baseUrl(serviceName: String): String = {
-    val protocol = configuration.getOptional[String](s"microservice.services.$serviceName.protocol").getOrElse("http")
-    val host = configuration.get[String](s"microservice.services.$serviceName.host")
-    val port = configuration.get[String](s"microservice.services.$serviceName.port")
-    s"$protocol://$host:$port"
-  }
-
   private def getConfigString(key: String) = servicesConfig.getConfString(key, throw new Exception(s"Could not find config '$key'"))
 
-  lazy val contactHost: String = baseUrl("contact-frontend")
 
   lazy val appName: String = configuration.get[String](path = "appName")
-  val analyticsToken: String = configuration.get[String](s"google-analytics.token")
-  val analyticsHost: String = configuration.get[String](s"google-analytics.host")
 
   val ifsTimeout: Duration = configuration.get[Duration]("ifs.timeout")
 
-  val reportAProblemPartialUrl: String = getConfigString("contact-frontend.report-problem-url.with-js")
-  val reportAProblemNonJSUrl: String = getConfigString("contact-frontend.report-problem-url.non-js")
-  val betaFeedbackUrl: String = getConfigString("contact-frontend.beta-feedback-url.authenticated")
   val betaFeedbackUnauthenticatedUrl: String = getConfigString("contact-frontend.beta-feedback-url.unauthenticated")
 
-  lazy val authUrl: String = configuration.get[Service]("auth").baseUrl
   lazy val loginUrl: String = configuration.get[String]("urls.login")
   lazy val loginContinueUrl: String = configuration.get[String]("urls.loginContinue")
   lazy val signOutUrl: String = loadConfig("urls.logout")
@@ -70,9 +55,6 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
 
   lazy val timeoutSeconds: Int = configuration.get[Int]("session.timeoutSeconds")
   lazy val countdownSeconds: Int = configuration.get[Int]("session.countdownSeconds")
-
-  lazy val languageTranslationEnabled: Boolean =
-    configuration.get[Boolean]("microservice.services.features.welsh-translation")
 
   def languageMap: Map[String, Lang] = Map(
     "english" -> Lang("en"),
@@ -148,13 +130,11 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val delimitedPsaUrl: String = loadConfig("urls.delimitedPsa")
   lazy val managePensionsSchemePspUrl: String = loadConfig("urls.psp.schemesSummary")
   lazy val yourPensionSchemesUrl: String = loadConfig("urls.yourPensionSchemes")
-  lazy val yourPensionSchemesPspUrl: String = loadConfig("urls.psp.yourPensionSchemes")
   lazy val minimalPsaDetailsUrl: String = s"$pensionsAdministratorUrl${configuration.get[String](path = "urls.minimalPsaDetails")}"
   lazy val validCountryCodes: Seq[String] = configuration.get[String]("validCountryCodes").split(",").toSeq
   lazy val minimumYear: Int = configuration.get[Int]("minimumYear")
 
   lazy val earliestStartDate: String = configuration.get[String]("earliestStartDate")
-  lazy val earliestEndDate: String = configuration.get[String]("earliestEndDate")
   lazy val aftNoOfYearsDisplayed: Int = configuration.get[Int]("aftNoOfYearsDisplayed")
   lazy val fileAFTReturnTemplateId: String = configuration.get[String]("email.fileAftReturnTemplateId")
   lazy val amendAftReturnDecreaseTemplateIdId: String = configuration.get[String]("email.amendAftReturnDecreaseTemplateId")
@@ -163,7 +143,6 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
 
   lazy val aftLoginUrl: String = s"${configuration.get[String](path = "urls.partials.aftLoginLink")}"
   lazy val aftSummaryPageUrl: String = s"${configuration.get[String](path = "urls.partials.aftSummaryPageLink")}"
-  lazy val aftReturnHistoryUrl: String = s"${configuration.get[String](path = "urls.partials.aftReturnHistoryLink")}"
   lazy val aftContinueReturnUrl: String = s"${configuration.get[String](path = "urls.partials.aftContinueReturn")}"
   lazy val aftAmendUrl: String = s"${configuration.get[String](path = "urls.partials.aftAmendLink")}"
   lazy val paymentsAndChargesUrl: String = s"${configuration.get[String](path = "urls.partials.paymentsAndChargesLogicLink")}"
@@ -192,23 +171,13 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
     )
 
   lazy val addressLookUp = s"${servicesConfig.baseUrl("address-lookup")}"
-  lazy val eventReportingUrl: String = servicesConfig.baseUrl("pension-scheme-event-reporting")
 
-
-  def routeToSwitchLanguage: String => Call =
-    (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)
-
-  lazy val gtmContainerId: String = configuration.get[String]("tracking-consent-frontend.gtm.container")
-  lazy val trackingSnippetUrl: String = configuration.get[String]("tracking-consent-frontend.url")
   lazy val membersPageSize: Int = configuration.get[Int]("members.pageSize")
 
-  lazy val upscanUrl:String                = servicesConfig.baseUrl("upscan-initiate")
-  lazy val initiateUrl:String              = servicesConfig.baseUrl("upscan-initiate") + "/upscan/initiate"
   lazy val initiateV2Url:String            = servicesConfig.baseUrl("upscan-initiate") + "/upscan/v2/initiate"
 
   lazy val upScanCallBack:String   = s"${servicesConfig.baseUrl("aft-frontend")}${configuration.underlying
     .getString("urls.upscan-callback-endpoint")}"
-  lazy val callbackEndpointTarget:String   = loadConfig("upscan.callback-endpoint")
 
   lazy val creditBalanceRefundLink: String = loadConfig("urls.creditBalanceRefundLink")
 

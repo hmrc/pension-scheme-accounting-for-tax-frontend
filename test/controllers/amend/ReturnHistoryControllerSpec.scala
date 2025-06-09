@@ -100,8 +100,8 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with JsonMatchers {
 
   private def link(version: AFTVersion, linkText: String, accessType: AccessType) =
     s"<a id= report-version-${version.reportVersion} class=govuk-link href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version.reportVersion)}>" +
-      s"<span aria-hidden=true>${linkText}</span>" +
-      s"<span class=govuk-visually-hidden> ${linkText} " +
+      s"<span aria-hidden=true>$linkText</span>" +
+      s"<span class=govuk-visually-hidden> $linkText " +
       s"${messages(s"returnHistory.visuallyHidden", version.reportVersion.toString)}</span></a>"
 
   private val tableRows = Seq(
