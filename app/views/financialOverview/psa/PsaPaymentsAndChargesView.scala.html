@@ -18,44 +18,42 @@
 @import views.html.components._
 
 @this(
-    layout: templates.Layout,
-    govukBackLink: GovukBackLink,
-    hmrcPageHeading: HmrcPageHeading,
-    govukButton: GovukButton,
-    govukTable: GovukTable,
-    config: FrontendAppConfig
+layout: templates.Layout,
+hmrcPageHeading: HmrcPageHeading,
+govukTable: GovukTable,
+config: FrontendAppConfig
 )
 
 @(
-    titleMessage: String,
     journeyType: String,
-    schemeName: String,
     psaName: String,
-    pstr: String,
+    titleMessage: String,
+    pstr: Option[String] = None,
     reflectChargeText: String,
     totalOverdueCharge: String,
     totalInterestAccruing: String,
     totalUpcomingCharge: String,
     totalOutstandingCharge: String,
     penaltiesTable: Table,
-    paymentAndChargesTable: Table,
-    returnUrl: String
-)(implicit messages: Messages, request: Request[_])
+    paymentAndChargesTable: Table
+)(implicit request: Request[_], messages: Messages)
 
-@layout(messages(titleMessage)) {
+@layout(messages(titleMessage), fullWidthLayout = true) {
 
-<div class="govuk-grid-row">
+<div>
 
         @hmrcPageHeading(PageHeading(
             text = messages(titleMessage),
             section = Some(psaName)
         ))
 
-        @if(journeyType == "all") {
-        <p class="govuk-body">@messages("psa.financial.overview.penalties.pstr.text", pstr)</p>
+        @if(journeyType == "all" && pstr.isDefined) {
+        <p class="govuk-body">@messages("psa.financial.overview.penalties.pstr.text", pstr.get)</p>
         }
 
-        <p class="govuk-body">@reflectChargeText</p>
+        <div class="govuk-inset-text">
+            <p class="govuk-body">@reflectChargeText</p>
+        </div>
 
         <div class="govuk-grid-row govuk-!-margin-top-7 govuk-!-margin-bottom-7">
             @if(journeyType == "overdue") {
@@ -72,16 +70,14 @@
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalInterestAccruing</p>
             </div>
             }
-
             @if(journeyType == "upcoming") {
             <div class="govuk-grid-column-one-half">
                 <h2 class="govuk-heading-m govuk-!-font-weight-regular">
-                    @messages("psa.financial.overview.h2.totalDuePenalties.new2")
+                    @messages("psa.financial.overview.h2.totalDuePenalties")
                 </h2>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalUpcomingCharge</p>
             </div>
             }
-
             @if(journeyType == "all") {
             <div class="govuk-grid-column-one-half">
                 <h2 class="govuk-heading-m govuk-!-font-weight-regular">
@@ -92,39 +88,32 @@
             }
         </div>
 
-    </div>
 </div>
 
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
+<div>
         @if(penaltiesTable.rows.nonEmpty) {
-        <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">@messages("psa.financial.overview.overdue.title.v2")</span>
-        <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
+        <span id="penaltiesAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">messages(titleMessage)</span>
+        <div role="region" aria-labelledby="penaltiesAndCharges_h2" class="govuk-!-margin-bottom-7">
             @govukTable(penaltiesTable)
         </div>
-        }
-    </div>
-</div>
-
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
-        @if(paymentAndChargesTable.rows.nonEmpty) {
-        <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">@messages("psa.financial.overview.overdue.title.v2")</span>
+        } else {
+        <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">messages(titleMessage)</span>
         <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
             @govukTable(paymentAndChargesTable)
         </div>
         }
-    </div>
 </div>
 
 <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
     <a id="return" href="@config.psafinancialOverviewUrl" class="govuk-link">
-    @messages("site.return.to.overview.new")
+        @messages("site.return.to.overview.new")
     </a>
 </p>
 
-<p class="govuk-body">
-    <a id="return_to_psa" href="@returnUrl" class="govuk-link">@messages("return.to.link", psaName)</a>
+<p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+    <a id="return_to_psa" href="@config.managePensionsSchemeOverviewUrl" class="govuk-link">
+    @messages("return.to.link", psaName)
+    </a>
 </p>
 
 }

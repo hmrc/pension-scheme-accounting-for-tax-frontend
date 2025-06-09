@@ -29,7 +29,7 @@ import play.api.mvc._
 import services.SchemeService
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.financialOverview.scheme.{SchemeFinancialOverviewNewView, SchemeFinancialOverviewView}
+import views.html.financialOverview.scheme.SchemeFinancialOverviewView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -41,7 +41,6 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
                                                   financialStatementConnector: FinancialStatementConnector,
                                                   paymentsAndChargesService: PaymentsAndChargesService,
                                                   config: FrontendAppConfig,
-                                                  schemeFinancialOverviewNew: SchemeFinancialOverviewNewView,
                                                   schemeFinancialOverview: SchemeFinancialOverviewView,
                                                   accessAction: AllowAccessActionProviderForIdentifierRequest
                                                  )(implicit ec: ExecutionContext)
@@ -53,8 +52,8 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
   def schemeFinancialOverview(srn: String): Action[AnyContent] = (identify andThen accessAction(Some(srn))).async {
     implicit request =>
       val response = for {
-        schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn)
-        schemeFS <- paymentsAndChargesService.getPaymentsFromCache(loggedInId = request.idOrException , srn = srn, request.isLoggedInAsPsa)
+        schemeDetails  <- schemeService.retrieveSchemeDetails(request.idOrException, srn)
+        schemeFS       <- paymentsAndChargesService.getPaymentsFromCache(loggedInId = request.idOrException , srn = srn, request.isLoggedInAsPsa)
         creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr, srn, request.isLoggedInAsPsa)
       } yield {
         renderFinancialOverview(srn, schemeDetails, schemeFS, creditSchemeFS.seqSchemeFSDetail)
@@ -68,19 +67,19 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
                                       schemeFSCache: PaymentsCache,
                                       creditSchemeFSDetail: Seq[SchemeFSDetail]
                                      )(implicit request: Request[_]): Future[Result] = {
-    val schemeFSDetail = schemeFSCache.schemeFSDetail
-    val schemeName = schemeDetails.schemeName
-    val overdueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFSDetail)
-    val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(schemeFSDetail)
-    val totalOverdueCharge: BigDecimal = overdueCharges.map(_.amountDue).sum
-    val totalInterestAccruing: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
-    val upcomingCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(schemeFSDetail)
-    val totalUpcomingCharge : BigDecimal = upcomingCharges.map(_.amountDue).sum
-    val totalUpcomingChargeFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalUpcomingCharge)}"
-    val totalOverdueChargeFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalOverdueCharge)}"
-    val totalInterestAccruingFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}"
-    val creditBalanceFormatted: String = creditBalanceAmountFormatted(creditSchemeFSDetail)
-    val loggedInAsPsa: Boolean = schemeFSCache.loggedInId.startsWith("A")
+    val schemeFSDetail                        = schemeFSCache.schemeFSDetail
+    val schemeName                            = schemeDetails.schemeName
+    val overdueCharges: Seq[SchemeFSDetail]   = paymentsAndChargesService.getOverdueCharges(schemeFSDetail)
+    val interestCharges: Seq[SchemeFSDetail]  = paymentsAndChargesService.getInterestCharges(schemeFSDetail)
+    val totalOverdueCharge: BigDecimal        = overdueCharges.map(_.amountDue).sum
+    val totalInterestAccruing: BigDecimal     = interestCharges.map(_.accruedInterestTotal).sum
+    val upcomingCharges: Seq[SchemeFSDetail]  = paymentsAndChargesService.extractUpcomingCharges(schemeFSDetail)
+    val totalUpcomingCharge : BigDecimal      = upcomingCharges.map(_.amountDue).sum
+    val totalUpcomingChargeFormatted          = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcomingCharge)}"
+    val totalOverdueChargeFormatted           = s"${FormatHelper.formatCurrencyAmountAsString(totalOverdueCharge)}"
+    val totalInterestAccruingFormatted        = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}"
+    val creditBalanceFormatted: String        = creditBalanceAmountFormatted(creditSchemeFSDetail)
+    val loggedInAsPsa: Boolean                = schemeFSCache.loggedInId.startsWith("A")
     val returnUrl = if(loggedInAsPsa) {
       Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
     } else {
@@ -88,55 +87,34 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
     }
     val isOverdueChargeAvailable = paymentsAndChargesService.isOverdueChargeAvailable(schemeFSDetail)
     val displayHistory = schemeFSDetail.exists(_.outstandingAmount <= 0)
-    val historyLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, History).url
 
     logger.debug(s"AFT service returned UpcomingCharge - $totalUpcomingCharge")
     logger.debug(s"AFT service returned OverdueCharge - $totalOverdueCharge")
     logger.debug(s"AFT service returned InterestAccruing - $totalInterestAccruing")
     logger.warn(s"$srn SchemeFinancialOverviewController totalUpcomingCharge: $totalUpcomingChargeFormatted")
 
-    val creditBalance = getCreditBalanceAmount(creditSchemeFSDetail)
-
-    val requestRefundUrl = schemeFSCache.inhibitRefundSignal match {
-      case true => controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url
-      case false => routes.RequestRefundController.onPageLoad(srn).url
-    }
-
-    val templateToRender = if(config.podsNewFinancialCredits) {
-      schemeFinancialOverviewNew(
-        schemeName = schemeName,
-        totalUpcomingCharge = totalUpcomingChargeFormatted,
-        totalOverdueCharge = totalOverdueChargeFormatted,
-        totalInterestAccruing = totalInterestAccruingFormatted,
-        requestRefundUrl = requestRefundUrl,
-        allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(srn, "overdue").url,
-        duePaymentLink = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
-        allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, All).url,
-        creditBalanceFormatted = creditBalanceFormatted,
-        creditBalance = creditBalance,
-        isOverdueChargeAvailable = isOverdueChargeAvailable,
-        returnUrl = returnUrl,
-        displayHistory = displayHistory,
-        historyLink = historyLink
-      )
+    val requestRefundUrl = if (schemeFSCache.inhibitRefundSignal) {
+      controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url
     } else {
-      schemeFinancialOverview(
-        schemeName = schemeName,
-        totalUpcomingCharge = totalUpcomingChargeFormatted,
-        totalOverdueCharge = totalOverdueChargeFormatted,
-        totalInterestAccruing = totalInterestAccruingFormatted,
-        requestRefundUrl = requestRefundUrl,
-        allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(srn, "overdue").url,
-        duePaymentLink = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
-        allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, All).url,
-        creditBalanceFormatted = creditBalanceFormatted,
-        creditBalance = creditBalance,
-        isOverdueChargeAvailable = isOverdueChargeAvailable,
-        returnUrl = returnUrl
-      )
+      routes.RequestRefundController.onPageLoad(srn).url
     }
 
-    Future.successful(Ok(templateToRender))
+    Future.successful(Ok(schemeFinancialOverview(
+      schemeName                         = schemeName,
+      totalUpcomingCharge                = totalUpcomingChargeFormatted,
+      totalOverdueCharge                 = totalOverdueChargeFormatted,
+      totalInterestAccruing              = totalInterestAccruingFormatted,
+      requestRefundUrl                   = requestRefundUrl,
+      allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(srn, "overdue").url,
+      duePaymentLink                     = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
+      allPaymentLink                     = routes.PaymentOrChargeTypeController.onPageLoad(srn, All).url,
+      creditBalanceFormatted             = creditBalanceFormatted,
+      creditBalance                      = getCreditBalanceAmount(creditSchemeFSDetail),
+      isOverdueChargeAvailable           = isOverdueChargeAvailable,
+      returnUrl                          = returnUrl,
+      displayHistory                     = displayHistory,
+      historyLink                        = routes.PaymentOrChargeTypeController.onPageLoad(srn, History).url
+    )))
   }
 
   def getCreditBalanceAmount(schemeFs: Seq[SchemeFSDetail]): BigDecimal = {
@@ -149,6 +127,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
     }
     creditBalanceAmt
   }
+
   def creditBalanceAmountFormatted(schemeFs: Seq[SchemeFSDetail]): String = {
     val creditToDisplay = getCreditBalanceAmount(schemeFs)
     s"${FormatHelper.formatCurrencyAmountAsString(creditToDisplay)}"

@@ -16,7 +16,6 @@
 
 package controllers.financialOverview.psa
 
-import config.FrontendAppConfig
 import controllers.actions._
 import controllers.financialOverview.psa.routes.AllPenaltiesAndChargesController
 import helpers.FormatHelper
@@ -34,7 +33,7 @@ import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
 import viewmodels.PsaChargeDetailsViewModel
-import views.html.financialOverview.psa.{PsaChargeDetailsNewView, PsaChargeDetailsView}
+import views.html.financialOverview.psa.PsaChargeDetailsView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,10 +43,8 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
                                                        override val messagesApi: MessagesApi,
                                                        val controllerComponents: MessagesControllerComponents,
                                                        psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                                       config: FrontendAppConfig,
                                                        schemeService: SchemeService,
-                                                       newView: PsaChargeDetailsNewView,
-                                                       view: PsaChargeDetailsView
+                                                       view: PsaChargeDetailsView,
                                                       )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -65,44 +62,24 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
             if (penaltyOpt.nonEmpty) {
               schemeService.retrieveSchemeDetails(request.idOrException, srn) flatMap {
                 schemeDetails =>
-
-                  val modelObject = if (config.podsNewFinancialCredits) {
-                    commonJsonNewV2(penaltiesCache.psaName, schemeDetails.schemeName, penaltyOpt.head, journeyType)
-                  } else {
-                    commonJson(penaltiesCache.psaName, schemeDetails.schemeName, penaltyOpt.head, journeyType)
-                  }
-
-                  val templateToRender = if (config.podsNewFinancialCredits) {
-                    newView(modelObject)
-                  } else {
-                    view(modelObject)
-                  }
-                  Future.successful(Ok(templateToRender))
+                  Future.successful(Ok(view(commonJson(
+                    srn,
+                    penaltiesCache.psaName,
+                    schemeDetails.schemeName,
+                    penaltyOpt.head,
+                    journeyType
+                  ))))
               }
-            }else
-            {
+            } else {
               Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
             }
         }
     }
 
-
   private def setInsetText(psaFS: PsaFSDetail, interestUrl: String, originalChargeUrl: String)
-                          (implicit messages: Messages): HtmlContent = {
-    if (psaFS.chargeType == CONTRACT_SETTLEMENT && psaFS.accruedInterestTotal > 0) {
-      setInsetTextForContractCharge(psaFS, interestUrl, messages)
-    } else if (psaFS.chargeType == CONTRACT_SETTLEMENT_INTEREST) {
-      setInsetTextForContractInterest(psaFS, originalChargeUrl, messages)
-    }
-    else {
-      HtmlContent("")
-    }
-  }
-
-  private def setInsetTextNew(psaFS: PsaFSDetail, interestUrl: String, originalChargeUrl: String)
                              (implicit messages: Messages): HtmlContent = {
     if (psaFS.chargeType == CONTRACT_SETTLEMENT && psaFS.accruedInterestTotal > 0) {
-      setInsetTextForContractChargeNew(psaFS, interestUrl, messages)
+      setInsetTextForContractCharge(psaFS, interestUrl, messages)
     } else if (psaFS.chargeType == CONTRACT_SETTLEMENT_INTEREST) {
       setInsetTextForContractInterest(psaFS, originalChargeUrl, messages)
     }
@@ -123,26 +100,6 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     psaFS.dueDate match {
       case Some(dueDateValue) =>
         HtmlContent(
-          s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
-            s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
-            s" <span class=govuk-!-font-weight-bold>${
-              messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
-                psaFS.accruedInterestTotal)
-            }</span>" +
-            s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", dueDateValue.format(dateFormatterDMY))}<span>" +
-            s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
-            s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
-        )
-      case _ =>
-        HtmlContent("")
-
-    }
-  }
-
-  private def setInsetTextForContractChargeNew(psaFS: PsaFSDetail, interestUrl: String, messages: Messages): HtmlContent = {
-    psaFS.dueDate match {
-      case Some(dueDateValue) =>
-        HtmlContent(
           s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
             s" <span class=govuk-!-font-weight-regular>${
               messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
@@ -157,13 +114,13 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     }
   }
 
-  private def commonJson(psaName: String,
+  private def commonJson(srn: String,
+                         psaName: String,
                          schemeName: String,
                          psaFSDetail: PsaFSDetail,
                          journeyType: ChargeDetailsFilter
                         )(implicit request: IdentifierRequest[AnyContent]): PsaChargeDetailsViewModel = {
-    val period = psaPenaltiesAndChargesService.setPeriod(psaFSDetail.chargeType, psaFSDetail.periodStartDate, psaFSDetail.periodEndDate)
-    val interestUrl = routes.PsaPaymentsAndChargesInterestController.onPageLoad(psaFSDetail.pstr, psaFSDetail.index.toString, journeyType).url
+    val interestUrl = routes.PsaPaymentsAndChargesInterestController.onPageLoad(srn, psaFSDetail.index.toString, journeyType).url
     val isInterestPresent: Boolean = psaFSDetail.accruedInterestTotal > 0 || psaFSDetail.chargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST
     val detailsChargeType = psaFSDetail.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
@@ -171,58 +128,25 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
 
     val originalChargeUrl = psaFSDetail.psaSourceChargeInfo match {
       case Some(sourceChargeRef) =>
-        routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(psaFSDetail.pstr, sourceChargeRef.index.toString, All).url
+        routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(srn, sourceChargeRef.index.toString, All).url
       case _ => ""
     }
 
     PsaChargeDetailsViewModel(
-      heading = detailsChargeTypeHeading.toString,
-      schemeName = schemeName,
-      psaName = psaName,
-      isOverdue = psaPenaltiesAndChargesService.isPaymentOverdue(psaFSDetail),
-      list = Some(psaPenaltiesAndChargesService.chargeDetailsRows(psaFSDetail, journeyType)),
-      period = Some(period),
-      chargeReference = psaFSDetail.chargeReference,
-      penaltyAmount = psaFSDetail.totalAmount,
-      insetText = setInsetText(psaFSDetail, interestUrl, originalChargeUrl),
-      isInterestPresent = isInterestPresent,
-      returnUrl = getReturnUrl(psaFSDetail, penaltyType, journeyType),
-      returnUrlText = getReturnUrlText(psaFSDetail, penaltyType, journeyType)
-    )
-  }
-
-  private def commonJsonNewV2(psaName: String,
-                              schemeName: String,
-                              psaFSDetail: PsaFSDetail,
-                              journeyType: ChargeDetailsFilter
-                             )(implicit request: IdentifierRequest[AnyContent]): PsaChargeDetailsViewModel = {
-    val interestUrl = routes.PsaPaymentsAndChargesInterestController.onPageLoad(psaFSDetail.pstr, psaFSDetail.index.toString, journeyType).url
-    val isInterestPresent: Boolean = psaFSDetail.accruedInterestTotal > 0 || psaFSDetail.chargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST
-    val detailsChargeType = psaFSDetail.chargeType
-    val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
-    val penaltyType = getPenaltyType(detailsChargeType)
-
-    val originalChargeUrl = psaFSDetail.psaSourceChargeInfo match {
-      case Some(sourceChargeRef) =>
-        routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(psaFSDetail.pstr, sourceChargeRef.index.toString, All).url
-      case _ => ""
-    }
-
-    PsaChargeDetailsViewModel(
-      heading = detailsChargeTypeHeading.toString,
-      psaName = psaName,
-      schemeName = schemeName,
-      isOverdue = psaPenaltiesAndChargesService.isPaymentOverdue(psaFSDetail),
-      paymentDueAmount = Some(FormatHelper.formatCurrencyAmountAsString(psaFSDetail.amountDue)),
-      paymentDueDate = Some(psaPenaltiesAndChargesService.getPaymentDueDate(psaFSDetail)),
-      chargeReference = psaFSDetail.chargeReference,
-      penaltyAmount = psaFSDetail.totalAmount,
-      insetText = setInsetTextNew(psaFSDetail, interestUrl, originalChargeUrl),
+      heading             = detailsChargeTypeHeading.toString,
+      psaName             = psaName,
+      schemeName          = schemeName,
+      isOverdue           = psaPenaltiesAndChargesService.isPaymentOverdue(psaFSDetail),
+      paymentDueAmount    = Some(FormatHelper.formatCurrencyAmountAsString(psaFSDetail.amountDue)),
+      paymentDueDate      = Some(psaPenaltiesAndChargesService.getPaymentDueDate(psaFSDetail)),
+      chargeReference     = psaFSDetail.chargeReference,
+      penaltyAmount       = psaFSDetail.totalAmount,
+      insetText           = setInsetText(psaFSDetail, interestUrl, originalChargeUrl),
       chargeHeaderDetails = Some(psaPenaltiesAndChargesService.chargeHeaderDetailsRows(psaFSDetail)),
       chargeAmountDetails = Some(psaPenaltiesAndChargesService.chargeAmountDetailsRows(psaFSDetail)),
-      isInterestPresent = isInterestPresent,
-      returnUrl = getReturnUrl(psaFSDetail, penaltyType, journeyType),
-      returnUrlText = getReturnUrlText(psaFSDetail, penaltyType, journeyType)
+      isInterestPresent   = isInterestPresent,
+      returnUrl           = getReturnUrl(psaFSDetail, penaltyType, journeyType),
+      returnUrlText       = getReturnUrlText(psaFSDetail, penaltyType, journeyType)
     )
   }
 

@@ -35,7 +35,7 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers.{route, _}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
-import views.html.financialOverview.scheme.PaymentsAndChargesNewView
+import views.html.financialOverview.scheme.PaymentsAndChargesView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -74,7 +74,7 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
       .thenReturn(schemeFSResponse)
     when(mockPaymentsAndChargesService.getInterestCharges(any()))
       .thenReturn(schemeFSResponse)
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any(), any())(any())).thenReturn(emptyChargesTable)
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any())(any())).thenReturn(emptyChargesTable)
   }
 
   "AllPaymentsAndChargesController" must {
@@ -85,7 +85,7 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[PaymentsAndChargesNewView].apply(
+      val view = application.injector.instanceOf[PaymentsAndChargesView].apply(
         journeyType = "all",
         schemeName = schemeDetails.schemeName,
         titleMessage = "Accounting for Tax payments and charges for 1 April to 30 June 2020",

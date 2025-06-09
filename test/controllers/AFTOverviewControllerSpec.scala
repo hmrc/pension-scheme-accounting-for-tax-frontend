@@ -80,7 +80,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
       .thenReturn(Future.successful(Seq.empty))
     when(mockPaymentsAndChargesService.getInterestCharges(any()))
       .thenReturn(schemeFSResponse)
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(any(), any(), any(), any())(any())).thenReturn(emptyChargesTable)  }
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(any(), any(), any())(any())).thenReturn(emptyChargesTable)  }
 
 
   "AFT Overview Controller" must {

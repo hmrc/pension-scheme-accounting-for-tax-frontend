@@ -18,27 +18,27 @@
 @import views.html.components._
 
 @this(
-    layout: templates.Layout,
-    govukBackLink: GovukBackLink,
-    govukButton: GovukButton,
-    govukTable: GovukTable,
-    config: FrontendAppConfig
+layout: templates.Layout,
+hmrcPageHeading: HmrcPageHeading,
+govukTable: GovukTable,
+config: FrontendAppConfig
 )
 
 @(
-    titleMessage: String,
     journeyType: String,
     schemeName: String,
+    titleMessage: String,
     pstr: String,
     reflectChargeText: String,
-    totalDue: String,
+    totalOverdue: String,
     totalInterestAccruing: String,
     totalUpcoming: String,
+    totalDue: String,
     penaltiesTable: Table,
     paymentAndChargesTable: Table,
     returnUrl: String,
     returnDashboardUrl: String
-)(implicit messages: Messages, request: Request[_])
+)(implicit request: Request[_], messages: Messages)
 
 @layout(messages(titleMessage), fullWidthLayout = true) {
 
@@ -46,14 +46,12 @@
 
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            <h1 class="hmrc-caption govuk-caption-xl">@schemeName</h1>
+            <span class="hmrc-caption govuk-caption-xl">@schemeName</span>
             <h1 class="govuk-heading-xl">@titleMessage</h1>
         </div>
     </div>
 
-        <div class="govuk-inset-text">
-            <p class="govuk-body">@reflectChargeText</p>
-        </div>
+       <p class="govuk-body">@reflectChargeText</p>
 
         <div class="govuk-grid-row govuk-!-margin-top-7 govuk-!-margin-bottom-7">
             @if(journeyType == "overdue") {
@@ -61,25 +59,23 @@
                 <h2 class="govuk-heading-m govuk-!-font-weight-regular">
                     @messages("schemeFinancial.h2.overduePayments")
                 </h2>
-                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalDue</p>
+                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalOverdue</p>
             </div>
             <div class="govuk-grid-column-one-half">
                 <h2 class="govuk-heading-m govuk-!-font-weight-regular">
-                    @messages("schemeFinancial.h2.totalInterestAccruing")
+                    @messages("schemeFinancial.h2.totalInterestAccruing.new2")
                 </h2>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalInterestAccruing</p>
             </div>
             }
-
             @if(journeyType == "upcoming") {
             <div class="govuk-grid-column-one-half">
                 <h2 class="govuk-heading-m govuk-!-font-weight-regular">
-                    @messages("schemeFinancial.h2.totalDuePayment")
+                    @messages("schemeFinancial.h2.totalDuePayment.v2")
                 </h2>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalUpcoming</p>
             </div>
             }
-
             @if(journeyType == "all") {
             <div class="govuk-grid-column-one-half">
                 <h2 class="govuk-heading-m govuk-!-font-weight-regular">
@@ -90,22 +86,19 @@
             }
         </div>
 
-</div>
 
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
         @if(paymentAndChargesTable.rows.nonEmpty) {
-        <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">@messages(titleMessage)</span>
+        <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">messages(titleMessage)</span>
         <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
             @govukTable(paymentAndChargesTable)
         </div>
         }
-    </div>
 </div>
 
 <p class="govuk-body">
     <a id="return" href="@returnUrl" class="govuk-link">
-        @messages("return.to.overview.scheme.new")</a>
+        @messages("return.to.overview.scheme.new")
+    </a>
 </p>
 
 <p class="govuk-body govuk-!-margin-top-6 govuk-!-margin-bottom-2">
@@ -113,4 +106,5 @@
     @messages("return.to.link", schemeName)
     </a>
 </p>
+
 }
