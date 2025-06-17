@@ -60,7 +60,7 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
         bind[MinimalConnector].toInstance(mockMinimalConnector),
         bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
-      ): _*
+      )*
     )
     .build()
 

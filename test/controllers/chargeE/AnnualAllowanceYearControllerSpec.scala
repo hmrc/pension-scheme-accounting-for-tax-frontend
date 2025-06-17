@@ -73,7 +73,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with JsonMatc
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
   }
 
   DateHelper.setDate(Some(LocalDate.of(2020, 4, 5)))
@@ -105,7 +105,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with JsonMatc
     "return OK and the correct view for a GET when the question has previously been answered" in {
       reset(mockSchemeDetailsConnector)
       val ua = userAnswersWithSchemeNamePstrQuarter.set(AnnualAllowanceYearPage(0), YearRange("2019"))(
-        writes(YearRange.enumerable)
+        writes(using YearRange.enumerable)
       ).get
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       when(mockSchemeDetailsConnector.getSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))

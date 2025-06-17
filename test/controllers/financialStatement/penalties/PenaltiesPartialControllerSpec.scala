@@ -45,7 +45,7 @@ import scala.concurrent.Future
 class PenaltiesPartialControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
-  private def httpPathGET: String = controllers.financialStatement.penalties.routes.PenaltiesPartialController.penaltiesPartial.url
+  private def httpPathGET: String = controllers.financialStatement.penalties.routes.PenaltiesPartialController.penaltiesPartial().url
 
   val appConfig: FrontendAppConfig = mock[FrontendAppConfig]
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]

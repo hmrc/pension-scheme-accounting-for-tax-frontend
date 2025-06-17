@@ -79,7 +79,7 @@ class FileUploadGenericErrorReporterSpec extends SpecBase with Matchers {
     "return generic list of errors for the failed OverseasTransfer" in {
       val underTest = FileUploadGenericErrorReporter
 
-     val errors =  Seq(
+      val errors =  Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
         ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
         ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino"),

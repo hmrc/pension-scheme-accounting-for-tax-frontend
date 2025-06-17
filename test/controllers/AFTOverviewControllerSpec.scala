@@ -60,7 +60,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
         bind[SchemeService].toInstance(mockSchemeService),
         bind[QuartersService].toInstance(mockQuartersService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
-      ): _*
+      )*
     )
     .build()
 
@@ -70,7 +70,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
     super.beforeEach()
     reset(mockPaymentsAndChargesService)
     reset(mockQuartersService)
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
 
     when(mockPaymentsAndChargesService.getDueCharges(any()))
       .thenReturn(schemeFSResponse)

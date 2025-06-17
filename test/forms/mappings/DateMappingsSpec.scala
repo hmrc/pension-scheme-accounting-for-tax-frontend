@@ -26,14 +26,14 @@ import play.api.data.{Form, FormError}
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-import play.api.test.Helpers.baseApplicationBuilder.injector
 
 import java.time.LocalDate
 
 class DateMappingsSpec extends AnyFreeSpec with Matchers with ScalaCheckPropertyChecks with Generators with OptionValues
   with Mappings {
 
-  protected def messagesApi: MessagesApi = injector().instanceOf[MessagesApi]
+  val injector = play.api.test.Helpers.baseApplicationBuilder.injector()
+  protected def messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
   protected def fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
   protected implicit def messages: Messages = messagesApi.preferred(fakeRequest)
 

@@ -20,7 +20,7 @@ import play.api.data.{Form, FormError}
 
 trait BigDecimalFieldBehaviours extends FieldBehaviours {
 
-  def bigDecimalField(form: Form[_],
+  def bigDecimalField(form: Form[?],
                       fieldName: String,
                       nonNumericError: FormError,
                       decimalsError: FormError): Unit = {
@@ -45,7 +45,7 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
 
     "must bind integers greater than zero" in {
       forAll(intsAboveValue(0) -> "intAboveMax") {
-        i: Int =>
+        (i: Int) =>
           val result = form.bind(Map(fieldName -> i.toString)).apply(fieldName)
           result.errors mustBe Seq.empty
           result.value mustBe Some(BigDecimal(i).toString)
@@ -53,7 +53,7 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
     }
   }
 
-  def bigDecimalFieldWithMinimum(form: Form[_],
+  def bigDecimalFieldWithMinimum(form: Form[?],
                                  fieldName: String,
                                  minimum: BigDecimal,
                                  expectedError: FormError): Unit = {
@@ -61,7 +61,7 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
     s"must not bind decimals below $minimum" in {
 
       forAll(decimalsBelowValue(minimum) -> "decimalBelowMin") {
-        decimal: String =>
+        (decimal: String) =>
           val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
           result.errors.head.key mustEqual expectedError.key
           result.errors.head.message mustEqual expectedError.message
@@ -69,7 +69,7 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
     }
   }
 
-  def longBigDecimal(form: Form[_],
+  def longBigDecimal(form: Form[?],
                      fieldName: String,
                      length: Int,
                      expectedError: FormError): Unit = {
@@ -77,7 +77,7 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
     s"must not bind decimals longer than $length characters" in {
 
       forAll(longDecimalString(length) -> "decimalAboveMax") {
-        decimal: String =>
+        (decimal: String) =>
           val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
           result.errors.head.key mustEqual expectedError.key
           result.errors.head.message mustEqual expectedError.message
@@ -85,7 +85,7 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
     }
   }
 
-  def bigDecimalFieldWithRange(form: Form[_],
+  def bigDecimalFieldWithRange(form: Form[?],
                                fieldName: String,
                                minimum: BigDecimal,
                                maximum: BigDecimal,

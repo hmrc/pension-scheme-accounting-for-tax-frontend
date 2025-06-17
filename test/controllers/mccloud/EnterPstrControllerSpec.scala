@@ -67,7 +67,7 @@ class EnterPstrControllerSpec extends ControllerSpecBase
   "EnterPstrController Controller" must {
 
     "return OK and the correct view for a GET for scheme index zero" in {
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(onwardRoute.url)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGET(schemeIndex = 0))
@@ -89,7 +89,7 @@ class EnterPstrControllerSpec extends ControllerSpecBase
     }
 
     "return OK and the correct view for a GET and correct ordinal for scheme index one" in {
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(onwardRoute.url)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGET(schemeIndex = 1))
@@ -111,8 +111,8 @@ class EnterPstrControllerSpec extends ControllerSpecBase
     }
 
     "redirect to the next page when valid data is submitted" in {
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(onwardRoute.url)
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) `thenReturn` Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
@@ -130,7 +130,7 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
     "return a Bad Request and errors when invalid data is submitted" in {
 
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(onwardRoute.url)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 

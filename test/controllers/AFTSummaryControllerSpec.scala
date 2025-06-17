@@ -78,7 +78,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with
     reset(mockMemberSearchService)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(testManagePensionsUrl.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(testManagePensionsUrl.url)
     when(mockAFTSummaryHelper.summaryListData(any(), any(), any(), any(), any())(any())).thenReturn(Nil)
   }
 

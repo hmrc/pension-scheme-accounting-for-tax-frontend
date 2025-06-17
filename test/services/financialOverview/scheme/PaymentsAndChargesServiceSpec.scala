@@ -28,7 +28,6 @@ import models.ChargeDetailsFilter._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement._
-import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
@@ -101,7 +100,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                   dateDue: String,
                   originalChargeAmount: String,
                   paymentDue: String,
-                  status: PaymentAndChargeStatus,
                   redirectUrl: String,
                   visuallyHiddenText: String,
                   accruedInterestTotal: String = "153.00"
@@ -151,7 +149,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                 dateDue                = formatDateDMY(LocalDate.parse("2020-05-15")),
                 originalChargeAmount   = FormatHelper.formatCurrencyAmountAsString(56432.00),
                 paymentDue             = FormatHelper.formatCurrencyAmountAsString(1029.05),
-                status                 = PaymentAndChargeStatus.PaymentOverdue,
                 redirectUrl            = chargeLink,
                 visuallyHiddenText     = messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632"),
               ),
@@ -166,7 +163,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                 dateDue                = formatDateDMY(LocalDate.parse("2020-05-15")),
                 originalChargeAmount   = "",
                 paymentDue             = FormatHelper.formatCurrencyAmountAsString(153.00),
-                status                 = PaymentAndChargeStatus.InterestIsAccruing,
                 redirectUrl            = interestLink,
                 visuallyHiddenText     = messages(s"paymentsAndCharges.interest.visuallyHiddenText"),
               )

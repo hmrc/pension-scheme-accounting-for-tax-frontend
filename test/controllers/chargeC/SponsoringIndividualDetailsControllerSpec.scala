@@ -67,7 +67,7 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
   }
 
   "SponsoringIndividualDetails Controller" must {

@@ -44,7 +44,7 @@ class UpscanErrorControllerSpec extends ControllerSpecBase with JsonMatchers {
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn("")
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn("")
   }
 
   "UpscanErrorController" must {
@@ -93,7 +93,7 @@ class UpscanErrorControllerSpec extends ControllerSpecBase with JsonMatchers {
 
     "must return the correct view for a GET invalidHeaderOrBodyError" in {
 
-      when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn("")
+      when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[?])).thenReturn("")
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val request = FakeRequest(GET, routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate, accessType, versionInt, chargeType).url)

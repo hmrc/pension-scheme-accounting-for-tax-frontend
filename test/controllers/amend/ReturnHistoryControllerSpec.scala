@@ -134,7 +134,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with JsonMatchers {
     when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any())).thenReturn(Future.successful(multipleVersions))
     when(mockUserAnswersCacheConnector.lockDetail(any(), any())(any(), any())).thenReturn(Future.successful(None))
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok("")))
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockFinancialStatementConnector.getSchemeFS(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq.empty)))  }
 

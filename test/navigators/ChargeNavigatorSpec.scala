@@ -40,7 +40,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with Befo
   lazy val app: Application = registerApp(new GuiceApplicationBuilder()
     .overrides(
       Seq[GuiceableModule](
-      ): _*
+      )*
     ).build())
 
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
@@ -152,7 +152,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with Befo
 class ChargeNavigatorToggleOnSpec extends NavigatorBehaviour with MockitoSugar with BeforeAndAfterEach {
 
   lazy val app: Application = registerApp(new GuiceApplicationBuilder()
-    .overrides(Seq[GuiceableModule](): _*).build())
+    .overrides(Seq[GuiceableModule]()*).build())
 
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 

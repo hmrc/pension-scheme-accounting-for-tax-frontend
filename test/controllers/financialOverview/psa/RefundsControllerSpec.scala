@@ -55,7 +55,7 @@ class RefundsControllerSpec extends ControllerSpecBase {
         bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector),
         bind[MinimalConnector].toInstance(mockMinimalConnector),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
-      ): _*
+      )*
     )
     .build()
 

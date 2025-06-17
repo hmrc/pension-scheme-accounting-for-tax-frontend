@@ -56,7 +56,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with JsonM
   override def beforeEach(): Unit = {
     super.beforeEach()
     Mockito.reset(mockUserAnswersCacheConnector)
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
   }
 
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)

@@ -66,7 +66,7 @@ class ViewAllAmendmentsControllerSpec
     super.beforeEach()
     reset(mockAmendmentHelper)
     reset(mockAFTConnector)
-    when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[?])).thenReturn(dummyCall.url)
     when(mockAFTConnector.getAFTDetails(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockAmendmentHelper.getAllAmendments(any(), any(), any())(any())).thenReturn(allAmendments)  }
 

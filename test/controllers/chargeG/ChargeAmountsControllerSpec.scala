@@ -63,13 +63,13 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with JsonMatchers {
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
   }
 
   val validData: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(MemberDetailsPage(0), memberGDetails).get
   val expectedJson: JsObject = validData.set(ChargeAmountsPage(0), chargeAmounts).get.data
 
-  val request: FakeRequest[_] = httpGETRequest(httpPathGET)
+  val request: FakeRequest[?] = httpGETRequest(httpPathGET)
 
   "ChargeAmounts Controller" must {
     "return OK and the correct view for a GET" in {

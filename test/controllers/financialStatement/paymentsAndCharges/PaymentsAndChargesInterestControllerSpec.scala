@@ -60,7 +60,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with J
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
-      ): _*
+      )*
     )
     .build()
 
