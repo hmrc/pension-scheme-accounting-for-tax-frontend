@@ -57,7 +57,7 @@ class CannotSubmitAFTController @Inject()(appConfig: FrontendAppConfig,
     (identify andThen allowAccess(Some(srn)) andThen getData(srn, startDate)).async {
       implicit request =>
         userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
-          Redirect(appConfig.schemeDashboardUrl(request.psaId, request.pspId).format(srn))
+          Redirect(appConfig.schemeDashboardUrl(request.psaId, request.pspId).replace("%s", srn))
         }
     }
 }

@@ -63,7 +63,7 @@ class ListOfSchemesConnectorImpl @Inject()(
 
     httpClient2
       .get(url"$url")
-      .setHeader(hc.extraHeaders: _*)
+      .setHeader(hc.extraHeaders*)
       .transform(_.withRequestTimeout(config.ifsTimeout))
       .execute[HttpResponse].map{ response =>
       response.status match {

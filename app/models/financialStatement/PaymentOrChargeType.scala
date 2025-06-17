@@ -53,7 +53,7 @@ object PaymentOrChargeType extends Enumerable.Implicits {
   val values: Seq[PaymentOrChargeType] =
     Seq(AccountingForTaxCharges, ContractSettlementCharges, EventReportingCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, PensionsCharges)
 
-  def radios(form: Form[_], chargeTypes: Seq[DisplayPaymentOrChargeType], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
+  def radios(form: Form[?], chargeTypes: Seq[DisplayPaymentOrChargeType], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
             (implicit messages: Messages): Seq[RadioItem] =
   {
     val x: Seq[Radio] = chargeTypes.map { chargeType =>
@@ -67,7 +67,7 @@ object PaymentOrChargeType extends Enumerable.Implicits {
     Radios(form("value"), x)
   }
   
-  implicit val enumerable: Enumerable[PaymentOrChargeType] = Enumerable(values.map(v => v.toString -> v): _*)
+  implicit val enumerable: Enumerable[PaymentOrChargeType] = Enumerable(values.map(v => v.toString -> v)*)
 
   implicit def paymentOrChargePathBindable(implicit stringBinder: PathBindable[String]): PathBindable[PaymentOrChargeType] = new
       PathBindable[PaymentOrChargeType] {

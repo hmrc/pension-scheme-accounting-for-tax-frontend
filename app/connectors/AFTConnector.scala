@@ -27,6 +27,7 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import utils.{DateHelper, HttpResponseHelper}
+import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,11 +44,11 @@ class AFTConnector @Inject()(httpClient2: HttpClientV2, config: FrontendAppConfi
     val url = url"${Uri(config.aftFileReturn.format(journeyType.toString, srn))
                   .withQuery(Uri.Query("loggedInAsPsa" -> s"$loggedInAsPsa"))}"
     val headers: Seq[(String, String)] = Seq("pstr" -> pstr)
-    val aftHc = hc.withExtraHeaders(headers = headers:_*)
+    val aftHc = hc.withExtraHeaders(headers = headers*)
 
     httpClient2
       .post(url)(aftHc)
-      .setHeader(headers: _*)
+      .setHeader(headers*)
       .transform(_.withRequestTimeout(config.ifsTimeout))
       .withBody(answers.data)
       .execute[HttpResponse].map {
@@ -70,11 +71,11 @@ class AFTConnector @Inject()(httpClient2: HttpClientV2, config: FrontendAppConfi
     val url = url"${Uri(config.getAftDetails.format(srn))
                 .withQuery(Uri.Query("loggedInAsPsa" -> s"$loggedInAsPsa"))}"
     val headers: Seq[(String, String)] = Seq("pstr" -> pstr, "startDate" -> startDate, "aftVersion" -> aftVersion)
-    val aftHc = hc.withExtraHeaders(headers = headers:_*)
+    val aftHc = hc.withExtraHeaders(headers = headers*)
     logger.info("Calling getAFT details")
     httpClient2
       .get(url)(aftHc)
-      .setHeader(headers :_*)
+      .setHeader(headers*)
       .transform(_.withRequestTimeout(config.ifsTimeout))
       .execute[HttpResponse].map { response =>
       response.status match {
@@ -95,10 +96,10 @@ class AFTConnector @Inject()(httpClient2: HttpClientV2, config: FrontendAppConfi
     val url = url"${Uri(config.isAftNonZero.format(srn))
                 .withQuery(Uri.Query("loggedInAsPsa" -> s"$loggedInAsPsa"))}"
     val headers: Seq[(String, String)] = Seq("pstr" -> pstr, "startDate" -> startDate, "aftVersion" -> aftVersion)
-    val aftHc = hc.withExtraHeaders(headers = headers:_*)
+    val aftHc = hc.withExtraHeaders(headers = headers*)
     httpClient2
       .get(url)(aftHc)
-      .setHeader(headers :_*)
+      .setHeader(headers*)
       .transform(_.withRequestTimeout(config.ifsTimeout))
       .execute[HttpResponse].map { response =>
       response.status match {
@@ -138,10 +139,10 @@ class AFTConnector @Inject()(httpClient2: HttpClientV2, config: FrontendAppConfi
     val url = url"${Uri(config.aftOverviewUrl.format(srn))
                   .withQuery(Uri.Query("loggedInAsPsa" -> s"$loggedInAsPsa"))}"
     val headers: Seq[(String, String)] = Seq("pstr" -> pstr, "startDate" -> aftOverviewStartDate.toString, "endDate" -> aftOverviewEndDate.toString)
-    val schemeHc = hc.withExtraHeaders(headers = headers:_*)
+    val schemeHc = hc.withExtraHeaders(headers = headers*)
     httpClient2
       .get(url)(schemeHc)
-      .setHeader(headers: _*)
+      .setHeader(headers*)
       .transform(_.withRequestTimeout(config.ifsTimeout))
       .execute[HttpResponse].map { response =>
       response.status match {

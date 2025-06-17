@@ -93,7 +93,6 @@ package object models {
           val updatedJsArray = valueToRemoveFrom.value.slice(0, index) ++ valueToRemoveFrom.value.slice(index + 1, valueToRemoveFrom.value.size)
           JsSuccess(JsArray(updatedJsArray))
         case valueToRemoveFrom: JsArray => JsError(s"array index out of bounds: $index, $valueToRemoveFrom")
-        case _ => JsError(s"cannot set an index on $valueToRemoveFrom")
       }
     }
 
@@ -125,7 +124,7 @@ package object models {
     private def removeWithOldValue(first: PathNode, second: PathNode, rest: List[PathNode], oldValue: JsValue): JsResult[JsValue] =
       Reads.optionNoError(Reads.at[JsValue](JsPath(first :: Nil)))
         .reads(oldValue).flatMap {
-        opt: Option[JsValue] =>
+          (opt: Option[JsValue]) =>
 
           opt.map(JsSuccess(_)).getOrElse {
             second match {

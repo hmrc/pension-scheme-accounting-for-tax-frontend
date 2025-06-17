@@ -16,8 +16,6 @@
 
 package controllers.chargeD
 
-import config.FrontendAppConfig
-import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
@@ -40,7 +38,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteMemberController @Inject()(
     override val messagesApi: MessagesApi,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
     userAnswersService: UserAnswersService,
     navigator: CompoundNavigator,
     identify: IdentifierAction,
@@ -51,7 +48,6 @@ class DeleteMemberController @Inject()(
     formProvider: YesNoFormProvider,
     val controllerComponents: MessagesControllerComponents,
     chargeServiceHelper: ChargeServiceHelper,
-    config: FrontendAppConfig,
     view: DeleteMemberView
   )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 

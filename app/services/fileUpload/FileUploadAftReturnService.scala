@@ -33,7 +33,7 @@ class FileUploadAftReturnService @Inject()(
                                           ) {
   val acceptedChargeTypes = List(ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer)
   def preProcessAftReturn(chargeType: ChargeType,
-                          ua: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[UserAnswers] = {
+                          ua: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[?]): Future[UserAnswers] = {
     val userAnswersWithTotalAmount = updateTotalAmount(chargeType, ua)
     val updatedUserAnswers = setMemberStatus(userAnswersWithTotalAmount, chargeType)(request)
     userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data).map(_ => updatedUserAnswers)
@@ -48,7 +48,7 @@ class FileUploadAftReturnService @Inject()(
     ua.setOrException(ChargeTypeHelper.getTotalChargeAmountPage(chargeType), totalAmount)
   }
 
-  private def setMemberStatus(ua: UserAnswers, chargeType: ChargeType)(implicit request: DataRequest[_]): UserAnswers = {
+  private def setMemberStatus(ua: UserAnswers, chargeType: ChargeType)(implicit request: DataRequest[?]): UserAnswers = {
     val userAnswersWithMemberStatus = ua.getAllMembersInCharge[MemberDetails](charge = getChargeTypeText(chargeType))
       .zipWithIndex.foldLeft(ua) { case (acc, Tuple2(_, index)) =>
       val memberStatusPage = getMemberStatusPage(chargeType, index)

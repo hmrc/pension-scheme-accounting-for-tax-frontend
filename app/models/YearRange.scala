@@ -57,10 +57,10 @@ trait YearRangeCommon extends Enumerable.Implicits {
     Text(yearRangeMsg)
   }
 
-  def radios(form: Form[_])(implicit messages: Messages): Seq[RadioItem] =
+  def radios(form: Form[?])(implicit messages: Messages): Seq[RadioItem] =
     Radios(form("value"), values.map(yearRange => Radios.Radio(getLabel(yearRange), yearRange.toString)))
 
-  implicit def enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange): _*)
+  implicit def enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange)*)
 }
 
 object YearRange extends YearRangeCommon with Enumerable.Implicits {

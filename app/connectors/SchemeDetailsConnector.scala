@@ -34,7 +34,7 @@ class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: Front
   extends HttpResponseHelper {
 
   private def buildHeaders(headerCarrier: HeaderCarrier, headers: Seq[(String, String)]): HeaderCarrier =
-    headerCarrier.withExtraHeaders(headers: _*)
+    headerCarrier.withExtraHeaders(headers*)
 
   private def fetchData[T: Reads](url: URL, headers: Seq[(String, String)])
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[T] = {
@@ -42,7 +42,7 @@ class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: Front
 
     httpClientV2
       .get(url)(updatedHc)
-      .setHeader(headers: _*)
+      .setHeader(headers*)
       .transform(_.withRequestTimeout(config.ifsTimeout))
       .execute[HttpResponse].map { response =>
         response.status match {
@@ -62,7 +62,7 @@ class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: Front
     val encodedSrnId = URLEncoder.encode(srn.id, StandardCharsets.UTF_8.toString)
     val url = url"${config.schemeDetailsUrl.format(encodedSrnId)}"
     val headers = Seq("idNumber" -> srn.id, "schemeIdType" -> "srn", "psaId" -> psaId)
-    fetchData[SchemeDetails](url, headers)(SchemeDetails.readsPsa, headerCarrier, implicitly)
+    fetchData[SchemeDetails](url, headers)(using SchemeDetails.readsPsa, headerCarrier, implicitly)
   }
 
   def getPspSchemeDetails(pspId: String, srn: String)
@@ -70,7 +70,7 @@ class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: Front
     val encodedSrn = URLEncoder.encode(srn, StandardCharsets.UTF_8.toString)
     val url = url"${config.pspSchemeDetailsUrl.format(encodedSrn)}"
     val headers = Seq("srn" -> srn, "pspId" -> pspId)
-    fetchData[SchemeDetails](url, headers)(SchemeDetails.readsPsp, hc, implicitly)
+    fetchData[SchemeDetails](url, headers)(using SchemeDetails.readsPsp, hc, implicitly)
   }
 
   def checkForAssociation(psaId: String, srn: String, idType: String)

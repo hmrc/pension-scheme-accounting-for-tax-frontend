@@ -56,7 +56,7 @@ case class Reference(reference: String) extends AnyVal
 
 object Reference {
   implicit val referenceReader: Reads[Reference] = Reads.StringReads.map(Reference(_))
-  implicit val referenceWrites: OWrites[Reference] = Json.writes[Reference]
+  implicit val referenceWrites: Writes[Reference] = (reference: Reference) => JsString(reference.reference)
 }
 
 case class PreparedUpload(reference: Reference, uploadRequest: UploadForm)
@@ -118,7 +118,7 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClientV2, appConfig: Fro
       BodyWritable(a => InMemoryBody(ByteString.fromString(Json.stringify(Json.toJson(a)))), "application/json")
     }
 
-    httpClient.post(url).withBody(initialRequest).setHeader(headers.toSeq: _*).execute[PreparedUpload]
+    httpClient.post(url).withBody(initialRequest).setHeader(headers.toSeq*).execute[PreparedUpload]
       .map { response =>
         val fileReference = UpscanFileReference(response.reference.reference)
         val postTarget = response.uploadRequest.href

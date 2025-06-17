@@ -153,7 +153,7 @@ class AFTSummaryHelper {
   }
 
   def viewAmendmentsLink(version: Int, srn: String, startDate: LocalDate, accessType: AccessType)
-                        (implicit messages: Messages, request: DataRequest[_]): TwirlHtml = {
+                        (implicit messages: Messages, request: DataRequest[?]): TwirlHtml = {
 
     val linkText = if (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile) {
       messages("allAmendments.view.changes.draft.link")

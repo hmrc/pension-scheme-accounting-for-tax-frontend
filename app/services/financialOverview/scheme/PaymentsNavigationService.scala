@@ -41,10 +41,10 @@ class PaymentsNavigationService {
 
   def navFromPaymentsTypePage(payments: Seq[SchemeFSDetail], srn: String, paymentType: PaymentOrChargeType): Future[Result] = {
 
-      val yearsSeq: Seq[Int] = payments
-        .filter(p => getPaymentOrChargeType(p.chargeType) == paymentType)
-        .filter(_.periodEndDate.nonEmpty)
-        .map(_.periodEndDate.get.getYear).distinct.sorted.reverse
+    val yearsSeq: Seq[Int] = payments
+      .filter(p => getPaymentOrChargeType(p.chargeType) == paymentType)
+      .filter(_.periodEndDate.nonEmpty)
+      .map(_.periodEndDate.get.getYear).distinct.sorted.reverse
 
     (paymentType, yearsSeq.size) match {
       case (AccountingForTaxCharges, 1) => navFromAFTYearsPage(payments, yearsSeq.head, srn)

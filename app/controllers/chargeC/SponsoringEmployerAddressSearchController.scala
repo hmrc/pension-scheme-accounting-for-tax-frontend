@@ -17,7 +17,6 @@
 package controllers.chargeC
 
 import audit.{AddressLookupAuditEvent, AuditService}
-import config.FrontendAppConfig
 import connectors.AddressLookupConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
@@ -48,7 +47,6 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
                                                           addressLookupConnector: AddressLookupConnector,
                                                           auditService:AuditService,
                                                           val controllerComponents: MessagesControllerComponents,
-                                                          config: FrontendAppConfig,
                                                           view: SponsoringEmployerAddressSearchView
                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 

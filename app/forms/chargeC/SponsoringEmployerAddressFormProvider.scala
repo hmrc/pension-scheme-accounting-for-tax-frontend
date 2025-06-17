@@ -67,5 +67,5 @@ class SponsoringEmployerAddressFormProvider @Inject() extends Mappings {
         )
       )
       (SponsoringEmployerAddress.apply)(SponsoringEmployerAddress.unapply)
-    )
+    ) 
 }

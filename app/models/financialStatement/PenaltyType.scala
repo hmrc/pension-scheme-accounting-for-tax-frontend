@@ -50,7 +50,7 @@ object PenaltyType extends Enumerable.Implicits {
   val values: Seq[PenaltyType] =
     Seq(AccountingForTaxPenalties, ContractSettlementCharges, EventReportingCharges, InformationNoticePenalties, PensionsPenalties)
 
-  def radiosWithHint(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType], hintClass: Seq[String] = Nil,
+  def radiosWithHint(form: Form[?], penaltyTypes: Seq[DisplayPenaltyType], hintClass: Seq[String] = Nil,
              areLabelsBold: Boolean = true)(implicit messages: Messages): Seq[RadioItem] =
     {
       val x: Seq[Radio] = penaltyTypes.map { penaltyType =>
@@ -64,7 +64,7 @@ object PenaltyType extends Enumerable.Implicits {
       Radios(form("value"), x)
     }
 
-  def radios(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType],
+  def radios(form: Form[?], penaltyTypes: Seq[DisplayPenaltyType],
              areLabelsBold: Boolean = true)(implicit messages: Messages): Seq[RadioItem] =
   {
     val x: Seq[Radio] = penaltyTypes.map { penaltyType =>
@@ -78,7 +78,7 @@ object PenaltyType extends Enumerable.Implicits {
   }
 
 
-  implicit val enumerable: Enumerable[PenaltyType] = Enumerable(values.map(v => v.toString -> v): _*)
+  implicit val enumerable: Enumerable[PenaltyType] = Enumerable(values.map(v => v.toString -> v)*)
 
   implicit def modePathBindable(implicit stringBinder: PathBindable[String]): PathBindable[PenaltyType] =
     new PathBindable[PenaltyType] {

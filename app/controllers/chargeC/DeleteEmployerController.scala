@@ -16,8 +16,6 @@
 
 package controllers.chargeC
 
-import config.FrontendAppConfig
-import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
@@ -42,7 +40,6 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
-                                         userAnswersCacheConnector: UserAnswersCacheConnector,
                                          userAnswersService: UserAnswersService,
                                          navigator: CompoundNavigator,
                                          identify: IdentifierAction,
@@ -53,7 +50,6 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                                          formProvider: YesNoFormProvider,
                                          val controllerComponents: MessagesControllerComponents,
                                          chargeServiceHelper: ChargeServiceHelper,
-                                         config: FrontendAppConfig,
                                          view: DeleteEmployerView)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -93,7 +89,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                 DataRetrievals.retrievePSTR { pstr =>
 
                   (for {
-                    updatedAnswers <- Future.fromTry(removeCharge(index, srn, startDate, accessType, version))
+                    updatedAnswers <- Future.fromTry(removeCharge(index))
                     _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers, srn)
                   } yield {
                     Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
@@ -105,7 +101,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
           )
       }
     }
-  private def removeCharge(index: Int, srn: String, startDate: String, accessType: AccessType, version: Int)
+  private def removeCharge(index: Int)
                           (implicit request: DataRequest[AnyContent]): Try[UserAnswers] = {
     val ua = request.userAnswers
     (ua.get(WhichTypeOfSponsoringEmployerPage(index)),

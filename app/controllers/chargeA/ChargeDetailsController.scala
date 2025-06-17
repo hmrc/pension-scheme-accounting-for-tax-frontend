@@ -16,7 +16,6 @@
 
 package controllers.chargeA
 
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
@@ -49,7 +48,6 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         deleteChargeHelper: DeleteChargeHelper,
-                                        config: FrontendAppConfig,
                                         view : ChargeDetailsView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {

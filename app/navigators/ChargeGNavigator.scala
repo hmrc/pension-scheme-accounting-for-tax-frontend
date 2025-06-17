@@ -51,7 +51,7 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                         (implicit request: DataRequest[AnyContent]): Call =
     if(deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
-      Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+      Call("GET", config.managePensionsSchemeSummaryUrl.replace("%s", srn))
     } else if (chargeServiceHelper.isEmployerOrMemberPresent(ua, "chargeGDetails")) {
       AddMembersController.onPageLoad(srn, startDate, accessType, version)
     } else {

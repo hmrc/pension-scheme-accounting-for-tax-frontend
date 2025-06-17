@@ -21,7 +21,7 @@ import models.chargeF.ChargeDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.i18n.Messages
-import utils.DateConstraintHandlers.{localDateMappingWithDateRange, localDatesConstraintHandler}
+import utils.DateConstraintHandlers.localDateMappingWithDateRange
 
 import java.time.LocalDate
 import javax.inject.Inject

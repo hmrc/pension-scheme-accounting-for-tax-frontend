@@ -50,7 +50,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
   private val fieldNoDateNoticeReceived = 5
   private val fieldNoIsPaymentMandatory = 6
 
-  private final object TaxYearErrorKeys {
+  private object TaxYearErrorKeys {
     val requiredKey = "annualAllowanceYear.fileUpload.error.required"
     val invalidKey = "annualAllowanceYear.fileUpload.error.invalid"
     val minKey = "annualAllowanceYear.fileUpload.error.past"

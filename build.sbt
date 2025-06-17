@@ -10,7 +10,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
   .settings(inConfig(Test)(testSettings): _*)
   .settings(
-    scalaVersion := "2.13.16",
+    scalaVersion := "3.6.4",
     Test / parallelExecution := true,
     majorVersion := 0,
     name := appName,
@@ -41,9 +41,20 @@ lazy val root = (project in file("."))
     ScoverageKeys.coverageMinimumStmtTotal := 80,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
-    scalacOptions ++= Seq("-feature", "-deprecation", "-Xfatal-warnings"),
-    scalacOptions += "-Wconf:src=routes/.*:s",
-    scalacOptions += "-Wconf:src=html/.*:s",
+    scalacOptions ++= Seq(
+      "-feature",
+      "-Xfatal-warnings",
+      "-Wconf:src=target/.*:s",
+      "-Wconf:src=routes/.*:silent",
+      "-Wconf:msg=Flag.*repeatedly:silent",
+      "-Wconf:msg=.*-Wunused.*:silent",
+      "-Wconf:src=.*StartupModule\\.scala.*:silent",
+      "-Wconf:cat=deprecation:silent"
+    ),
+    scalacOptions ++= Seq(
+      "-source", "3.4-migration", // Enable migration mode
+      "-rewrite"                  // Rewrite the code automatically where possible
+    ),
     libraryDependencies ++= AppDependencies(),
     retrieveManaged := true,
     Concat.groups := Seq(

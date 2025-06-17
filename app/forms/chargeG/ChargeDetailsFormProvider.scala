@@ -21,7 +21,7 @@ import models.chargeG.ChargeDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.i18n.Messages
-import utils.DateConstraintHandlers.{localDateMappingWithDateRange, localDatesConstraintHandler}
+import utils.DateConstraintHandlers.localDateMappingWithDateRange
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -31,13 +31,20 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
   val qropsReferenceNumberKey: String = "chargeG.chargeDetails.qropsReferenceNumber.error"
 
   def apply(min: LocalDate, max: LocalDate)(implicit messages: Messages): Form[ChargeDetails] =
-    Form(mapping(
-      "qropsReferenceNumber" -> text(
-        errorKey = s"$qropsReferenceNumberKey.required"
-      ).transform(noSpaceWithUpperCaseTransform, noTransform)
-        .verifying(
-          regexp(qropsRegex, s"$qropsReferenceNumberKey.valid")
-        ),
-      localDateMappingWithDateRange(field = "qropsTransferDate", date = (min, max), dateDescription = "transfer")
-    )(ChargeDetails.apply)(ChargeDetails.unapply))
+    Form(
+      mapping(
+        "qropsReferenceNumber" -> text(
+          errorKey = s"$qropsReferenceNumberKey.required"
+        )
+          .transform(noSpaceWithUpperCaseTransform, noTransform)
+          .verifying(
+            regexp(qropsRegex, s"$qropsReferenceNumberKey.valid")
+          ),
+        localDateMappingWithDateRange(
+          field = "qropsTransferDate",
+          date = (min, max),
+          dateDescription = "transfer"
+        )
+      )(ChargeDetails.apply)(ChargeDetails.unapply)
+    )
 }

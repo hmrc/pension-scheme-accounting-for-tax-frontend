@@ -40,7 +40,7 @@ object FSClearingReason extends Enumerable.Implicits {
   )
 
   implicit val enumerable: Enumerable[FSClearingReason] =
-    Enumerable(values.map(v => v.toString -> v): _*)
+    Enumerable(values.map(v => v.toString -> v)*)
 }
 
 

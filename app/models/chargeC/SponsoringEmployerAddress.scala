@@ -28,4 +28,7 @@ case class SponsoringEmployerAddress(line1: String,
 object SponsoringEmployerAddress {
   implicit lazy val formats: Format[SponsoringEmployerAddress] =
     Json.format[SponsoringEmployerAddress]
+
+  def unapply(address: SponsoringEmployerAddress): Option[(String, Option[String], String, Option[String], String, Option[String])] =
+    Some((address.line1, address.line2, address.townOrCity, address.county, address.country, address.postcode))
 }

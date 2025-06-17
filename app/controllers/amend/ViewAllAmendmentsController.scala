@@ -84,7 +84,7 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
                 caption = "updated",
                 amendmentHelper.getAllAmendments(currentAnswers, previousAnswers, updatedVersion).filter(_.status == AmendedChargeStatus.Updated)),
               submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, version).url,
-              returnUrl = config.schemeDashboardUrl(request).format(srn),
+              returnUrl = config.schemeDashboardUrl(request).replace("%s", srn),
               schemeName = schemeName
             )))
           }

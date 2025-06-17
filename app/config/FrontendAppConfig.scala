@@ -114,9 +114,9 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
 
   lazy val fileUploadOutcomeUrl: String = s"$aftUrl${configuration.get[String](path = "urls.fileUploadOutcome")}"
 
-  def schemeDashboardUrl(request: DataRequest[_]): String = schemeDashboardUrl(request.psaId, request.pspId)
+  def schemeDashboardUrl(request: DataRequest[?]): String = schemeDashboardUrl(request.psaId, request.pspId)
 
-  def schemeDashboardUrl(request: IdentifierRequest[_]): String = schemeDashboardUrl(request.psaId, request.pspId)
+  def schemeDashboardUrl(request: IdentifierRequest[?]): String = schemeDashboardUrl(request.psaId, request.pspId)
 
   def schemeDashboardUrl(psaId: Option[PsaId], pspId: Option[PspId]): String =
     (psaId, pspId) match {
