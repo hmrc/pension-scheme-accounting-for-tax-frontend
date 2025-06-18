@@ -66,7 +66,7 @@ object ChargeType extends Enumerable.Implicits {
     ChargeTypeLumpSumDeath
   )
 
-  def radios(form: Form[_])(implicit messages: Messages): Seq[RadioItem] = {
+  def radios(form: Form[?])(implicit messages: Messages): Seq[RadioItem] = {
 
     val items = Seq(
       RadioItem(Text(messages("chargeType.radio.annualAllowance")), id = Some("value"), value = Some(ChargeTypeAnnualAllowance.toString)),
@@ -90,12 +90,11 @@ object ChargeType extends Enumerable.Implicits {
       case ChargeTypeDeRegistration => messages("fileupload.deRegistration")
       case ChargeTypeShortService => messages("fileupload.shortService")
       case ChargeTypeLumpSumDeath => messages("fileupload.lumpSumDeath")
-      case _ => chargeType.toString
     }
   }
 
   implicit val enumerable: Enumerable[ChargeType] =
-    Enumerable(values.map(v => v.toString -> v): _*)
+    Enumerable(values.map(v => v.toString -> v)*)
 
   def chargeBaseNode(chargeType: ChargeType): String =
     chargeType match {
@@ -113,7 +112,6 @@ object ChargeType extends Enumerable.Implicits {
       case ChargeTypeDeRegistration     => "chargeFDetails"
       case ChargeTypeShortService       => "chargeADetails"
       case ChargeTypeLumpSumDeath       => "chargeBDetails"
-      case _ => throw new RuntimeException(s"Invalid charge type $chargeType")
     }
 
   val chargeTypeValues: Seq[String] = values.map(chargeTypeNode)

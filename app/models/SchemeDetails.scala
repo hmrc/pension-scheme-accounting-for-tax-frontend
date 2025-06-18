@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,15 @@
 package models
 
 import play.api.libs.functional.syntax._
-import play.api.libs.json.Reads._
-import play.api.libs.json.{JsPath, Json, OFormat, Reads}
+import play.api.libs.json._
 
-case class SchemeDetails(schemeName: String, pstr: String, schemeStatus: String, authorisingPSAID: Option[String])
+
+case class SchemeDetails(
+  schemeName: String,
+  pstr: String,
+  schemeStatus: String,
+  authorisingPSAID: Option[String]
+)
 
 object SchemeDetails {
 
@@ -29,21 +34,24 @@ object SchemeDetails {
       (JsPath \ "schemeName").read[String] and
         (JsPath \ "pstr").read[String] and
         (JsPath \ "schemeStatus").read[String]
-    )(
-      (schemeName, pstr, status) => SchemeDetails(schemeName, pstr, status, None)
-    )
+      )((schemeName, pstr, status) => SchemeDetails(schemeName, pstr, status, None))
 
   implicit val readsPsp: Reads[SchemeDetails] =
     (
       (JsPath \ "schemeName").read[String] and
         (JsPath \ "pstr").read[String] and
         (JsPath \ "schemeStatus").read[String] and
-        (JsPath \ "pspDetails" \ "authorisingPSAID" ).read[String]
-      )(
-      (schemeName, pstr, status, authorisingPSAID) => SchemeDetails(schemeName, pstr, status, Some(authorisingPSAID))
-    )
+        (JsPath \ "pspDetails" \ "authorisingPSAID").read[String]
+      )((schemeName, pstr, status, authorisingPSAID) => SchemeDetails(schemeName, pstr, status, Some(authorisingPSAID)))
 
+  implicit val reads: Reads[SchemeDetails] = Reads[SchemeDetails] { json =>
+    (json \ "pspDetails").validate[JsObject] match {
+      case JsSuccess(_, _) => readsPsp.reads(json) // Use PSP Reads if `pspDetails` exists
+      case JsError(_)      => readsPsa.reads(json) // Otherwise, fallback to PSA Reads
+    }
+  }
 
-    implicit val format: OFormat[SchemeDetails] = Json.format[SchemeDetails]
+  implicit val writes: OWrites[SchemeDetails] = Json.writes[SchemeDetails]
 
+  implicit val format: OFormat[SchemeDetails] = OFormat(reads, writes)
 }

@@ -32,4 +32,7 @@ case class ChargeDDetails(
 object ChargeDDetails {
   implicit lazy val formats: Format[ChargeDDetails] =
     Json.format[ChargeDDetails]
+
+  def unapply(details: ChargeDDetails): Option[(LocalDate, Option[BigDecimal], Option[BigDecimal])] =
+    Some((details.dateOfEvent, details.taxAt25Percent, details.taxAt55Percent))
 }

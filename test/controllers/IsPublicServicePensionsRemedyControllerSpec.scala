@@ -169,7 +169,7 @@ class IsPublicServicePensionsRemedyControllerSpec
 
     "return OK and the correct view for a GET for Lifetime allowance (Manual Input) for PSR default true" in {
       when(mockAppConfig.mccloudPsrAlwaysTrueStartDate).thenReturn(mccloudPsrAlwaysTrueStartDate)
-      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) `thenReturn` Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
 
       val ua = userAnswers.setOrException(QuarterPage, SampleData.taxQtrAprToJun2024)
@@ -187,7 +187,7 @@ class IsPublicServicePensionsRemedyControllerSpec
     }
 
     "redirect to the next page when valid data is submitted for AnnualAllowance (Manual Journey)" in {
-      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) `thenReturn` Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
@@ -205,7 +205,7 @@ class IsPublicServicePensionsRemedyControllerSpec
     }
 
     "redirect to the next page when valid data and user select no to isPublicPensionsRemedy scheme for AnnualAllowance" in {
-      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) `thenReturn` Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
@@ -222,7 +222,7 @@ class IsPublicServicePensionsRemedyControllerSpec
     }
 
     "redirect to the next page when valid data with two scheme is submitted for LifetimeAllowance" in {
-      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) `thenReturn` Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
@@ -240,7 +240,7 @@ class IsPublicServicePensionsRemedyControllerSpec
     }
 
     "redirect to the next page when valid data and user select no to isPublicPensionsRemedy scheme for LifetimeAllowance" in {
-      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) `thenReturn` Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 

@@ -52,7 +52,7 @@ class ClearedPenaltyOrChargeControllerSpec extends ControllerSpecBase {
         bind[IdentifierAction].to[FakeIdentifierAction],
         bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
-      ): _*
+      )*
     )
     .build()
 

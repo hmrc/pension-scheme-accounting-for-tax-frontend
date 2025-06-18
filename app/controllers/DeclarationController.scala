@@ -104,7 +104,7 @@ class DeclarationController @Inject()(
     }
 
   private def sendEmail(email: String, quarter: AFTQuarter, schemeName: String, isAmendment: Boolean, amendedVersion: Int)(
-      implicit request: DataRequest[_], hc: HeaderCarrier, messages: Messages): Future[EmailStatus] = {
+      implicit request: DataRequest[?], hc: HeaderCarrier, messages: Messages): Future[EmailStatus] = {
     val requestId = hc.requestId.map(_.value).getOrElse(request.headers.get("X-Session-ID").getOrElse(""))
     val name = request.userAnswers.getOrException(NameQuery)
 
@@ -136,7 +136,7 @@ class DeclarationController @Inject()(
       }
   }
 
-  private def templateId(implicit request: DataRequest[_]): String ={
+  private def templateId(implicit request: DataRequest[?]): String ={
     (request.isAmendment, request.userAnswers.get(ConfirmSubmitAFTAmendmentValueChangeTypePage)) match{
       case (true, Some(ChangeTypeDecrease)) => config.amendAftReturnDecreaseTemplateIdId
       case (true, Some(ChangeTypeIncrease)) => config.amendAftReturnIncreaseTemplateIdId

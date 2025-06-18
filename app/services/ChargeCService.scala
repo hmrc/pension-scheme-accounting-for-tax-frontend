@@ -37,14 +37,14 @@ import scala.math.Numeric.BigDecimalIsFractional
 
 class ChargeCService {
 
-   def numberOfEmployersIncludingDeleted(ua: UserAnswers): Int =
+  def numberOfEmployersIncludingDeleted(ua: UserAnswers): Int =
     (ua.data \ "chargeCDetails" \ "employers").toOption
       .map(_.as[JsArray].value.length)
       .getOrElse(0)
 
   private def getEmployerDetails(ua: UserAnswers, index: Int): Option[String] = ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
     case SponsoringEmployerTypeIndividual => ua.get(SponsoringIndividualDetailsPage(index)).map(_.fullName)
-    case _ => ua.get(SponsoringOrganisationDetailsPage(index)).map(_.name)
+    case _                                => ua.get(SponsoringOrganisationDetailsPage(index)).map(_.name)
   }
 
   def getAllAuthSurplusAmendments(ua: UserAnswers, currentVersion: Int): Seq[ViewAmendmentDetails] = {
@@ -73,36 +73,35 @@ class ChargeCService {
   def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
     controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
-  def mapToTable(members: Seq[Employer], canChange: Boolean)
-                (implicit messages: Messages): Table = {
+  def mapToTable(members: Seq[Employer], canChange: Boolean)(implicit messages: Messages): Table = {
     val head = Seq(
       HeadCell(Text(Messages("addEmployers.employer.header"))),
       HeadCell(Text(Messages("addEmployers.amount.header")), classes = "govuk-table__header--numeric"),
       HeadCell(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.viewSponsoringEmployer")}</span>"""))
     ) ++ (
       if (canChange)
-        Seq(HeadCell(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>""")))
+        Seq(
+          HeadCell(
+            HtmlContent(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>""")))
       else
         Nil
-      )
+    )
 
     val rows = members.map { data =>
       Seq(
         TableRow(Text(data.name), classes = "govuk-!-width-one-half"),
         TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"),
-          classes = "govuk-!-width-one-quarter,govuk-table__header--numeric"),
+                 classes = "govuk-!-width-one-quarter,govuk-table__header--numeric"),
         TableRow(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = "govuk-!-width-one-quarter")
-      ) ++ (if (canChange) Seq(TableRow(link(data.removeLinkId, "site.remove", data.removeLink, data.name),
-        classes = "govuk-!-width-one-quarter"))
-      else Nil)
+      ) ++ (if (canChange) Seq(TableRow(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = "govuk-!-width-one-quarter"))
+            else Nil)
     }
     val totalAmount = members.map(_.amount).sum
 
     val totalRow = Seq(
       Seq(
         TableRow(Text(Messages("addMembers.total")), classes = "govuk-table__header--numeric"),
-        TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-          classes = "govuk-table__header--numeric"),
+        TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"), classes = "govuk-table__header--numeric"),
         TableRow(Text(""))
       ) ++ (if (canChange) Seq(TableRow(Text(""))) else Nil))
 
@@ -112,8 +111,7 @@ class ChargeCService {
   def link(id: String, text: String, url: String, name: String)(implicit messages: Messages): HtmlContent = {
     val hiddenTag = "govuk-visually-hidden"
     HtmlContent(
-        s"<a class=govuk-link id=$id href=$url>" + s"<span aria-hidden=true >${messages(text)}</span>" +
+      s"<a class=govuk-link id=$id href=$url>" + s"<span aria-hidden=true >${messages(text)}</span>" +
         s"<span class= $hiddenTag>${messages(text)} ${messages(s"chargeC.addEmployers.visuallyHidden", name)}</span> </a>")
   }
-
-    }
+}

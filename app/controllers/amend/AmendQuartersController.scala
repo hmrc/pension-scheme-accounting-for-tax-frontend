@@ -79,7 +79,7 @@ class AmendQuartersController @Inject()(
                   form(quarters),
                   Quarters.radios(form(quarters), displayQuarters),
                   routes.AmendQuartersController.onSubmit(srn, year),
-                  config.schemeDashboardUrl(request).format(srn),
+                  config.schemeDashboardUrl(request).replace("%s", srn),
                   schemeDetails.schemeName
                 )))
             }
@@ -110,7 +110,7 @@ class AmendQuartersController @Inject()(
                             formWithErrors,
                             Quarters.radios(formWithErrors, displayQuarters),
                             routes.AmendQuartersController.onSubmit(srn, year),
-                            config.schemeDashboardUrl(request).format(srn),
+                            config.schemeDashboardUrl(request).replace("%s", srn),
                             schemeDetails.schemeName
                           ))),
                       value =>

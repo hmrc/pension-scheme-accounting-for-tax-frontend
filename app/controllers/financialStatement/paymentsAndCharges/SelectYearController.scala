@@ -44,7 +44,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     extends FrontendBaseController
     with I18nSupport {
 
-  private def form(journeyType: ChargeDetailsFilter, paymentOrChargeType: PaymentOrChargeType, typeParam: String, config: FrontendAppConfig)(
+  private def form(journeyType: ChargeDetailsFilter, paymentOrChargeType: PaymentOrChargeType, typeParam: String)(
       implicit messages: Messages,
       ev: Enumerable[Year]): Form[Year] = {
     val errorMessage = if (isTaxYearFormat(paymentOrChargeType)) {
@@ -63,9 +63,9 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
         implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
         Future.successful(Ok(selectYearView(
-          form(journeyType, paymentOrChargeType, typeParam, config),
+          form(journeyType, paymentOrChargeType, typeParam),
           getTitle(typeParam, paymentOrChargeType, journeyType),
-          FSYears.radios(form(journeyType, paymentOrChargeType, typeParam, config), years, isTaxYearFormat(paymentOrChargeType)),
+          FSYears.radios(form(journeyType, paymentOrChargeType, typeParam), years, isTaxYearFormat(paymentOrChargeType)),
           routes.SelectYearController.onSubmit(srn, paymentOrChargeType,  journeyType),
           config.schemeDashboardUrl(request).format(srn),
           paymentsCache.schemeDetails.schemeName
@@ -80,7 +80,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
         val years = getYears(paymentsCache.schemeFSDetail, paymentOrChargeType)
         implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
-        form(journeyType, paymentOrChargeType, typeParam, config)
+        form(journeyType, paymentOrChargeType, typeParam)
           .bindFromRequest()
           .fold(
             formWithErrors => {

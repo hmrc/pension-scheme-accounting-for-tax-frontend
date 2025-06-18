@@ -50,8 +50,8 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with ScalaFutur
     "there is no data in the cache" must {
       "set userAnswers to 'None' in the request" in {
 
-        when(dataCacheConnector.fetch(eqTo(id))(any(), any())) thenReturn Future(None)
-        when(dataCacheConnector.getSessionData(eqTo(id))(any(), any())) thenReturn Future(None)
+        when(dataCacheConnector.fetch(eqTo(id))(any(), any())) `thenReturn` Future(None)
+        when(dataCacheConnector.getSessionData(eqTo(id))(any(), any())) `thenReturn` Future(None)
         val action = new Harness
 
         val expectedResult = OptionalDataRequest(request, id, Some(PsaId(psaId)), None, None, None)
@@ -67,8 +67,8 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with ScalaFutur
     "there is data in the cache" must {
       "build a userAnswers object and add it to the request" in {
 
-        when(dataCacheConnector.fetch(eqTo(id))(any(), any())) thenReturn Future.successful(Some(userAnswersWithSchemeName.data))
-        when(dataCacheConnector.getSessionData(eqTo(id))(any(), any())) thenReturn Future(Some(sd))
+        when(dataCacheConnector.fetch(eqTo(id))(any(), any())) `thenReturn` Future.successful(Some(userAnswersWithSchemeName.data))
+        when(dataCacheConnector.getSessionData(eqTo(id))(any(), any())) `thenReturn` Future(Some(sd))
         val action = new Harness
 
         val futureResult = action.callTransform(request)

@@ -35,7 +35,7 @@ import views.html.chargeC.WhatYouWillNeedView
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private val application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
 
   private def httpPathGET: String = controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt).url
 

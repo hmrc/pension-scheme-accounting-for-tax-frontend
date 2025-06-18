@@ -19,7 +19,6 @@ package controllers.chargeD
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AddMembersFormProvider
-import handlers.ErrorHandler
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
@@ -53,7 +52,6 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      val controllerComponents: MessagesControllerComponents,
                                      chargePaginationService: ChargePaginationService,
                                      deleteChargeHelper: DeleteChargeHelper,
-                                     errorHandler:ErrorHandler,
                                      view: AddMembersView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
@@ -109,7 +107,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   // scalastyle:off parameter.number
   private def renderPageWithStatus(srn: String,
     startDate: LocalDate,
-    form: Form[_],
+    form: Form[?],
     schemeName: String,
     quarter: AFTQuarter,
     accessType: AccessType,

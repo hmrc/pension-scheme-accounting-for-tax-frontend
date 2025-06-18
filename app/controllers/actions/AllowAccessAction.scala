@@ -118,7 +118,7 @@ class AllowAccessAction(
                                        optPage: Option[Page],
                                        version: Int,
                                        accessType: AccessType)
-                                      (implicit request: DataRequest[_]): Future[Option[Result]] = {
+                                      (implicit request: DataRequest[?]): Future[Option[Result]] = {
     (request.isViewOnly, optPage) match {
       case (true, None | Some(ChargeTypePage)) =>
         //todo redirect to new error page for form-pages in view-only returns once it is created

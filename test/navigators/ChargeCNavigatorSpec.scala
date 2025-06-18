@@ -63,7 +63,7 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(AddEmployersPage)(
           controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addEmployersNo),
         row(DeleteEmployerPage)(
-          Call("GET",config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
+          Call("GET",config.managePensionsSchemeSummaryUrl.replace("%s", srn)), zeroedCharge),
         row(DeleteEmployerPage)(
           controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), multipleCharges),
         row(DeleteEmployerPage)(

@@ -74,7 +74,7 @@ class ContinueQuartersControllerSpec extends ControllerSpecBase with JsonMatcher
     when(mockAFTConnector.getAftOverview(any(), any(), any(),  any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq(aftOverviewQ22020, aftOverviewQ32020, aftOverviewQ42020)))
     when(mockQuartersService.getInProgressQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
   }

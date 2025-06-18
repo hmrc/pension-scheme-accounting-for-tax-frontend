@@ -68,7 +68,7 @@ class AFTSummaryController @Inject()(
   private val form = formProvider()
   private val memberSearchForm = memberSearchFormProvider()
 
-  private def btnText(searchForm: Form[_])(implicit messages: Messages) = searchForm.value match {
+  private def btnText(searchForm: Form[?])(implicit messages: Messages) = searchForm.value match {
     case Some(_) => messages("aft.summary.searchAgain.button")
     case _ => messages("aft.summary.search.button")
   }
@@ -77,7 +77,7 @@ class AFTSummaryController @Inject()(
     content = Text(messages("aft.summary.search.hint"))
   )
 
-  private def summarySearchHeadingText(searchForm: Form[_])(implicit messages: Messages) = searchForm.value match {
+  private def summarySearchHeadingText(searchForm: Form[?])(implicit messages: Messages) = searchForm.value match {
     case Some(_) => messages("aft.summary.heading.search.results") + " "
     case _ => ""
   }
@@ -253,7 +253,7 @@ class AFTSummaryController @Inject()(
       }
     }
 
-  private def getSubmissionNumber(schemeName: String, version: Int)(implicit request: DataRequest[_]) = {
+  private def getSubmissionNumber(schemeName: String, version: Int)(implicit request: DataRequest[?]) = {
     (request.isCompile, request.isAmendment, request.isViewOnly) match {
       case (true, true, _) =>  "Draft"
       case (true, false, _) => schemeName

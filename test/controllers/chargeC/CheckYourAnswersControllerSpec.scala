@@ -45,20 +45,20 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatcher
     .set(SponsoringOrganisationDetailsPage(index), sponsoringOrganisationDetails).toOption.get
     .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
 
-  private def helper(ua: UserAnswers) = new CYAChargeCHelper(srn, startDate, accessType, versionInt)
+  private def helper = new CYAChargeCHelper(srn, startDate, accessType, versionInt)
   
   private val answersInd: Seq[SummaryListRow] = Seq(
-    Seq(helper(uaInd).chargeCWhichTypeOfSponsoringEmployer(index, uaInd.get(WhichTypeOfSponsoringEmployerPage(index)).get)),
-    helper(uaInd).chargeCEmployerDetails(index, Left(sponsoringIndividualDetails)),
-    Seq(helper(uaInd).chargeCAddress(index, sponsoringEmployerAddress, Left(sponsoringIndividualDetails))),
-    helper(uaInd).chargeCChargeDetails(index, chargeCDetails)
+    Seq(helper.chargeCWhichTypeOfSponsoringEmployer(index, uaInd.get(WhichTypeOfSponsoringEmployerPage(index)).get)),
+    helper.chargeCEmployerDetails(index, Left(sponsoringIndividualDetails)),
+    Seq(helper.chargeCAddress(index, sponsoringEmployerAddress, Left(sponsoringIndividualDetails))),
+    helper.chargeCChargeDetails(index, chargeCDetails)
   ).flatten
 
   private val answersOrg: Seq[SummaryListRow] = Seq(
-    Seq(helper(uaOrg).chargeCWhichTypeOfSponsoringEmployer(index, uaOrg.get(WhichTypeOfSponsoringEmployerPage(index)).get)),
-    helper(uaOrg).chargeCEmployerDetails(index, Right(sponsoringOrganisationDetails)),
-    Seq(helper(uaOrg).chargeCAddress(index, sponsoringEmployerAddress, Right(sponsoringOrganisationDetails))),
-    helper(uaOrg).chargeCChargeDetails(index, chargeCDetails)
+    Seq(helper.chargeCWhichTypeOfSponsoringEmployer(index, uaOrg.get(WhichTypeOfSponsoringEmployerPage(index)).get)),
+    helper.chargeCEmployerDetails(index, Right(sponsoringOrganisationDetails)),
+    Seq(helper.chargeCAddress(index, sponsoringEmployerAddress, Right(sponsoringOrganisationDetails))),
+    helper.chargeCChargeDetails(index, chargeCDetails)
   ).flatten
 
 

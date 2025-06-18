@@ -69,7 +69,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
   "DeleteCharge Controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(onwardRoute.url)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
       val request = FakeRequest(GET, httpPathGET)
@@ -91,8 +91,8 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the charge deleted" in {
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(onwardRoute.url)
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) `thenReturn` Future.successful(Json.obj())
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeleteChargePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
@@ -113,7 +113,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
     "return a Bad Request and errors when invalid data is submitted" in {
 
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(onwardRoute.url)
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))

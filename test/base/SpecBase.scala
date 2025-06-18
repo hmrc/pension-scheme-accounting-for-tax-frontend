@@ -20,11 +20,12 @@ import config.FrontendAppConfig
 import data.SampleData
 import models.requests.DataRequest
 import models.{SessionAccessData, UserAnswers}
-import org.scalatest.Assertion
+import org.scalatest.{Assertion, BeforeAndAfterEach}
 import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice._
+import play.api.Application
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.Injector
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{AnyContent, Result}
 import play.api.test.FakeRequest
 import play.twirl.api.Html
@@ -34,11 +35,26 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 
-trait SpecBase extends PlaySpec with GuiceOneAppPerSuite {
+trait SpecBase extends PlaySpec with BeforeAndAfterEach {
 
   protected implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  protected def injector: Injector = app.injector
+  private var builtApps: List[Application] = Nil
+
+  protected def registerApp(app: Application): Application = {
+    builtApps ::= app
+    app
+  }
+
+  override def afterEach(): Unit = {
+    builtApps.foreach(_.stop())
+    builtApps = Nil
+    super.afterEach()
+  }
+
+  protected lazy val testApp: Application = registerApp(new GuiceApplicationBuilder().build())
+
+  protected def injector: Injector = testApp.injector
 
   protected def frontendAppConfig: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
 

@@ -39,7 +39,7 @@ class PsaFinancialOverviewController @Inject()(
                                                 service: AFTPartialService,
                                                 config: FrontendAppConfig,
                                                 minimalConnector: MinimalConnector,
-                                                psaFinancialOverview: PsaFinancialOverviewView,
+                                                psaFinancialOverviewView: PsaFinancialOverviewView,
                                               )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -63,7 +63,7 @@ class PsaFinancialOverviewController @Inject()(
                                        psaName: String,
                                        psaFSDetail: Seq[PsaFSDetail],
                                        creditPsaFS: PsaFS
-                                     )(implicit request: Request[_]): Future[Result] = {
+                                     )(implicit request: Request[?]): Future[Result] = {
     val creditPsaFSDetails                   = creditPsaFS.seqPsaFSDetail
     val psaCharges: (String, String, String) = service.retrievePsaChargesAmount(psaFSDetail)
     val creditBalance                        = service.getCreditBalanceAmount(creditPsaFSDetails)
@@ -80,7 +80,7 @@ class PsaFinancialOverviewController @Inject()(
       routes.PsaRequestRefundController.onPageLoad.url
     }
 
-    Future.successful(Ok(psaFinancialOverview(
+    Future.successful(Ok(psaFinancialOverviewView(
       psaName                            = psaName,
       totalUpcomingCharge                = psaCharges._1,
       totalOverdueCharge                 = psaCharges._2,

@@ -321,9 +321,9 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
                             (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
 
     val penaltiesUrl = penaltyType match {
-      case ContractSettlementCharges => identifier => PenaltiesController.onPageLoadContract(year, identifier, journeyType)
-      case InformationNoticePenalties => identifier => PenaltiesController.onPageLoadInfoNotice(year, identifier, journeyType)
-      case _ => identifier => PenaltiesController.onPageLoadPension(year, identifier, journeyType)
+      case ContractSettlementCharges => (identifier: String) => PenaltiesController.onPageLoadContract(year, identifier, journeyType)
+      case InformationNoticePenalties => (identifier: String) => PenaltiesController.onPageLoadInfoNotice(year, identifier, journeyType)
+      case _ => (identifier: String) => PenaltiesController.onPageLoadPension(year, identifier, journeyType)
     }
 
     penaltySchemes(year.toInt, psaId, penaltyType, penalties).map { schemes =>

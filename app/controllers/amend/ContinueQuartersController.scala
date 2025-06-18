@@ -64,7 +64,7 @@ class ContinueQuartersController @Inject()(
             form(quarters),
             Quarters.radios(form(quarters), displayQuarters),
             routes.ContinueQuartersController.onSubmit(srn),
-            config.schemeDashboardUrl(request).format(srn),
+            config.schemeDashboardUrl(request).replace("%s", srn),
             schemeDetails.schemeName
           )))
         } else {
@@ -93,7 +93,7 @@ class ContinueQuartersController @Inject()(
                     formWithErrors,
                     Quarters.radios(formWithErrors, displayQuarters),
                     routes.ContinueQuartersController.onSubmit(srn),
-                    config.schemeDashboardUrl(request).format(srn),
+                    config.schemeDashboardUrl(request).replace("%s", srn),
                     schemeDetails.schemeName
                   )))
                 },

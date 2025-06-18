@@ -90,7 +90,7 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
       .overrides(
         modules ++ extraModules ++ Seq[GuiceableModule](
           bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers))
-        ): _*
+        )*
       )
 
   protected def applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction,
@@ -99,7 +99,7 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
       .overrides(
         modules ++ extraModules ++ Seq[GuiceableModule](
           bind[DataRetrievalAction].toInstance(mutableFakeDataRetrievalAction)
-        ): _*
+        )*
       )
 
   protected def httpGETRequest(path: String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)

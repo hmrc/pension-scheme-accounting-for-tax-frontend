@@ -2,7 +2,7 @@
 ->          /public-service-pensions-remedy                                                                                                          mccloudJourney.Routes
 ->          /hmrc-frontend                                                                                                                           hmrcfrontend.Routes
 
-GET         /                                                                                                                                        controllers.IndexController.onPageLoad
+GET         /                                                                                                                                        controllers.IndexController.onPageLoad()
 GET         /keep-alive                                                                                                                              controllers.KeepAliveController.keepAlive(srn: Option[String] = None, startDate: Option[String] = None)
 GET         /:startDate/:srn/keep-alive                                                                                                              controllers.KeepAliveController.keepAlive(srn: Option[String], startDate: Option[String])
 
@@ -257,7 +257,7 @@ GET         /:srn/psa-scheme-dashboard-fin-info-cards                           
 GET         /:srn/:startDate/:accessType/:version/enter-psa-id                                                                                       controllers.EnterPsaIdController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
 POST        /:srn/:startDate/:accessType/:version/enter-psa-id                                                                                       controllers.EnterPsaIdController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int)
 
-GET         /penalties-partial                                                                                                                       controllers.financialStatement.penalties.PenaltiesPartialController.penaltiesPartial
+GET         /penalties-partial                                                                                                                       controllers.financialStatement.penalties.PenaltiesPartialController.penaltiesPartial()
 
 GET         /view-penalties                                                                                                                          controllers.financialStatement.penalties.PenaltiesLogicController.onPageLoad(journeyType: String = "all")
 GET         /view-upcoming-penalties                                                                                                                 controllers.financialStatement.penalties.PenaltiesLogicController.onPageLoad(journeyType: String = "due")

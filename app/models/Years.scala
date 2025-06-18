@@ -62,24 +62,24 @@ object StartYears extends CommonYears with Enumerable.Implicits {
 
   def values(implicit config: FrontendAppConfig): Seq[Year] = (minYear to currentYear).reverseIterator.map(Year(_)).toSeq
 
-  def radios(form: Form[_])(implicit config: FrontendAppConfig): Seq[RadioItem] = {
+  def radios(form: Form[?])(implicit config: FrontendAppConfig): Seq[RadioItem] = {
     Radios(form("value"), values.map(year => Radios.Radio(Text(year.toString), year.toString)))
   }
 
   implicit def enumerable(implicit config: FrontendAppConfig): Enumerable[Year] =
-    Enumerable(values.map(v => v.toString -> v): _*)
+    Enumerable(values.map(v => v.toString -> v)*)
 }
 
 object AmendYears extends CommonYears with Enumerable.Implicits {
 
   def values(years: Seq[Int]): Seq[Year] = years.reverseIterator.map(Year(_)).toSeq
 
-  def radios(form: Form[_], years: Seq[Int]): Seq[RadioItem] = {
+  def radios(form: Form[?], years: Seq[Int]): Seq[RadioItem] = {
     Radios(form("value"), years.reverseIterator.map(year => Radios.Radio(Text(year.toString), year.toString)).toSeq)
   }
 
   implicit def enumerable(implicit years: Seq[Int]): Enumerable[Year] =
-    Enumerable(values(years).map(v => v.toString -> v): _*)
+    Enumerable(values(years).map(v => v.toString -> v)*)
 
 }
 
@@ -87,7 +87,7 @@ object FSYears extends CommonYears with Enumerable.Implicits {
 
   def values(years: Seq[DisplayYear]): Seq[Year] = years.map(x => Year(x.year))
 
-  def radios(form: Form[_], displayYears: Seq[DisplayYear], isFYFormat: Boolean = false, isYearRangeFormat: Boolean = false)(implicit messages: Messages): Seq[RadioItem] = {
+  def radios(form: Form[?], displayYears: Seq[DisplayYear], isFYFormat: Boolean = false, isYearRangeFormat: Boolean = false)(implicit messages: Messages): Seq[RadioItem] = {
     val x: Seq[Radio] = displayYears.map { displayYear =>
 
       Radios.Radio(label = getLabel(displayYear.year, isFYFormat, isYearRangeFormat),
@@ -99,7 +99,7 @@ object FSYears extends CommonYears with Enumerable.Implicits {
   }
 
   implicit def enumerable(implicit years: Seq[Int]): Enumerable[Year] =
-    Enumerable(years.map(v => v.toString -> Year(v)): _*)
+    Enumerable(years.map(v => v.toString -> Year(v))*)
 
   private def getHint(displayYear: DisplayYear)(implicit messages: Messages): Option[Hint] =
     displayYear.hintText match {

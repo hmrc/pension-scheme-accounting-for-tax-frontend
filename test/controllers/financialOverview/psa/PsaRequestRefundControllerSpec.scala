@@ -56,7 +56,7 @@ class PsaRequestRefundControllerSpec extends ControllerSpecBase with JsonMatcher
         bind[AFTPartialService].toInstance(mockService),
         bind[MinimalConnector].toInstance(mockMinimalConnector),
         bind[FinancialInfoCreditAccessConnector].toInstance(mockFinancialInfoCreditAccessConnector)
-      ): _*
+      )*
     )
     .build()
 
@@ -67,7 +67,7 @@ class PsaRequestRefundControllerSpec extends ControllerSpecBase with JsonMatcher
     reset(mockService)
     reset(mockMinimalConnector)
     reset(mockFinancialInfoCreditAccessConnector)
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockAppConfig.timeoutSeconds).thenReturn(5)
     when(mockAppConfig.countdownSeconds).thenReturn(1)
     when(mockAppConfig.betaFeedbackUnauthenticatedUrl).thenReturn("/mockUrl")

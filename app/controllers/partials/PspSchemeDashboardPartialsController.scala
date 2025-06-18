@@ -73,9 +73,8 @@ class PspSchemeDashboardPartialsController @Inject()(
     if (schemeFs.isEmpty) {
       Future.successful(Html(""))
     } else {
-      val viewModel =
-        aftPartialService.retrievePspDashboardPaymentsAndChargesModel(schemeFs, idNumber, pstr)
-        Future.successful(view(viewModel))
+      val viewModel = aftPartialService.retrievePspDashboardPaymentsAndChargesModel(schemeFs, idNumber, pstr)
+      Future.successful(view(viewModel))
     }
   }
 }

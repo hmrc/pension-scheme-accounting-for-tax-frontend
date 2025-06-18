@@ -78,7 +78,7 @@ class AFTPartialService @Inject()(
         id = "aft-overdue-charges",
         heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
         subHeadings = subHeadingTotalOutstanding ++ subHeadingPaymentsOverdue,
-        links = viewFinancialOverviewLink(srn) ++ viewAllPaymentsAndChargesLink(srn, pstr)
+        links = viewFinancialOverviewLink(srn) ++ viewAllPaymentsAndChargesLink(srn)
       ))
     }
     else {
@@ -95,7 +95,7 @@ class AFTPartialService @Inject()(
       ))
 
 
-  private def viewAllPaymentsAndChargesLink(srn: String, pstr: String)(implicit messages: Messages): Seq[Link] =
+  private def viewAllPaymentsAndChargesLink(srn: String)(implicit messages: Messages): Seq[Link] =
       Seq(Link(
         id = "past-payments-and-charges",
         url = appConfig.financialPaymentsAndChargesUrl.format(srn),

@@ -66,7 +66,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
                                       schemeDetails: SchemeDetails,
                                       schemeFSCache: PaymentsCache,
                                       creditSchemeFSDetail: Seq[SchemeFSDetail]
-                                     )(implicit request: Request[_]): Future[Result] = {
+                                     )(implicit request: Request[?]): Future[Result] = {
     val schemeFSDetail                        = schemeFSCache.schemeFSDetail
     val schemeName                            = schemeDetails.schemeName
     val overdueCharges: Seq[SchemeFSDetail]   = paymentsAndChargesService.getOverdueCharges(schemeFSDetail)
@@ -91,7 +91,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
     logger.debug(s"AFT service returned UpcomingCharge - $totalUpcomingCharge")
     logger.debug(s"AFT service returned OverdueCharge - $totalOverdueCharge")
     logger.debug(s"AFT service returned InterestAccruing - $totalInterestAccruing")
-    logger.warn(s"${srn} SchemeFinancialOverviewController totalUpcomingCharge: ${totalUpcomingChargeFormatted}")
+    logger.warn(s"$srn SchemeFinancialOverviewController totalUpcomingCharge: $totalUpcomingChargeFormatted")
 
     val requestRefundUrl = if (schemeFSCache.inhibitRefundSignal) {
       controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url

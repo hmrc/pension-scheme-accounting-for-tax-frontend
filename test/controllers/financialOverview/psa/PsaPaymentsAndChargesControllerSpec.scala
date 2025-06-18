@@ -60,7 +60,7 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
         bind[MinimalConnector].toInstance(mockMinimalConnector),
         bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
-      ): _*
+      )*
     )
     .build()
 
@@ -77,7 +77,7 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
     when(mockPsaPenaltiesAndChargesService.extractUpcomingCharges(any())).thenReturn(responseUpcoming)
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
     when(mockFSConnector.getPsaFSWithPaymentOnAccount(any())(any(), any())).thenReturn(Future.successful(psaFs))
-    when(mockPsaPenaltiesAndChargesService.retrievePsaChargesAmount(any())).thenReturn(mockPsaPenaltiesAndChargesService.chargeAmount("100", "100", "100"))
+    when(mockPsaPenaltiesAndChargesService.retrievePsaChargesAmount(any())).thenReturn(PsaPenaltiesAndChargesService.ChargeAmount("100", "100", "100"))
   }
 
   "PsaPaymentsAndChargesController" must {

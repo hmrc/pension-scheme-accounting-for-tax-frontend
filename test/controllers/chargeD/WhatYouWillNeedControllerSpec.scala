@@ -36,7 +36,7 @@ import views.html.chargeD.WhatYouWillNeedView
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private val application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
 
   private val uaPsrTrue = userAnswersWithSchemeNamePstrQuarter.setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(0)), true)
   private val uaPsrFalse = userAnswersWithSchemeNamePstrQuarter.setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(0)), false)
@@ -44,7 +44,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with JsonMatchers
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
   }
 
   "whatYouWillNeed Controller" must {

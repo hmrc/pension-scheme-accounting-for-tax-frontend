@@ -83,7 +83,7 @@ class ReturnHistoryController @Inject()(
         paymentsAndChargesUrl = controllers
           .financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges, All).url,
         startYear = startDate.getYear.toString,
-        returnUrl = config.schemeDashboardUrl(request).format(srn),
+        returnUrl = config.schemeDashboardUrl(request).replace("%s", srn),
         schemeName = schemeDetails.schemeName
       ))
     }

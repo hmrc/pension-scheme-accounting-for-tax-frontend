@@ -96,7 +96,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                   ordinal = ordinalValue,
                   chargeTypeDesc = chargeTypeDesc,
                   submitCall = routes.TaxQuarterReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
-                  returnUrl = config.schemeDashboardUrl(request).format(srn),
+                  returnUrl = config.schemeDashboardUrl(request).replace("%s", srn),
                   schemeName = schemeDetails.schemeName
                 )))
               case _ => sessionExpired
@@ -136,7 +136,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                         chargeTypeDesc = chargeTypeDesc,
                         submitCall = routes.TaxQuarterReportedAndPaidController
                           .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
-                        returnUrl = config.schemeDashboardUrl(request).format(srn),
+                        returnUrl = config.schemeDashboardUrl(request).replace("%s", srn),
                         schemeName = schemeDetails.schemeName
                       )))
                     case _ => sessionExpired

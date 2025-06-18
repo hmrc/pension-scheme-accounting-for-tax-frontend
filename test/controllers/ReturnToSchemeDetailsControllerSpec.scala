@@ -39,7 +39,7 @@ class ReturnToSchemeDetailsControllerSpec extends ControllerSpecBase {
 
     "release lock and redirect to scheme summary page" in {
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
       val argCaptor = ArgumentCaptor.forClass(classOf[String])
       val result =
         route(application, FakeRequest(GET, controllers.routes.ReturnToSchemeDetailsController.

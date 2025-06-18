@@ -31,13 +31,20 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
   val qropsReferenceNumberKey: String = "chargeG.chargeDetails.qropsReferenceNumber.error"
 
   def apply(min: LocalDate, max: LocalDate)(implicit messages: Messages): Form[ChargeDetails] =
-    Form(mapping(
-      "qropsReferenceNumber" -> text(
-        errorKey = s"$qropsReferenceNumberKey.required"
-      ).transform(noSpaceWithUpperCaseTransform, noTransform)
-        .verifying(
-          regexp(qropsRegex, s"$qropsReferenceNumberKey.valid")
-        ),
-      localDateMappingWithDateRange(field = "qropsTransferDate", date = (min, max), dateDescription = "transfer")
-    )(ChargeDetails.apply)(ChargeDetails.unapply))
+    Form(
+      mapping(
+        "qropsReferenceNumber" -> text(
+          errorKey = s"$qropsReferenceNumberKey.required"
+        )
+          .transform(noSpaceWithUpperCaseTransform, noTransform)
+          .verifying(
+            regexp(qropsRegex, s"$qropsReferenceNumberKey.valid")
+          ),
+        localDateMappingWithDateRange(
+          field = "qropsTransferDate",
+          date = (min, max),
+          dateDescription = "transfer"
+        )
+      )(ChargeDetails.apply)(ChargeDetails.unapply)
+    )
 }

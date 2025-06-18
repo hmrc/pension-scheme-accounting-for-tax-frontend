@@ -175,14 +175,27 @@ object TolerantAddress {
       })
   }
 
-  implicit lazy val formatsTolerantAddress: Format[TolerantAddress] = (
-    (JsPath \ "addressLine1").formatNullable[String] and
-      (JsPath \ "addressLine2").formatNullable[String] and
-      (JsPath \ "townOrCity").formatNullable[String] and
-      (JsPath \ "county").formatNullable[String] and
-      (JsPath \ "postalCode").formatNullable[String] and
-      (JsPath \ "countryCode").formatNullable[String]
-    ) (TolerantAddress.apply, unlift(TolerantAddress.unapply))
+  implicit lazy val formatsTolerantAddress: Format[TolerantAddress] =
+    new Format[TolerantAddress] {
+      override def reads(json: JsValue): JsResult[TolerantAddress] = for {
+        addressLine1 <- (JsPath \ "addressLine1").readNullable[String].reads(json)
+        addressLine2 <- (JsPath \ "addressLine2").readNullable[String].reads(json)
+        townOrCity <- (JsPath \ "townOrCity").readNullable[String].reads(json)
+        county <- (JsPath \ "county").readNullable[String].reads(json)
+        postalCode <- (JsPath \ "postalCode").readNullable[String].reads(json)
+        countryCode <- (JsPath \ "countryCode").readNullable[String].reads(json)
+      } yield TolerantAddress(addressLine1, addressLine2, townOrCity, county, postalCode, countryCode)
+
+      override def writes(address: TolerantAddress): JsValue = Json.obj(
+        "addressLine1" -> address.addressLine1,
+        "addressLine2" -> address.addressLine2,
+        "townOrCity" -> address.townOrCity,
+        "county" -> address.county,
+        "postalCode" -> address.postcode,
+        "countryCode" -> address.country
+      )
+    }
+
 
   implicit def convert(tolerant: TolerantAddress): Option[SponsoringEmployerAddress] =
     for {

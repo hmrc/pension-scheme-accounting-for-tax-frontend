@@ -1,7 +1,7 @@
 import sbt._
 
 object AppDependencies {
-  private val bootstrapVersion = "9.12.0"
+  private val bootstrapVersion = "9.13.0"
   val compile = Seq(
     play.sbt.PlayImport.ws,
     "uk.gov.hmrc"                   %%  "play-conditional-form-mapping-play-30"  % "3.3.0",
@@ -10,7 +10,7 @@ object AppDependencies {
     "com.google.inject.extensions"  %   "guice-multibindings"                    % "4.2.3",
     "uk.gov.hmrc"                   %%  "domain-play-30"                         % "10.0.0",
     "com.univocity"                 %   "univocity-parsers"                      % "2.9.1",
-    "org.typelevel"                 %%  "cats-core"                              % "2.12.0",
+    "org.typelevel"                 %%  "cats-core"                              % "2.13.0",
   )
 
   val test: Seq[ModuleID] = Seq(

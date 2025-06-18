@@ -118,9 +118,9 @@ class PaymentsAndChargeDetailsController @Inject()(
         returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeDetails.schemeName),
         returnUrl                = paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType),
         returnDashboardUrl       = if(loggedInAsPsa) {
-          Some(Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn))
+          Some(Option(config.managePensionsSchemeSummaryUrl).getOrElse(s"/pension-scheme-summary/$srn"))
         } else {
-          Some(Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn))
+          Some(Option(config.managePensionsSchemePspUrl).getOrElse(s"/$srn/dashboard/pension-scheme-details"))
         },
         returnHistoryUrl         = returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)),
         hintText                 = Some(optHintText(schemeFSDetail))

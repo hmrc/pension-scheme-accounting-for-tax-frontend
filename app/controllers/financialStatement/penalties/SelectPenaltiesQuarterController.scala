@@ -55,14 +55,14 @@ class SelectPenaltiesQuarterController @Inject()(
 
     penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
 
-      val quarters: Seq[AFTQuarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
+      val quarters: Seq[AFTQuarter] = getQuarters(filteredPenalties(penaltiesCache.penalties, year.toInt))
 
         if (quarters.nonEmpty) {
           Future.successful(Ok(selectQuarterView(
             form(quarters),
             year,
             Quarters.radios(form(quarters),
-              getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt)),
+              getDisplayQuarters(filteredPenalties(penaltiesCache.penalties, year.toInt)),
               Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block")),
             routes.SelectPenaltiesQuarterController.onSubmit(year, journeyType),
             config.managePensionsSchemeOverviewUrl,
@@ -78,7 +78,7 @@ class SelectPenaltiesQuarterController @Inject()(
   def onSubmit(year: String, journeyType: PenaltiesFilter): Action[AnyContent] = identify.async { implicit request =>
     penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
 
-      val quarters: Seq[AFTQuarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
+      val quarters: Seq[AFTQuarter] = getQuarters(filteredPenalties(penaltiesCache.penalties, year.toInt))
         if (quarters.nonEmpty) {
 
           form(quarters).bindFromRequest().fold(
@@ -87,7 +87,7 @@ class SelectPenaltiesQuarterController @Inject()(
                   formWithErrors,
                   year,
                   Quarters.radios(formWithErrors,
-                    getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt)),
+                    getDisplayQuarters(filteredPenalties(penaltiesCache.penalties, year.toInt)),
                     Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
                   routes.SelectPenaltiesQuarterController.onSubmit(year, journeyType),
                   config.managePensionsSchemeOverviewUrl,
@@ -107,7 +107,7 @@ class SelectPenaltiesQuarterController @Inject()(
       .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
       .filter(_.periodStartDate.getYear == year)
 
-  private def getDisplayQuarters(year: String, penalties: Seq[PsaFSDetail]): Seq[DisplayQuarter] = {
+  private def getDisplayQuarters(penalties: Seq[PsaFSDetail]): Seq[DisplayQuarter] = {
 
     val quartersFound: Seq[LocalDate] = penalties.map(_.periodStartDate).distinct.sortBy(_.getMonth)
 
@@ -120,7 +120,7 @@ class SelectPenaltiesQuarterController @Inject()(
     }
   }
 
-  private def getQuarters(year: String, penalties: Seq[PsaFSDetail]): Seq[AFTQuarter] =
+  private def getQuarters(penalties: Seq[PsaFSDetail]): Seq[AFTQuarter] =
     penalties.distinct.map(penalty => Quarters.getQuarter(penalty.periodStartDate))
 
 

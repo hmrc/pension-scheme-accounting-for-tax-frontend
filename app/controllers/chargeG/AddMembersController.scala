@@ -108,7 +108,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   // scalastyle:off parameter.number
   private def renderPage(srn: String,
     startDate: LocalDate,
-    form: Form[_],
+    form: Form[?],
     schemeName: String,
     quarter: AFTQuarter,
     accessType: AccessType,

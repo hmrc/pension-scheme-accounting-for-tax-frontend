@@ -16,7 +16,6 @@
 
 package controllers
 
-import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
@@ -60,7 +59,6 @@ class ConfirmationController @Inject()(
                                         confirmationAmendDecreaseView: ConfirmationAmendDecreaseView,
                                         confirmationAmendIncreaseView: ConfirmationAmendIncreaseView,
                                         confirmationNoChargeView: ConfirmationNoChargeView,
-                                        config: FrontendAppConfig,
                                         fsConnector: FinancialStatementConnector,
                                         schemeService: SchemeService
                                       )(implicit ec: ExecutionContext)

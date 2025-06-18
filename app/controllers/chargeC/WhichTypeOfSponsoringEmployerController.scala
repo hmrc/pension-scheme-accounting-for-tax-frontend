@@ -16,7 +16,6 @@
 
 package controllers.chargeC
 
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
@@ -45,7 +44,6 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
                                                         requireData: DataRequiredAction,
                                                         formProvider: IsSponsoringEmployerIndividualFormProvider,
                                                         val controllerComponents: MessagesControllerComponents,
-                                                        config: FrontendAppConfig,
                                                         view: WhichTypeOfSponsoringEmployerView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {

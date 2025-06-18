@@ -79,7 +79,7 @@ class UploadCallbackController @Inject()(
                                         (implicit ec: ExecutionContext) extends FrontendController(mcc) {
 
   def callback: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[CallbackBody] { feedback: CallbackBody =>
+    withJsonBody[CallbackBody] { (feedback: CallbackBody) =>
       upscanCallbackDispatcher.handleCallback(feedback).map(_ => Ok)
     }
   }

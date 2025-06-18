@@ -31,7 +31,7 @@ object SubmitterType extends Enumerable.Implicits {
   val values: Seq[SubmitterType] = Seq(PSA, PSP)
 
   implicit val enumerable: Enumerable[SubmitterType] =
-    Enumerable(values.map(v => v.toString -> v): _*)
+    Enumerable(values.map(v => v.toString -> v)*)
 }
 
 case class SubmitterDetails(submitterType: SubmitterType, submitterName: String, submitterID: String, authorisingPsaId: Option[String], receiptDate: LocalDate)

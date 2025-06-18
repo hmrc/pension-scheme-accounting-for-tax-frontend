@@ -58,7 +58,7 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
-      ): _*
+      )*
     )
     .build()
 
@@ -67,7 +67,7 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPaymentsAndChargesService)
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
     when(mockPaymentsAndChargesService.getDueCharges(any()))

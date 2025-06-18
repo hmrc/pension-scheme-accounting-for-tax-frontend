@@ -67,7 +67,7 @@ class AFTLoginControllerSpec extends ControllerSpecBase with JsonMatchers
     reset(mockAppConfig)
     reset(mockAuditService)
     reset(mockSchemeService)
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockAppConfig.minimumYear).thenReturn(2020)
     mutableFakeDataRetrievalAction.setViewOnly(false)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))

@@ -55,7 +55,7 @@ class NotSubmissionTimeControllerSpec extends ControllerSpecBase with MockitoSug
 
     "Return OK and the correct view for a GET" in {
       when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
 
       val application = applicationBuilder(extraModules = extraModules).overrides().build()
       val request = FakeRequest(GET, getRoute)

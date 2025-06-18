@@ -19,7 +19,6 @@ package controllers.chargeC
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AddMembersFormProvider
-import handlers.ErrorHandler
 import helpers.{DeleteChargeHelper, FormatHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
@@ -53,7 +52,6 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        val controllerComponents: MessagesControllerComponents,
                                        chargePaginationService: ChargePaginationService,
                                        deleteChargeHelper: DeleteChargeHelper,
-                                       errorHandler:ErrorHandler,
                                        view: AddEmployersView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
@@ -108,7 +106,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
   // scalastyle:off parameter.number
   private def renderPageWithStatus(srn: String,
     startDate: LocalDate,
-    form: Form[_],
+    form: Form[?],
     schemeName: String,
     quarter: AFTQuarter,
     accessType: AccessType,

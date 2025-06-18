@@ -41,7 +41,7 @@ object ChargeDetailsFilter
   )
 
   implicit val enumerable: Enumerable[ChargeDetailsFilter] =
-    Enumerable(values.map(v => v.toString -> v): _*)
+    Enumerable(values.map(v => v.toString -> v)*)
 
   implicit def chargeDetailsFilterPathBindable(implicit stringBinder: PathBindable[String]): PathBindable[ChargeDetailsFilter] =
     new PathBindable[ChargeDetailsFilter] {
