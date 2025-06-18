@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,8 +68,12 @@ class FileUploadCacheConnector @Inject()(
 
   override def requestUpload(uploadId: UploadId, fileReference: Reference)
                             (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Unit] = {
+    val jsonBody = Json.obj(
+      "reference" -> fileReference.reference
+    )
+
     http.post(fileUploadUrl)
-      .withBody(Json.toJson(fileReference))
+      .withBody(jsonBody)
       .setHeader(buildHeadersWithUploadId(uploadId)*)
       .execute[HttpResponse]
       .map { response =>

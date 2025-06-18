@@ -24,9 +24,9 @@ import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.History
-import models.financialStatement.FSClearingReason._
+import models.financialStatement.FSClearingReason.*
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
-import models.financialStatement.PsaFSChargeType._
+import models.financialStatement.PsaFSChargeType.*
 import models.financialStatement.{DocumentLineItemDetail, PenaltyType, PsaFSChargeType, PsaFSDetail}
 import models.viewModels.financialOverview.PsaPaymentsAndChargesDetails
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
@@ -35,6 +35,7 @@ import models.{ListOfSchemes, ListSchemeDetails}
 import play.api.Logging
 import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}
+import services.financialOverview.psa.PsaPenaltiesAndChargesService.ChargeAmount
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, Table, Text, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{Content, HtmlContent}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
@@ -54,10 +55,8 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                                               listOfSchemesConnector: ListOfSchemesConnector) extends Logging {
 
   val isPaymentOverdue: PsaFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
-
-  case class chargeAmount(upcomingCharge: String, overdueCharge: String, interestAccruing: String)
-
-  def retrievePsaChargesAmount(psaFs: Seq[PsaFSDetail]): chargeAmount = {
+  
+  def retrievePsaChargesAmount(psaFs: Seq[PsaFSDetail]): ChargeAmount = {
 
     val upcomingCharges: Seq[PsaFSDetail] =
       psaFs.filter(_.dueDate.exists(!_.isBefore(DateHelper.today)))
@@ -73,7 +72,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     val totalOverdueChargeFormatted = s"${FormatHelper.formatCurrencyAmountAsString(totalOverdueCharge)}"
     val totalInterestAccruingFormatted = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}"
 
-    chargeAmount(totalUpcomingChargeFormatted, totalOverdueChargeFormatted, totalInterestAccruingFormatted)
+    ChargeAmount(totalUpcomingChargeFormatted, totalOverdueChargeFormatted, totalInterestAccruingFormatted)
   }
 
   //scalastyle:off parameter.number
@@ -871,6 +870,10 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   def interestRowsNew(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] =
     chargeReferenceInterestRowNew ++ interestTaxPeriodRow(data)
 
+}
+
+object PsaPenaltiesAndChargesService {
+  case class ChargeAmount(upcomingCharge: String, overdueCharge: String, interestAccruing: String)
 }
 
 case class PenaltiesCache(psaId: String, psaName: String, penalties: Seq[PsaFSDetail])

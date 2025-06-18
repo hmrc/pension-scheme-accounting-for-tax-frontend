@@ -32,34 +32,16 @@ object DateConstraintHandlers extends Mappings {
 
   private val (april: Int, taxYearCloseDay: Int, taxYearOpenDay: Int) = (4, 5, 6)
 
-  def localDateMappingWithDateRange(
-                                     field: String,
-                                     date: (LocalDate, LocalDate),
-                                     outOfRangeKey: String = "genericDate.error.outsideReportedYear",
-                                     invalidKey: String = "genericDate.error.invalid",
-                                     dateDescription: String
-                                   )(implicit messages: Messages): (String, Mapping[LocalDate]) =
+  def localDateMappingWithDateRange[T](
+                                             field: String,
+                                             date: T,
+                                             outOfRangeKey: String = "genericDate.error.outsideReportedYear",
+                                             invalidKey: String = "genericDate.error.invalid",
+                                             dateDescription: String
+                                           )(implicit messages: Messages, handler: DateConstraintHandler[T]): (String, Mapping[LocalDate]) = {
     field -> localDate(invalidKey, dateDescription)
-      .verifying(
-        firstError(
-          minimumValue(date._1, s"$field.error.before_${dateDescription}_start"),
-          maximumValue(date._2, s"$field.error.after_${dateDescription}_end")
-        )
-      )
-
-  def localDateMappingWithDateRange(
-                                     date: (LocalDate, LocalDate),
-                                     outOfRangeKey: String,
-                                     invalidKey: String,
-                                     dateDescription: String
-                                   )(implicit messages: Messages): Mapping[LocalDate] =
-    localDate(invalidKey, dateDescription)
-      .verifying(
-        firstError(
-          minimumValue(date._1, s"genericDate.error.before_${dateDescription}_start"),
-          maximumValue(date._2, s"genericDate.error.after_${dateDescription}_end")
-        )
-      )
+      .verifying(firstError(withinDateRange(date, outOfRangeKey)*))
+  }
 
   def withinDateRange[T](date: T, errorKey: String)
                         (implicit messages: Messages, handler: DateConstraintHandler[T]): Seq[Constraint[LocalDate]] =
