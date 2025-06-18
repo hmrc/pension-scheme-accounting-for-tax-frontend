@@ -51,10 +51,6 @@ lazy val root = (project in file("."))
       "-Wconf:src=.*StartupModule\\.scala.*:silent",
       "-Wconf:cat=deprecation:silent"
     ),
-    scalacOptions ++= Seq(
-      "-source", "3.4-migration", // Enable migration mode
-      "-rewrite"                  // Rewrite the code automatically where possible
-    ),
     libraryDependencies ++= AppDependencies(),
     retrieveManaged := true,
     Concat.groups := Seq(
