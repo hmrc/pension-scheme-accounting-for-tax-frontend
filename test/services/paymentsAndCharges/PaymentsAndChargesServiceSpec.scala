@@ -86,7 +86,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   private def row(chargeType: String,
                   chargeReference: String,
                   amountDue: String,
-                  status: HtmlContent,
                   redirectUrl: String,
                   visuallyHiddenText: String,
                   paymentAndChargeStatus: PaymentAndChargeStatus = NoStatus
@@ -133,7 +132,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                 chargeType = chargeType.toString,
                 chargeReference = "AYU3494534632",
                 amountDue = FormatHelper.formatCurrencyAmountAsString(1029.05),
-                status = HtmlContent(s"<span class='govuk-tag govuk-tag--red'>${PaymentAndChargeStatus.PaymentOverdue.toString}</span>"),
                 redirectUrl = chargeLink,
                 visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632"),
                 paymentAndChargeStatus = PaymentAndChargeStatus.PaymentOverdue
@@ -142,7 +140,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                 chargeType = if (chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST.toString else PSS_OTC_AFT_RETURN_INTEREST.toString,
                 chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
                 amountDue = FormatHelper.formatCurrencyAmountAsString(153.00),
-                status = HtmlContent(s"<span class='govuk-tag govuk-tag--blue'>${PaymentAndChargeStatus.InterestIsAccruing.toString}</span>"),
                 redirectUrl = interestLink,
                 visuallyHiddenText = messages(s"paymentsAndCharges.interest.visuallyHiddenText"),
                 paymentAndChargeStatus = PaymentAndChargeStatus.InterestIsAccruing
@@ -200,7 +197,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
               chargeType = PSS_OTC_AFT_RETURN.toString,
               chargeReference = "AYU3494534632",
               amountDue = FormatHelper.formatCurrencyAmountAsString(0.00),
-              status = HtmlContent(""),
               redirectUrl = controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
                 .onPageLoad(srn, QUARTER_START_DATE.toString, index = "0", AccountingForTaxCharges, All)
                 .url,

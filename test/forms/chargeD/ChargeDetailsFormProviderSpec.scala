@@ -68,7 +68,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
 
     "not bind non-numeric numbers" in {
       forAll(nonNumerics -> "nonNumeric") {
-        nonNumeric: String =>
+        (nonNumeric: String) =>
           val result = form.bind(chargeDetails(tax25 = nonNumeric))
           result.errors mustEqual Seq(FormError(tax25PercentKey, messages("chargeD.amountTaxDue.error.invalid", "25")))
       }
@@ -82,7 +82,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
 
     "not bind decimals below 0.00" in {
       forAll(decimalsBelowValue(BigDecimal("0.00")) -> "decimalBelowMin") {
-        decimal: String =>
+        (decimal: String) =>
           val result = form.bind(chargeDetails(tax25 = decimal))
           result.errors.head.key mustEqual tax25PercentKey
           result.errors.head.message mustEqual messages("chargeD.amountTaxDue.error.invalid", "25")
@@ -91,7 +91,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
 
     "not bind decimals longer than 11 characters" in {
       forAll(longDecimalString(12) -> "decimalAboveMax") {
-        decimal: String =>
+        (decimal: String) =>
           val result = form.bind(chargeDetails(tax25 = decimal))
           result.errors.head.key mustEqual tax25PercentKey
           result.errors.head.message mustEqual messages("chargeD.amountTaxDue.error.maximum", "25")
@@ -108,7 +108,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
 
     "not bind non-numeric numbers" in {
       forAll(nonNumerics -> "nonNumeric") {
-        nonNumeric: String =>
+        (nonNumeric: String) =>
           val result = form.bind(chargeDetails(tax55 = nonNumeric))
           result.errors mustEqual Seq(FormError(tax55PercentKey, messages("chargeD.amountTaxDue.error.invalid", "55")))
       }
@@ -122,7 +122,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
 
     "not bind decimals below 0.00" in {
       forAll(decimalsBelowValue(BigDecimal("0.00")) -> "decimalBelowMin") {
-        decimal: String =>
+        (decimal: String) =>
           val result = form.bind(chargeDetails(tax55 = decimal))
           result.errors.head.key mustEqual tax55PercentKey
           result.errors.head.message mustEqual messages("chargeD.amountTaxDue.error.invalid", "55")
@@ -131,7 +131,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
 
     "not bind decimals longer than 11 characters" in {
       forAll(longDecimalString(12) -> "decimalAboveMax") {
-        decimal: String =>
+        (decimal: String) =>
           val result = form.bind(chargeDetails(tax55 = decimal))
           result.errors.head.key mustEqual tax55PercentKey
           result.errors.head.message mustEqual messages("chargeD.amountTaxDue.error.maximum", "55")

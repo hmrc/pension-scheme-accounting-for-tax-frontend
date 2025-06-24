@@ -44,7 +44,7 @@ class ErrorHandler @Inject()(
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = {
 
-    implicit def requestImplicit: Request[_] = Request(request, "")
+    implicit def requestImplicit: Request[?] = Request(request, "")
 
     logger.warn(s"Errorhandler onClientError:statusCode = $statusCode and message = $message")
     statusCode match {
@@ -61,7 +61,7 @@ class ErrorHandler @Inject()(
 
   override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
 
-    implicit def requestImplicit: Request[_] = Request(request, "")
+    implicit def requestImplicit: Request[?] = Request(request, "")
 
     logError(request, exception)
     exception match {

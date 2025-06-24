@@ -38,5 +38,5 @@ object AdministratorOrPractitioner {
       case invalidValue => Reads(_ => JsError(s"Invalid administrator or practitioner type: $invalidValue"))
     }
 
-  implicit val enumerable: Enumerable[AdministratorOrPractitioner] = Enumerable(values.map(v => v.toString -> v): _*)
+  implicit val enumerable: Enumerable[AdministratorOrPractitioner] = Enumerable(values.map(v => v.toString -> v)*)
 }

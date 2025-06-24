@@ -95,7 +95,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     Mockito.reset(mockUserAnswersCacheConnector)
     Mockito.reset(mockCompoundNavigator)
     Mockito.reset(mockAuditService)
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockAppConfig.amendAftReturnDecreaseTemplateIdId).thenReturn(amendAftReturnDecreaseTemplateIdId)
     when(mockAppConfig.amendAftReturnNoChangeTemplateIdId).thenReturn(amendAftReturnNoChangeTemplateIdId)
     when(mockAppConfig.amendAftReturnIncreaseTemplateIdId).thenReturn(amendAftReturnIncreaseTemplateIdId)

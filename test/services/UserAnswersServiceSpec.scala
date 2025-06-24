@@ -41,8 +41,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
   import UserAnswersServiceSpec._
 
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
-  val mockChargeCService: ChargeCService = mock[ChargeCService]
-  val service: UserAnswersService = new UserAnswersService(mockDeleteChargeHelper, mockChargeCService)
+  val service: UserAnswersService = new UserAnswersService(mockDeleteChargeHelper)
 
   override def beforeEach(): Unit = {
     super.beforeEach()

@@ -70,7 +70,7 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with JsonMatc
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(),
       any(), any())(any(), any())).thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC.seqSchemeFSDetail)))

@@ -68,7 +68,7 @@ class MinimalConnector @Inject()(httpClientV2: HttpClientV2, config: FrontendApp
 
     httpClientV2
       .get(url)(hcWithId)
-      .setHeader(hcWithId.extraHeaders: _*)
+      .setHeader(hcWithId.extraHeaders*)
       .transform(_.withRequestTimeout(config.ifsTimeout))
       .execute[HttpResponse].map {
       response =>

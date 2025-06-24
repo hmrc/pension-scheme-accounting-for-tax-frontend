@@ -50,16 +50,17 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
   def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, journeyType, request.isLoggedInAsPsa).flatMap { cache =>
 
-        val (title, radios) = if (journeyType == History) {
-          val clearedPayments = cache.schemeFSDetail.filter(_.outstandingAmount <= 0)
-          val paymentsOrCharges = getPaymentOrChargeTypes(clearedPayments, journeyType)
-          (Messages("financial.overview.historyChargeType.title"), PaymentOrChargeType.radios(form(), paymentsOrCharges,
-            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
-        } else {
-          val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFSDetail, journeyType)
-          (Messages("paymentOrChargeType.all.title"), PaymentOrChargeType.radios(form(), paymentsOrCharges,
-            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
-        }
+      val (title, radios) = if (journeyType == History) {
+        val clearedPayments = cache.schemeFSDetail.filter(_.outstandingAmount <= 0)
+        val paymentsOrCharges = getPaymentOrChargeTypes(clearedPayments, journeyType)
+        (Messages("financial.overview.historyChargeType.title"), PaymentOrChargeType.radios(form(), paymentsOrCharges,
+          Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+      } else {
+        val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFSDetail, journeyType)
+        (Messages("paymentOrChargeType.all.title"), PaymentOrChargeType.radios(form(), paymentsOrCharges,
+          Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+      }
+
       val loggedInAsPsa: Boolean = request.isLoggedInAsPsa
 
       Future.successful(Ok(paymentOrChargeTypeView(

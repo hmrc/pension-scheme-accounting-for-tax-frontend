@@ -42,7 +42,7 @@ class ChargeNavigator @Inject()(
     case ChargeTypePage                 => chargeTypeNavigation(ua, srn, startDate, accessType, version)
     case AFTSummaryPage                 => aftSummaryNavigation(ua, srn, startDate, accessType, version)
     case ConfirmSubmitAFTReturnPage     => confirmSubmitNavigation(ua, srn, startDate, accessType, version)
-    case ConfirmSubmitAFTAmendmentPage  => confirmSubmitAmendmentNavigation(ua, srn, startDate, accessType, version)
+    case ConfirmSubmitAFTAmendmentPage  => confirmSubmitAmendmentNavigation(srn, startDate, accessType, version)
     case DeclarationPage                => controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version)
     case EnterPsaIdPage                 => controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version)
     case ValidationPage(chargeType)     =>
@@ -128,7 +128,7 @@ class ChargeNavigator @Inject()(
     }
   }
 
-  private def confirmSubmitAmendmentNavigation(ua: UserAnswers, srn: String, startDate: LocalDate,
+  private def confirmSubmitAmendmentNavigation(srn: String, startDate: LocalDate,
                                                accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]) =
     (request.psaId, request.pspId) match {
       case (None, Some(_)) => controllers.routes.EnterPsaIdController.onPageLoad(srn, startDate, accessType, version)

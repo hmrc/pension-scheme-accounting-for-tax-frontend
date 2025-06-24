@@ -58,30 +58,30 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     SessionAccessData(version = version, accessMode = AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = false)
   private val email = "a@a.c"
 
-  private def dataRequest(ua: UserAnswers, viewOnly: Boolean = false, headers: Seq[(String, String)] = Seq.empty): DataRequest[AnyContent] = {
-    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers: _*)
+  private def dataRequest(ua: UserAnswers, headers: Seq[(String, String)] = Seq.empty): DataRequest[AnyContent] = {
+    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers*)
     DataRequest(request, "", Some(PsaId(psaId)), None, ua, sessionData(sessionAccessDataViewOnly))
   }
 
   private def identifierRequest(headers: Seq[(String, String)] = Seq.empty): IdentifierRequest[AnyContent] = {
-    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers: _*)
+    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers*)
     IdentifierRequest("id", request, Some(PsaId(psaId)), None)
   }
 
   private def identifierRequestPsp(headers: Seq[(String, String)] = Seq.empty): IdentifierRequest[AnyContent] = {
-    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers: _*)
+    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers*)
     IdentifierRequest("id", request, None, Some(PspId(pspId)))
   }
 
   private def dataRequestPsp(ua: UserAnswers, headers: Seq[(String, String)] = Seq.empty): DataRequest[AnyContent] = {
-    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers: _*)
+    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers*)
     DataRequest(request, "", None, Some(PspId(pspId)), ua, sessionData(sessionAccessDataViewOnly))
   }
 
   class TestHarness(srn: String = srn, page: Option[Page] = None)(implicit ec: ExecutionContext)
     extends AllowAccessAction(srn, QUARTER_START_DATE, page, versionInt, accessType, aftConnector, errorHandler,
       frontendAppConfig, pensionsSchemeConnector)(ec) {
-    def test(dataRequest: DataRequest[_]): Future[Option[Result]] = this.filter(dataRequest)
+    def test(dataRequest: DataRequest[?]): Future[Option[Result]] = this.filter(dataRequest)
   }
 
   class TestHarnessForIdentifierRequest(srn: Option[String] = None)(implicit ec: ExecutionContext)
@@ -91,7 +91,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       mockSchemeDetailsConnector,
       errorHandler,
       srn)(ec) {
-    def test(identifierRequest: IdentifierRequest[_]): Future[Option[Result]] = this.filter(identifierRequest)
+    def test(identifierRequest: IdentifierRequest[?]): Future[Option[Result]] = this.filter(identifierRequest)
   }
 
   override def beforeEach(): Unit = {
@@ -189,7 +189,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
       val testHarness = new TestHarness(page = Some(ChargeTypePage))
 
-      whenReady(testHarness.test(dataRequest(ua, viewOnly = true))) { result =>
+      whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
       }
     }

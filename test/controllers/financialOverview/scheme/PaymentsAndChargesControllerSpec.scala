@@ -59,14 +59,14 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
-      ): _*
+      )*
     )
     .build()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPaymentsAndChargesService)
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any())).
       thenReturn(Future.successful(paymentsCache(schemeFSResponseOverdue)))
     when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),

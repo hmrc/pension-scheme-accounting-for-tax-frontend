@@ -41,7 +41,7 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
   with JsonMatchers with OptionValues with TryValues {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private def application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
   private val form = new SponsoringIndividualDetailsFormProvider()()
   private val index = 0
 
@@ -67,7 +67,7 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
   }
 
   "SponsoringIndividualDetails Controller" must {

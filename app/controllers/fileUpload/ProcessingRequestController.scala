@@ -111,7 +111,6 @@ class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
                 "messages__processingRequest__content_failure",
                 controllers.fileUpload.routes.ProblemWithServiceController.onPageLoad(srn, startDate, accessType, version).url
               )
-            case Some(outcome) => throw new RuntimeException(s"Unknown outcome: $outcome")
           }
         }
 

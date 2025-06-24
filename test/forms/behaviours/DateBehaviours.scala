@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter
 
 trait DateBehaviours extends FieldBehaviours {
 
-  def dateField(form: Form[_], key: String, validData: Gen[LocalDate]): Unit = {
+  def dateField(form: Form[?], key: String, validData: Gen[LocalDate]): Unit = {
 
     "must bind valid data" in {
 
@@ -44,7 +44,7 @@ trait DateBehaviours extends FieldBehaviours {
     }
   }
 
-  def dateFieldInvalid(form: Form[_], key: String, formError: FormError): Unit = {
+  def dateFieldInvalid(form: Form[?], key: String, formError: FormError): Unit = {
     s"must fail to bind dates with invalid day" in {
       val genInt = intsAboveValue(31)
       forAll(genInt -> "invalid") { i =>
@@ -76,7 +76,7 @@ trait DateBehaviours extends FieldBehaviours {
     }
   }
 
-  def dateFieldDayMonthMissing(form: Form[_], key: String, formError: FormError): Unit = {
+  def dateFieldDayMonthMissing(form: Form[?], key: String, formError: FormError): Unit = {
     s"must fail to bind a date with two date components missing" in {
       val data = Map(
         s"$key.year" -> "2000"
@@ -88,7 +88,7 @@ trait DateBehaviours extends FieldBehaviours {
     }
   }
 
-  def dateFieldYearNot4Digits(form: Form[_], key: String, formError: FormError): Unit = {
+  def dateFieldYearNot4Digits(form: Form[?], key: String, formError: FormError): Unit = {
     s"must fail to bind a date where year less than 4 digits" in {
       val data = Map(
         s"$key.day" -> "20",
@@ -102,7 +102,7 @@ trait DateBehaviours extends FieldBehaviours {
     }
   }
 
-  def dateFieldWithMax(form: Form[_], key: String, max: LocalDate, formError: FormError): Unit = {
+  def dateFieldWithMax(form: Form[?], key: String, max: LocalDate, formError: FormError): Unit = {
 
     s"must fail to bind a date greater than ${max.format(DateTimeFormatter.ISO_LOCAL_DATE)}" in {
 
@@ -124,7 +124,7 @@ trait DateBehaviours extends FieldBehaviours {
     }
   }
 
-  def dateFieldWithMin(form: Form[_], key: String, min: LocalDate, formError: FormError): Unit = {
+  def dateFieldWithMin(form: Form[?], key: String, min: LocalDate, formError: FormError): Unit = {
 
     s"must fail to bind a date earlier than ${min.format(DateTimeFormatter.ISO_LOCAL_DATE)}" in {
 
@@ -146,7 +146,7 @@ trait DateBehaviours extends FieldBehaviours {
     }
   }
 
-  def mandatoryDateField(form: Form[_], key: String, requiredAllKey: String, errorArgs: Seq[String] = Seq.empty): Unit = {
+  def mandatoryDateField(form: Form[?], key: String, requiredAllKey: String, errorArgs: Seq[String] = Seq.empty): Unit = {
 
     "must fail to bind an empty date" in {
 

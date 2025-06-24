@@ -40,7 +40,7 @@ import scala.concurrent.Future
 class MemberDetailsControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private def application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
   private val formProvider = new MemberDetailsFormProvider()
   private val form: Form[MemberDetails] = formProvider()
 
@@ -86,7 +86,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with JsonMatchers {
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
   }
 
   "MemberDetails Controller" must {

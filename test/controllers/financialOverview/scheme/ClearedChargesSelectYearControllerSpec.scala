@@ -57,7 +57,7 @@ class ClearedChargesSelectYearControllerSpec extends ControllerSpecBase {
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
-      ): _*
+      )*
     )
     .build()
 
@@ -70,7 +70,7 @@ class ClearedChargesSelectYearControllerSpec extends ControllerSpecBase {
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     reset(mockPaymentsAndChargesService)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(samplePaymentsCache))

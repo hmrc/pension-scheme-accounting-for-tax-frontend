@@ -61,7 +61,7 @@ class PenaltiesLogicControllerSpec extends ControllerSpecBase with JsonMatchers
     super.beforeEach()
     reset(mockPenaltiesService)
     reset(mockAppConfig)
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     mutableFakeDataRetrievalAction.setViewOnly(false)
   }
 

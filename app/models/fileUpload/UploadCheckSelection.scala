@@ -35,7 +35,7 @@ object UploadCheckSelection extends Enumerable.Implicits {
     No
   )
 
-  def radios(form: Form[_])(implicit messages: Messages): Seq[RadioItem] = {
+  def radios(form: Form[?])(implicit messages: Messages): Seq[RadioItem] = {
 
     val field = form("value")
     val items = Seq(
@@ -47,5 +47,5 @@ object UploadCheckSelection extends Enumerable.Implicits {
   }
 
   implicit val enumerable: Enumerable[UploadCheckSelection] =
-    Enumerable(values.map(v => v.toString -> v): _*)
+    Enumerable(values.map(v => v.toString -> v)*)
 }

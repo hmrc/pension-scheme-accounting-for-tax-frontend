@@ -66,7 +66,7 @@ class CompoundNavigatorSpec extends SpecBase {
       )
       val compoundNavigator = new CompoundNavigatorImpl(navigators.asJava)
       val result = compoundNavigator.nextPage(PageFour, NormalMode, UserAnswers(Json.obj()), srn, QUARTER_START_DATE, accessType, versionInt)(request())
-      result mustEqual controllers.routes.IndexController.onPageLoad
+      result mustEqual controllers.routes.IndexController.onPageLoad()
     }
   }
 }

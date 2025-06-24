@@ -30,7 +30,7 @@ object PenaltySchemes extends Enumerable.Implicits {
 
   def values(schemes: Seq[PenaltySchemes]): Seq[String] = schemes.map(_.pstr)
 
-  def radios(form: Form[_], schemes: Seq[PenaltySchemes], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
+  def radios(form: Form[?], schemes: Seq[PenaltySchemes], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
             (implicit messages: Messages):
       Seq[RadioItem] = {
 
@@ -56,7 +56,7 @@ object PenaltySchemes extends Enumerable.Implicits {
   }
 
   implicit def enumerable(schemes: Seq[PenaltySchemes]): Enumerable[PenaltySchemes] =
-    Enumerable(schemes.map(v => v.pstr -> v): _*)
+    Enumerable(schemes.map(v => v.pstr -> v)*)
 
   private def getHint(schemes: PenaltySchemes, hintClass: Seq[String])(implicit messages: Messages): Option[Hint] =
     schemes.hintText match {

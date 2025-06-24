@@ -25,6 +25,7 @@ import play.api.libs.json.{Json, Reads}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException, HttpResponse, StringContextOps}
+import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -40,8 +41,8 @@ class AddressLookupConnector @Inject()(http: HttpClientV2, config: FrontendAppCo
     implicit val reads: Reads[Seq[TolerantAddress]] = TolerantAddress.postcodeLookupReads
 
     val lookupAddressByPostcode =Json.obj("postcode"->postcode)
-    http.post(addressLookupUrl).withBody(lookupAddressByPostcode).setHeader(schemeHc: _*).execute[HttpResponse].flatMap {
-      case response if response.status equals OK => Future.successful {
+    http.post(addressLookupUrl).withBody(lookupAddressByPostcode).setHeader(schemeHc*).execute[HttpResponse].flatMap {
+      case response if response.status `equals` OK => Future.successful {
         response.json.as[Seq[TolerantAddress]]
           .filterNot(
             a => a.addressLine1.isEmpty && a.addressLine2.isEmpty && a.townOrCity.isEmpty && a.county.isEmpty

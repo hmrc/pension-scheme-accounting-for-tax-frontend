@@ -77,7 +77,7 @@ trait Mappings extends Formatters with Constraints with Transforms {
     of(optionBigDecimal2DPFormatter(requiredKey, invalidKey, decimalKey))
 
   protected def bigDecimalTotal(itemsToTotal: String*): FieldMapping[BigDecimal] =
-    of(bigDecimalTotalFormatter(itemsToTotal: _*))
+    of(bigDecimalTotalFormatter(itemsToTotal*))
 
   protected def boolean(requiredKey: String = "error.required",
                         invalidKey: String = "error.boolean",

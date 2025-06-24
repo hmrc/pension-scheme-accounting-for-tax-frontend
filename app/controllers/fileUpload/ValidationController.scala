@@ -101,7 +101,7 @@ class ValidationController @Inject()(
       val cell = String.valueOf(('A' + e.col).toChar) + (e.row + 1)
       Json.obj(
         "cell" -> cell,
-        "error" -> messages(e.error, e.args: _*)
+        "error" -> messages(e.error, e.args*)
       )
     }
     cellErrors
@@ -233,8 +233,6 @@ class ValidationController @Inject()(
   private def downloadAndProcess(
                                   srn: String,
                                   startDate: LocalDate,
-                                  accessType: AccessType,
-                                  version: Int,
                                   chargeType: ChargeType,
                                   uploadId: UploadId,
                                   parser: Parser
@@ -289,7 +287,7 @@ class ValidationController @Inject()(
         }
         findParser(chargeType, psr) match {
           case Some(parser) =>
-            downloadAndProcess(srn, startDate, accessType, version, chargeType, uploadId, parser)
+            downloadAndProcess(srn, startDate, chargeType, uploadId, parser)
             Future.successful(Redirect(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, version, chargeType)))
           case _ =>
             sessionExpired

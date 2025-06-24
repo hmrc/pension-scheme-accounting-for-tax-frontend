@@ -26,6 +26,7 @@ import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
+import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -44,12 +45,12 @@ class EmailConnector @Inject()(
   private val logger = Logger(classOf[EmailConnector])
 
   private def callBackUrl(
-    schemeAdministratorType: AdministratorOrPractitioner,
-    requestId: String,
-    journeyType: JourneyType.Value,
-    psaOrPspId: String,
-    email: String
-  ): String = {
+                           schemeAdministratorType: AdministratorOrPractitioner,
+                           requestId: String,
+                           journeyType: JourneyType.Value,
+                           psaOrPspId: String,
+                           email: String
+                         ): String = {
     val encryptedPsaOrPspId = crypto.QueryParameterCrypto.encrypt(PlainText(psaOrPspId)).value
     val encryptedEmail = crypto.QueryParameterCrypto.encrypt(PlainText(email)).value
 

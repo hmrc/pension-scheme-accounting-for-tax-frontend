@@ -65,7 +65,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
             Quarters.radios(form(quarters, year, journeyType), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
               Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
             routes.SelectQuarterController.onSubmit(srn, year,  journeyType),
-            config.schemeDashboardUrl(request).format(srn),
+            config.schemeDashboardUrl(request).replace("%s", srn),
             paymentsCache.schemeDetails.schemeName
           )))
         } else {
@@ -91,7 +91,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
                   Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFSDetail),
                     Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
                   routes.SelectQuarterController.onSubmit(srn, year,  journeyType),
-                  config.schemeDashboardUrl(request).format(srn),
+                  config.schemeDashboardUrl(request).replace("%s", srn),
                   paymentsCache.schemeDetails.schemeName
                 )))
               },

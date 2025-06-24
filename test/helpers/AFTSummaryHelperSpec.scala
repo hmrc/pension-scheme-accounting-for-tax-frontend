@@ -130,7 +130,7 @@ class AFTSummaryHelperSpec extends SpecBase with Matchers with MockitoSugar with
   }
 
   "viewAmendmentsLink" must {
-    def dataRequest(sessionData: SessionAccessData = sessionAccessDataCompile): DataRequest[_] =
+    def dataRequest(sessionData: SessionAccessData = sessionAccessDataCompile): DataRequest[?] =
       DataRequest(FakeRequest(GET, "/"),
         "test-internal-id",
         Some(PsaId("A2100000")),

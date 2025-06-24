@@ -60,7 +60,7 @@ class RequestRefundControllerSpec extends ControllerSpecBase with JsonMatchers w
         bind[SchemeService].toInstance(mockSchemeService),
         bind[MinimalConnector].toInstance(mockMinimalConnector),
         bind[FinancialInfoCreditAccessConnector].toInstance(mockFinancialInfoCreditAccessConnector)
-      ): _*
+      )*
     )
     .build()
 
@@ -72,7 +72,7 @@ class RequestRefundControllerSpec extends ControllerSpecBase with JsonMatchers w
     reset(mockSchemeService)
     reset(mockMinimalConnector)
     reset(mockFinancialInfoCreditAccessConnector)
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockAppConfig.timeoutSeconds).thenReturn(5)
     when(mockAppConfig.countdownSeconds).thenReturn(1)
     when(mockAppConfig.betaFeedbackUnauthenticatedUrl).thenReturn("/mockUrl")

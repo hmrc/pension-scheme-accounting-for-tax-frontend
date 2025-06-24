@@ -58,14 +58,13 @@ class RequestCreationService @Inject()(
     logger.info("Entered retrieveAndCreateRequest method 1")
     userAnswersCacheConnector.fetch(id).flatMap { data =>
 
-          val optionUA = data.map { jsValue => UserAnswers(jsValue.as[JsObject]) }
-          if(optionUA.nonEmpty) {
-            logger.info(s"Some data found in cache for ${optionCurrentPage.getOrElse("unrecognised page")}")
-          } else {
-            logger.warn(s"No data found in cache but user in default case for ${optionCurrentPage.getOrElse("unrecognised page")}")
-          }
-      retrieveAFTRequiredDetails(srn, startDate, version, accessType, optionUA)
-
+      val optionUA = data.map { jsValue => UserAnswers(jsValue.as[JsObject]) }
+      if(optionUA.nonEmpty) {
+        logger.info(s"Some data found in cache for ${optionCurrentPage.getOrElse("unrecognised page")}")
+      } else {
+        logger.warn(s"No data found in cache but user in default case for ${optionCurrentPage.getOrElse("unrecognised page")}")
+      }
+        retrieveAFTRequiredDetails(srn, startDate, version, accessType, optionUA)
     }
   }
 

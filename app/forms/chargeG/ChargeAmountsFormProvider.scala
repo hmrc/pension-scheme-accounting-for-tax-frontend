@@ -24,15 +24,14 @@ import play.api.i18n.Messages
 
 class ChargeAmountsFormProvider extends Mappings with Constraints {
 
-  def apply(memberName: String, minimumChargeValueAllowed:BigDecimal)(implicit messages: Messages) =
+  def apply(memberName: String, minimumChargeValueAllowed: BigDecimal)(implicit messages: Messages) =
     Form(mapping(
-
       "amountTransferred" -> bigDecimal2DP(
         requiredKey = messages("amountTransferred.error.required", memberName),
         invalidKey = messages("amountTransferred.error.invalid", memberName),
         decimalKey = messages("amountTransferred.error.decimal", memberName)
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("99999999999.99"),  messages("amountTransferred.error.maximum", memberName)),
+        maximumValue[BigDecimal](BigDecimal("99999999999.99"), messages("amountTransferred.error.maximum", memberName)),
         minimumValue[BigDecimal](minimumChargeValueAllowed, messages("amountTransferred.error.minimum", memberName))
       ),
       "amountTaxDue" -> bigDecimal2DP(
@@ -43,5 +42,5 @@ class ChargeAmountsFormProvider extends Mappings with Constraints {
         maximumValue[BigDecimal](BigDecimal("99999999999.99"), "amountTaxDue.error.maximum"),
         minimumValue[BigDecimal](minimumChargeValueAllowed, "amountTaxDue.error.minimum")
       )
-    )(ChargeAmounts.apply)(ChargeAmounts.unapply))
+    )(ChargeAmounts.apply)(chargeAmounts => Some((chargeAmounts.amountTransferred, chargeAmounts.amountTaxDue))))
 }

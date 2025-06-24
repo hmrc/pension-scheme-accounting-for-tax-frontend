@@ -152,7 +152,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
     reset(mockDeleteChargeHelper)
     when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockMemberPaginationService
       .getItemsPaginated(any(), any(), any(), any(), any()))
       .thenReturn(expectedPaginatedMembersInfo)

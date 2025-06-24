@@ -192,7 +192,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
   "penaltySchemes" must {
     "return a combination of all associated and unassociated schemes returned in correct format" in {
-      when(mockFIConnector.fetch(any(), any())) thenReturn Future.successful(Some(Json.toJson(PenaltiesCache("PsaID", "psa-name", psaFSResponse()))))
+      when(mockFIConnector.fetch(any(), any())) `thenReturn` Future.successful(Some(Json.toJson(PenaltiesCache("PsaID", "psa-name", psaFSResponse()))))
 
       whenReady(penaltiesService.penaltySchemes("2020-04-01", "PsaID", psaFSResponse())(implicitly, implicitly)) {
         _ mustBe penaltySchemes

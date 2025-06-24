@@ -52,7 +52,7 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
       .overrides(
         Seq[GuiceableModule](
           bind[DeleteChargeHelper].toInstance(deleteChargeHelper)
-        ): _*
+        )*
       ).build()
 
   private implicit val fakeDataRequest: DataRequest[AnyContent] = request()

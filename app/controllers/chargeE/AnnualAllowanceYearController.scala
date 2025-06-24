@@ -55,10 +55,10 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-          val preparedForm: Form[YearRange] = request.userAnswers.get(AnnualAllowanceYearPage(index)) match {
-            case Some(value) => form.fill(value)
-            case None => form
-          }
+        val preparedForm: Form[YearRange] = request.userAnswers.get(AnnualAllowanceYearPage(index)) match {
+          case Some(value) => form.fill(value)
+          case None => form
+        }
 
         val submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, accessType, version, index)
         val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
@@ -75,29 +75,29 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-          form
-            .bindFromRequest()
-            .fold(
-              formWithErrors => {
-              val submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, accessType, version, index)
-                val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
-                Future.successful(BadRequest(view(formWithErrors,
-                  schemeName,
-                  submitUrl,
-                  returnUrl,
-                  YearRange.radios(formWithErrors)
-                )))
-              },
-              value => {
-                for {
-                  updatedAnswers <- Future.fromTry(userAnswersService.set(AnnualAllowanceYearPage(index), value, mode))
-                  _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
-                    chargeType = Some(ChargeType.ChargeTypeAnnualAllowance), memberNo = Some(index.id))
-                } yield {
-                    Redirect(navigator.nextPage(AnnualAllowanceYearPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
-                }
+        form
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+            val submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, accessType, version, index)
+              val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+              Future.successful(BadRequest(view(formWithErrors,
+                schemeName,
+                submitUrl,
+                returnUrl,
+                YearRange.radios(formWithErrors)
+              )))
+            },
+            value => {
+              for {
+                updatedAnswers <- Future.fromTry(userAnswersService.set(AnnualAllowanceYearPage(index), value, mode))
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                  chargeType = Some(ChargeType.ChargeTypeAnnualAllowance), memberNo = Some(index.id))
+              } yield {
+                  Redirect(navigator.nextPage(AnnualAllowanceYearPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
               }
-            )
-        }
+            }
+          )
+      }
     }
 }

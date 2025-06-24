@@ -244,8 +244,7 @@ class DataRetrievalsSpec extends AnyFreeSpec with Matchers with OptionValues {
   }
 
   "cyaChargeC must" - {
-    val result: (SponsoringEmployerType, Either[models.MemberDetails, SponsoringOrganisationDetails], SponsoringEmployerAddress, ChargeCDetails, String) =>
-      Future[Result] = { (_, _, _, _, _) => Future.successful(Ok("success result"))}
+    val result: (SponsoringEmployerType, Either[models.MemberDetails, SponsoringOrganisationDetails], SponsoringEmployerAddress, ChargeCDetails, String) => Future[Result] = { (_, _, _, _, _) => Future.successful(Ok("success result")) }
     val startDate = LocalDate.of(2020, 1, 1)
 
     "return successful result when sponsoring individual is successfully retrieved from user answers" in {

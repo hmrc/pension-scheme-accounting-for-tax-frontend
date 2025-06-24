@@ -20,7 +20,7 @@ import play.api.data.{Form, FormError}
 
 trait StringFieldBehaviours extends FieldBehaviours {
 
-  def fieldWithMaxLength(form: Form[_],
+  def fieldWithMaxLength(form: Form[?],
                          fieldName: String,
                          maxLength: Int,
                          lengthError: FormError): Unit = {
@@ -36,7 +36,7 @@ trait StringFieldBehaviours extends FieldBehaviours {
     }
   }
 
-  def fieldWithMinLength(form: Form[_],
+  def fieldWithMinLength(form: Form[?],
                          fieldName: String,
                          minLength: Int,
                          lengthError: FormError): Unit = {
@@ -52,7 +52,7 @@ trait StringFieldBehaviours extends FieldBehaviours {
     }
   }
 
-  def fieldWithRegex(form: Form[_],
+  def fieldWithRegex(form: Form[?],
                      fieldName: String,
                      invalidValues: Seq[String],
                      invalidError: FormError): Unit = {
@@ -65,7 +65,7 @@ trait StringFieldBehaviours extends FieldBehaviours {
     }
   }
 
-  def nino(form: Form[_],
+  def nino(form: Form[?],
            fieldName: String,
            requiredKey: String,
            invalidKey: String): Unit = {
@@ -89,7 +89,7 @@ trait StringFieldBehaviours extends FieldBehaviours {
     }
   }
 
-  def qrOps(form: Form[_],
+  def qrOps(form: Form[?],
             fieldName: String,
             requiredKey: String,
             invalidKey: String): Unit = {
