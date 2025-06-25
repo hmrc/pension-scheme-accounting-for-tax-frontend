@@ -126,8 +126,4 @@ object PenaltyType extends Enumerable.Implicits {
       case _ => None
 
     }
-
-  def displayCharge(penaltyType: PenaltyType): Boolean = penaltyType match {
-    case _ => true
-  }
 }

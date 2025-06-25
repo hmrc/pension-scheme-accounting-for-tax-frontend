@@ -66,7 +66,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
   )
 
-  override def fakeApplication(): Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+  private def application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build())
 
   private val viewPaymentsUrl = "/manage-pension-scheme-accounting-for-tax/accounting-for-tax/aa/2020-04-01/payments-and-charges"
 
@@ -116,7 +116,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
         set(EmailQuery, email).getOrElse(UserAnswers())))
 
-      val result = route(app, request).value
+      val result = route(application, request).value
       status(result) mustEqual OK
 
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
@@ -132,7 +132,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         submitUrl.url
       )
 
-      val view = app.injector.instanceOf[ConfirmationView].apply(
+      val view = application.injector.instanceOf[ConfirmationView].apply(
         viewModel
       )(request, messages)
 
@@ -145,7 +145,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.setOrException(EmailQuery, email)))
 
-      val result = route(app, request).value
+      val result = route(application, request).value
       status(result) mustEqual OK
 
       val viewModel = ConfirmationViewModel(
@@ -159,7 +159,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         submitUrl.url
       )
 
-      val view = app.injector.instanceOf[ConfirmationView].apply(
+      val view = application.injector.instanceOf[ConfirmationView].apply(
         viewModel
       )(request, messages)
 
@@ -177,7 +177,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
             .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeDecrease)
         ))
 
-      val result = route(app, request).value
+      val result = route(application, request).value
       status(result) mustEqual OK
 
       val viewModel = ConfirmationViewModel(
@@ -191,7 +191,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         submitUrl.url
       )
 
-      val view = app.injector.instanceOf[ConfirmationAmendDecreaseView].apply(
+      val view = application.injector.instanceOf[ConfirmationAmendDecreaseView].apply(
         viewModel
       )(request, messages)
 
@@ -209,7 +209,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
             .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeIncrease)
         ))
 
-      val result = route(app, request).value
+      val result = route(application, request).value
       status(result) mustEqual OK
 
       val viewModel = ConfirmationViewModel(
@@ -223,7 +223,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         submitUrl.url
       )
 
-      val view = app.injector.instanceOf[ConfirmationAmendIncreaseView].apply(
+      val view = application.injector.instanceOf[ConfirmationAmendIncreaseView].apply(
         viewModel
       )(request, messages)
 
@@ -241,7 +241,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
             .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeSame)
         ))
 
-      val result = route(app, request).value
+      val result = route(application, request).value
       status(result) mustEqual OK
 
       val viewModel = ConfirmationViewModel(
@@ -255,7 +255,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         submitUrl.url
       )
 
-      val view = app.injector.instanceOf[ConfirmationNoChargeView].apply(
+      val view = application.injector.instanceOf[ConfirmationNoChargeView].apply(
         viewModel
       )(request, messages)
 
@@ -272,7 +272,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       when(mockFinancialStatementConnector.getSchemeFS(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(schemeFSResponseWithDataForDifferentYear))
 
-      val result = route(app, request).value
+      val result = route(application, request).value
       status(result) mustEqual OK
 
       val viewModel = ConfirmationViewModel(
@@ -286,7 +286,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         submitUrl.url
       )
 
-      val view = app.injector.instanceOf[ConfirmationView].apply(
+      val view = application.injector.instanceOf[ConfirmationView].apply(
         viewModel
       )(request, messages)
 
@@ -296,7 +296,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     "redirect to Session Expired page when there is no scheme name or pstr or quarter" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setDataToReturn(None)
-      val result = route(app, request).value
+      val result = route(application, request).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url

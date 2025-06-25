@@ -55,7 +55,7 @@ class IdentifierActionSpec
 
   val authConnector: AuthConnector = mock[AuthConnector]
 
-  val bodyParsers: BodyParsers.Default = app.injector.instanceOf[BodyParsers.Default]
+  val bodyParsers: BodyParsers.Default = testApp.injector.instanceOf[BodyParsers.Default]
 
   val authAction = new AuthenticatedIdentifierAction(authConnector,
     frontendAppConfig, mockSessionDataCacheConnector, bodyParsers)

@@ -97,7 +97,7 @@ class UpscanErrorControllerSpec extends ControllerSpecBase with JsonMatchers {
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val request = FakeRequest(GET, routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate, accessType, versionInt, chargeType).url)
-      val application1 = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+      val application1 = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
       val submitUrl = routes.FileUploadController.onPageLoad(srn, startDate.toString, accessType, versionInt, chargeType).url
       val fileTemplateLink = controllers.routes.FileDownloadController.templateFile(chargeType, None).url
       val fileDownloadInstructionsLink = controllers.routes.FileDownloadController.instructionsFile(chargeType, None).url

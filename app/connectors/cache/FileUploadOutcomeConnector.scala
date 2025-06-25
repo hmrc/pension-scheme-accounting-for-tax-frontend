@@ -26,47 +26,41 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException, StringContextOps}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Failure
 
 class FileUploadOutcomeConnector @Inject()(config: FrontendAppConfig, http: HttpClientV2) {
 
   private val logger = Logger(classOf[FileUploadOutcomeConnector])
-
   private lazy val url = url"${config.fileUploadOutcomeUrl}"
+  private val JsonHeaders: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
 
   def getOutcome(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[FileUploadOutcome]] = {
-
-    val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
-
-    http.get(url).setHeader(headers: _*).execute[HttpResponse]
-      .recoverWith(mapExceptionsToStatus)
+    http.get(url).setHeader(JsonHeaders: _*).execute[HttpResponse]
+      .recoverWith(handleNotFoundException)
       .map { response =>
-        response.status match {
-          case OK =>
-            response.json.asOpt[FileUploadOutcome]
-          case _ => None
-        }
+        if (response.status == OK) response.json.asOpt[FileUploadOutcome] else None
       }
   }
 
   def setOutcome(outcome: FileUploadOutcome)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Unit] = {
-    val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
-
-    http.post(url).withBody(Json.toJson(outcome)).setHeader(headers: _*).execute[HttpResponse] andThen {
-      case Failure(t: Throwable) => logger.warn("Unable to post file upload outcome", t)
-    } map{ _ => ()}
+    http.post(url).withBody(Json.toJson(outcome)).setHeader(JsonHeaders: _*).execute[HttpResponse]
+      .recoverWith(logFailure("Unable to post file upload outcome"))
+      .map(_ => ())
   }
 
   def deleteOutcome(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Unit] = {
-    val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
-
-    http.delete(url).setHeader(headers: _*).execute[HttpResponse] andThen {
-      case Failure(t: Throwable) => logger.warn("Unable to delete file upload outcome", t)
-    } map { _ =>()}
+    http.delete(url).setHeader(JsonHeaders: _*).execute[HttpResponse]
+      .recoverWith(logFailure("Unable to delete file upload outcome"))
+      .map(_ => ())
   }
 
-  private def mapExceptionsToStatus: PartialFunction[Throwable, Future[HttpResponse]] = {
+  private def logFailure(message: String): PartialFunction[Throwable, Future[HttpResponse]] = {
+    case t: Throwable =>
+      logger.warn(message, t)
+      throw t
+  }
+
+  private def handleNotFoundException: PartialFunction[Throwable, Future[HttpResponse]] = {
     case _: NotFoundException =>
-        Future.successful(HttpResponse(NOT_FOUND, "Not found"))
+      Future.successful(HttpResponse(NOT_FOUND, "Not found"))
   }
 }

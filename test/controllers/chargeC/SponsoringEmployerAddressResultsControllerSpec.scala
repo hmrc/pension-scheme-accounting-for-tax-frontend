@@ -46,8 +46,8 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
 
   private val mockAddressLookupConnector = mock[AddressLookupConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application =
-    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private def application: Application =
+    registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
   private val form = new SponsoringEmployerAddressResultsFormProvider()()
   private val index = 0
   private val firstAddress = TolerantAddress(Some("first1"), Some("first2"), Some("town"), Some("county"), Some("firstpost"), Some("UK"))

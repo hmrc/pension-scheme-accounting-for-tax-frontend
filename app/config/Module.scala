@@ -38,7 +38,6 @@ class Module extends AbstractModule {
 
     bind(classOf[CompoundNavigator]).to(classOf[CompoundNavigatorImpl])
 
-    bind(classOf[DataRetrievalAction]).to(classOf[DataRetrievalActionImpl]).asEagerSingleton()
     bind(classOf[DataRequiredAction]).to(classOf[DataRequiredActionImpl]).asEagerSingleton()
     bind(classOf[AllowSubmissionAction]).to(classOf[AllowSubmissionActionImpl]).asEagerSingleton()
 
