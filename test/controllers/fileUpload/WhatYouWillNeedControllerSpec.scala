@@ -84,7 +84,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with JsonMatchers
         (controllers.routes.FileDownloadController.templateFile(chargeType, Some(true)).url,
           controllers.routes.FileDownloadController.instructionsFile(chargeType, Some(true)).url)
 
-      val view = application.injector.instanceOf[WhatYouWillNeedView].apply(
+      def view = application.injector.instanceOf[WhatYouWillNeedView].apply(
         chargeType.toString, ChargeType.fileUploadText(chargeType), submitUrl, schemeName, returnUrl, true,
         templateDownloadLink, instructionsDownloadLink)(request, messages)
 
