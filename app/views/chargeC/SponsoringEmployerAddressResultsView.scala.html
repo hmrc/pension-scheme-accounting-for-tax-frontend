@@ -35,7 +35,7 @@ RadiosViewModel(
     items = addresses,
     hint = Some(Hint(content = HtmlContent(s"""
     <p id="p1" class="govuk-body govuk-!-font-weight-regular">${messages("chargeC.employerAddressSearch.selectAddress")}
-        <a href="${enterManuallyUrl}" class="govuk-link">${messages("chargeC.employerAddressSearch.link.enterManually")}</a>.</p>
+        <a href="$enterManuallyUrl" class="govuk-link">${messages("chargeC.employerAddressSearch.link.enterManually")}</a>.</p>
     """))),
     fieldset =Fieldset(
         legend = Some(Legend(content = Text(messages("chargeC.employerAddressResults.heading", sponsorName)), isPageHeading = true,

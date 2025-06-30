@@ -91,7 +91,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
     logger.debug(s"AFT service returned UpcomingCharge - $totalUpcomingCharge")
     logger.debug(s"AFT service returned OverdueCharge - $totalOverdueCharge")
     logger.debug(s"AFT service returned InterestAccruing - $totalInterestAccruing")
-    logger.warn(s"${srn} SchemeFinancialOverviewController totalUpcomingCharge: ${totalUpcomingChargeFormatted}")
+    logger.warn(s"$srn SchemeFinancialOverviewController totalUpcomingCharge: $totalUpcomingChargeFormatted")
 
     val requestRefundUrl = if (schemeFSCache.inhibitRefundSignal) {
       controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url

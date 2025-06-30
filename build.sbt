@@ -41,7 +41,7 @@ lazy val root = (project in file("."))
     ScoverageKeys.coverageMinimumStmtTotal := 80,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
-    scalacOptions ++= Seq("-feature", "-deprecation"),
+    scalacOptions ++= Seq("-feature", "-deprecation", "-Xfatal-warnings"),
     scalacOptions += "-Wconf:src=routes/.*:s",
     scalacOptions += "-Wconf:src=html/.*:s",
     libraryDependencies ++= AppDependencies(),

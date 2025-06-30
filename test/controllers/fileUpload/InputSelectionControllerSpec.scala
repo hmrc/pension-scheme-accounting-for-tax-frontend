@@ -58,7 +58,7 @@ class InputSelectionControllerSpec extends ControllerSpecBase with JsonMatchers 
     "value" -> Seq("invalid value")
   )
 
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private def application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
   private val formProvider = new InputSelectionFormProvider
   private val form: Form[InputSelection] = formProvider()
   val submitUrl = controllers.fileUpload.routes.InputSelectionController.onSubmit(srn, startDate, accessType, versionInt, chargeType)

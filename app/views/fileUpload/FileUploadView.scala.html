@@ -25,7 +25,7 @@
 @(schemeName: String, chargeType:String,  chargeTypeText: String, submitUrl: play.api.mvc.Call,returnUrl: String, errorMessage: Option[ErrorMessage], formFields: Map[String, String])(implicit request: Request[_], messages: Messages)
 
 @insetContent = {
-        @if(chargeType.toString == "annualAllowance") {
+        @if(chargeType == "annualAllowance") {
         <ul class="govuk-list govuk-list--bullet">
             <li>@messages("fileupload.upload.details.annualAllowance.item1")</li>
             <li>@messages("fileupload.upload.details.annualAllowance.item2")</li>

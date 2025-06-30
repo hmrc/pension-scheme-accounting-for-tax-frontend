@@ -44,12 +44,12 @@ class EmailConnector @Inject()(
   private val logger = Logger(classOf[EmailConnector])
 
   private def callBackUrl(
-    schemeAdministratorType: AdministratorOrPractitioner,
-    requestId: String,
-    journeyType: JourneyType.Value,
-    psaOrPspId: String,
-    email: String
-  ): String = {
+                           schemeAdministratorType: AdministratorOrPractitioner,
+                           requestId: String,
+                           journeyType: JourneyType.Value,
+                           psaOrPspId: String,
+                           email: String
+                         ): String = {
     val encryptedPsaOrPspId = crypto.QueryParameterCrypto.encrypt(PlainText(psaOrPspId)).value
     val encryptedEmail = crypto.QueryParameterCrypto.encrypt(PlainText(email)).value
 

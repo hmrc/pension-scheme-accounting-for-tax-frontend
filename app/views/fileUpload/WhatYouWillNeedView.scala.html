@@ -24,7 +24,7 @@
 @(chargeType: String, chargeTypeText: String, submitUrl: String, schemeName: String, returnUrl:String, psr: Boolean, fileDownloadTemplateLink: String, fileDownloadInstructionsLink: String)(implicit request: Request[_], messages: Messages)
 
 @insetContent = {
-    @if(chargeType.toString == "annualAllowance") {
+    @if(chargeType == "annualAllowance") {
 <ul class="govuk-list govuk-list--bullet">
             <li>@messages("fileupload.whatYouWillNeed.annualAllowance.item1")</li>
             <li>@messages("fileupload.whatYouWillNeed.annualAllowance.item2")</li>
@@ -32,7 +32,7 @@
             <li>@messages("fileupload.whatYouWillNeed.annualAllowance.item4")</li>
             <li>@messages("fileupload.whatYouWillNeed.annualAllowance.item5")</li>
             <li>@messages("fileupload.whatYouWillNeed.annualAllowance.item6")</li>
-            @if(psr == true) {
+            @if(psr) {
             <li>@messages("fileupload.whatYouWillNeed.annualAllowance.item7")</li>
             }
         </ul>

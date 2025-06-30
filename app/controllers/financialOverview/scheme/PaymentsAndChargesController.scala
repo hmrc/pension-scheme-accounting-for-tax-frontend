@@ -58,7 +58,7 @@ class PaymentsAndChargesController @Inject()(
             val upcomingCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(paymentsCache.schemeFSDetail)
             val totalUpcoming: BigDecimal            = upcomingCharges.map(_.amountDue).sum
 
-            logger.warn(s"${srn} PaymentsAndChargesController.onPageLoad totalUpcoming: ${totalUpcoming}")
+            logger.warn(s"$srn PaymentsAndChargesController.onPageLoad totalUpcoming: $totalUpcoming")
 
             if (paymentsCache.schemeFSDetail.nonEmpty) {
               val table: Table              = paymentsAndChargesService.getPaymentsAndCharges(srn, paymentsCache.schemeFSDetail, journeyType)
@@ -86,7 +86,7 @@ class PaymentsAndChargesController @Inject()(
                 }
               )))
             } else {
-              logger.warn(s"Empty payments cache for journey type: ${journeyType}")
+              logger.warn(s"Empty payments cache for journey type: $journeyType")
               Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
             }
         }

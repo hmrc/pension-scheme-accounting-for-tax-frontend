@@ -43,7 +43,7 @@ import scala.concurrent.Future
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private def application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
   private val formProvider = new ChargeDetailsFormProvider()
   private val startDate = LocalDate.parse(QUARTER_START_DATE)
   private val endDate = LocalDate.parse(QUARTER_END_DATE)

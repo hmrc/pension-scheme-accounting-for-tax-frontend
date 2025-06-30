@@ -28,15 +28,15 @@ class SessionExpiredControllerSpec extends ControllerSpecBase {
 
       val request = httpGETRequest(routes.SessionExpiredController.onPageLoad.url)
 
-      val view = app.injector.instanceOf[SessionExpiredView].apply()(request, messages)
+      val view = testApp.injector.instanceOf[SessionExpiredView].apply()(request, messages)
 
-      val result = route(app, request).value
+      val result = route(testApp, request).value
 
       status(result) mustEqual OK
 
       compareResultAndView(result, view)
 
-      app.stop()
+      testApp.stop()
     }
   }
 }

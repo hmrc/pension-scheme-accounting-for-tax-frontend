@@ -38,7 +38,7 @@ import scala.concurrent.Future
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private def application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
   private val startDate = QUARTER_START_DATE
   private val endDate = QUARTER_END_DATE
   private val form = new ChargeDetailsFormProvider()(startDate, endDate, BigDecimal("0.01"))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,104 +20,64 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.{SchemeDetails, SchemeReferenceNumber}
 import play.api.http.Status._
-import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
+import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json, Reads}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http._
 import utils.HttpResponseHelper
 
+import java.net.{URL, URLEncoder}
+import java.nio.charset.StandardCharsets
 import scala.concurrent.{ExecutionContext, Future}
 
 class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
-  def getSchemeDetails(psaId: String, srn: SchemeReferenceNumber)
-                      (implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
+  private def buildHeaders(headerCarrier: HeaderCarrier, headers: Seq[(String, String)]): HeaderCarrier =
+    headerCarrier.withExtraHeaders(headers: _*)
 
-    val url = url"${config.schemeDetailsUrl.format(srn.id)}"
-
-    val headers: Seq[(String, String)] =
-      Seq(
-        ("idNumber", srn.id),
-        ("schemeIdType", "srn"),
-        ("psaId", psaId)
-      )
-
-    implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
+  private def fetchData[T: Reads](url: URL, headers: Seq[(String, String)])
+                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[T] = {
+    val updatedHc = buildHeaders(hc, headers)
 
     httpClientV2
-      .get(url)(hc)
-      .setHeader(headers: _*)
-      .transform(_.withRequestTimeout(config.ifsTimeout))
-      .execute[HttpResponse].map {
-      response =>
-        response.status match {
-          case OK =>
-            Json.parse(response.body).validate[SchemeDetails](SchemeDetails.readsPsa) match {
-              case JsSuccess(value, _) => value
-              case JsError(errors) => throw JsResultException(errors)
-            }
-          case _ =>
-            handleErrorResponse("GET", url.toString)(response)
-        }
-    }
-  }
-
-  def getPspSchemeDetails(pspId: String, srn: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
-
-    val url = url"${config.pspSchemeDetailsUrl.format(srn)}"
-    val headers: Seq[(String, String)] = Seq("srn" -> srn, "pspId" -> pspId)
-    val schemeHc = hc.withExtraHeaders(headers:_*)
-
-    httpClientV2
-      .get(url)(schemeHc)
+      .get(url)(updatedHc)
       .setHeader(headers: _*)
       .transform(_.withRequestTimeout(config.ifsTimeout))
       .execute[HttpResponse].map { response =>
         response.status match {
           case OK =>
-            Json.parse(response.body).validate[SchemeDetails](SchemeDetails.readsPsp) match {
+            Json.parse(response.body).validate[T] match {
               case JsSuccess(value, _) => value
-              case JsError(errors) => throw JsResultException(errors)
+              case JsError(errors)     => throw JsResultException(errors)
             }
           case _ =>
             handleErrorResponse("GET", url.toString)(response)
         }
-    }
+      }
   }
 
-  def checkForAssociation(
-                           psaId: String,
-                           srn: String,
-                           idType: String
-                         )(
-                           implicit headerCarrier: HeaderCarrier,
-                           ec: ExecutionContext
-                         ): Future[Boolean] = {
+  def getSchemeDetails(psaId: String, srn: SchemeReferenceNumber)
+                      (implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
+    val encodedSrnId = URLEncoder.encode(srn.id, StandardCharsets.UTF_8.toString)
+    val url = url"${config.schemeDetailsUrl.format(encodedSrnId)}"
+    val headers = Seq("idNumber" -> srn.id, "schemeIdType" -> "srn", "psaId" -> psaId)
+    fetchData[SchemeDetails](url, headers)(SchemeDetails.readsPsa, headerCarrier, implicitly)
+  }
 
-    val url = url"${config.checkAssociationUrl}"
+  def getPspSchemeDetails(pspId: String, srn: String)
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
+    val encodedSrn = URLEncoder.encode(srn, StandardCharsets.UTF_8.toString)
+    val url = url"${config.pspSchemeDetailsUrl.format(encodedSrn)}"
+    val headers = Seq("srn" -> srn, "pspId" -> pspId)
+    fetchData[SchemeDetails](url, headers)(SchemeDetails.readsPsp, hc, implicitly)
+  }
 
-    val headers: Seq[(String, String)] =
-      Seq((idType, psaId), ("schemeReferenceNumber", srn), ("Content-Type", "application/json"))
-
-    implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
-
-    httpClientV2
-      .get(url)(hc)
-      .setHeader(headers: _*)
-      .transform(_.withRequestTimeout(config.ifsTimeout))
-      .execute[HttpResponse].map {
-      response =>
-        response.status match {
-          case OK =>
-            Json.parse(response.body).validate[Boolean] match {
-              case JsSuccess(value, _) => value
-              case JsError(errors) => throw JsResultException(errors)
-            }
-          case _ =>
-            handleErrorResponse("GET", url.toString)(response)
-        }
-    }
+  def checkForAssociation(psaId: String, srn: String, idType: String)
+                         (implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Future[Boolean] = {
+    val encodedSrn = URLEncoder.encode(srn, StandardCharsets.UTF_8.toString)
+    val url = url"${config.checkAssociationUrl.format(encodedSrn)}"
+    val headers = Seq((idType, psaId), "schemeReferenceNumber" -> srn, "Content-Type" -> "application/json")
+    fetchData[Boolean](url, headers)
   }
 }
-

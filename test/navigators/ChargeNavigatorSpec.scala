@@ -37,11 +37,11 @@ import java.time.LocalDate
 
 class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with BeforeAndAfterEach {
 
-  override lazy val app: Application = new GuiceApplicationBuilder()
+  lazy val app: Application = registerApp(new GuiceApplicationBuilder()
     .overrides(
       Seq[GuiceableModule](
       ): _*
-    ).build()
+    ).build())
 
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
@@ -151,8 +151,8 @@ class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with Befo
 
 class ChargeNavigatorToggleOnSpec extends NavigatorBehaviour with MockitoSugar with BeforeAndAfterEach {
 
-  override lazy val app: Application = new GuiceApplicationBuilder()
-    .overrides(Seq[GuiceableModule](): _*).build()
+  lazy val app: Application = registerApp(new GuiceApplicationBuilder()
+    .overrides(Seq[GuiceableModule](): _*).build())
 
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
