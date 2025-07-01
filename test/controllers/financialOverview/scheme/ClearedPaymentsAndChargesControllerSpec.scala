@@ -48,7 +48,7 @@ class ClearedPaymentsAndChargesControllerSpec extends ControllerSpecBase {
         bind[IdentifierAction].to[FakeIdentifierAction],
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
-      ): _*
+      )*
     )
     .build()
 

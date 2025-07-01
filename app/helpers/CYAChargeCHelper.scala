@@ -36,8 +36,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
       organisation => chargeCOrganisationDetails(index, organisation)
     )
 
-  private def getEmployerName(index: Int,
-                              sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails]): String =
+  private def getEmployerName(sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails]): String =
     sponsorDetails.fold(
       individual => individual.fullName,
       organisation => organisation.name
@@ -107,7 +106,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
                      sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails])
                     (implicit messages: Messages): SummaryListRow =
     SummaryListRow(
-      key = Key(Text(messages("chargeC.sponsoringEmployerAddress.checkYourAnswersLabel", getEmployerName(index, sponsorDetails))),
+      key = Key(Text(messages("chargeC.sponsoringEmployerAddress.checkYourAnswersLabel", getEmployerName(sponsorDetails))),
         classes = "govuk-!-width-one-half"),
       value = Value(addressAnswer(address)),
       actions = Some(
@@ -116,7 +115,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
             content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(
-              messages("site.edit") + " " + messages("chargeC.sponsoringEmployerAddress.checkYourAnswersLabel", getEmployerName(index, sponsorDetails))
+              messages("site.edit") + " " + messages("chargeC.sponsoringEmployerAddress.checkYourAnswersLabel", getEmployerName(sponsorDetails))
             )
           ))
         )

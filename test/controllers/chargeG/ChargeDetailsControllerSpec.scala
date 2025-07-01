@@ -75,7 +75,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
     "return OK and the correct view for a GET" in {
 
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(onwardRoute.url)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))
 
@@ -96,7 +96,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
     "populate the view correctly on a GET when the question has previously been answered" in {
 
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(onwardRoute.url)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(chargeGMember))
 
       val view = application.injector.instanceOf[ChargeDetailsView].apply(
@@ -116,8 +116,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
     "redirect to the next page when valid data is submitted" in {
       DateHelper.setDate(Some(startDate))
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(onwardRoute.url)
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) `thenReturn` Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))
@@ -131,8 +131,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
     "redirect to the next page when valid data is submitted with the QROPS prefix added to the reference" in {
       DateHelper.setDate(Some(startDate))
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(onwardRoute.url)
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) `thenReturn` Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))
@@ -146,7 +146,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
     "return a Bad Request and errors when invalid data is submitted" in {
 
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(onwardRoute.url)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))
 

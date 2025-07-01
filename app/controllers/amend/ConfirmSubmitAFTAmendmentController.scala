@@ -82,7 +82,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
           },
           value =>
             if (!value) {
-              userAnswersCacheConnector.removeAll(request.internalId).map { _ => Redirect(config.schemeDashboardUrl(request).format(srn))
+              userAnswersCacheConnector.removeAll(request.internalId).map { _ => Redirect(config.schemeDashboardUrl(request).replace("%s", srn))
               }
             } else {
               for {
@@ -109,13 +109,13 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
         val isCompilable = seqOverview.filter(_.versionDetails.isDefined).map(_.toPodsReport).exists(_.compiledVersionAvailable)
 
         if (accessType == Draft && !isCompilable) {
-          Future.successful(Redirect(Call("GET", config.schemeDashboardUrl(request).format(srn))))
+          Future.successful(Redirect(Call("GET", config.schemeDashboardUrl(request).replace("%s", srn))))
         } else {
           aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$previousVersion", srn, request.isLoggedInAsPsa).flatMap { previousVersionJsValue =>
             val (currentTotalAmountUK, currentTotalAmountNonUK) = amendmentHelper.getTotalAmount(ua)
             val (previousTotalAmountUK, previousTotalAmountNonUK) = amendmentHelper.getTotalAmount(UserAnswers(previousVersionJsValue.as[JsObject]))
 
-           val updatedUA = ua.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ValueChangeType.valueChangeType(
+            val updatedUA = ua.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ValueChangeType.valueChangeType(
               currentTotalAmountNonUK + currentTotalAmountUK,
               previousTotalAmountNonUK + previousTotalAmountUK
             ))
@@ -134,7 +134,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
                 form,
                 TwirlRadios.yesNo(form("value")),
                 routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate, accessType, version),
-                config.schemeDashboardUrl(request).format(srn),
+                config.schemeDashboardUrl(request).replace("%s", srn),
                 schemeName
               )))
             }

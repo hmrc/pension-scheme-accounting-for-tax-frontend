@@ -111,7 +111,7 @@ final case class UserAnswers(
   def remove[A](page: QuestionPage[A]): Try[UserAnswers] = {
     data.removeObject(page.path) match {
       case JsSuccess(jsValue, _) =>
-        Success(this copy (data = jsValue))
+        Success(this `copy` (data = jsValue))
       case JsError(_) =>
         throw new RuntimeException("Unable to remove page: " + page)
     }

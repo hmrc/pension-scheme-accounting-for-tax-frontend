@@ -26,6 +26,7 @@ import play.api.mvc.Results._
 import uk.gov.hmrc.http.{StringContextOps, HeaderCarrier, HttpResponse, HttpException, NotFoundException}
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
 
 import java.net.URL
 import scala.concurrent.{ExecutionContext, Future}
@@ -48,7 +49,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"), ("id", id))
 
-    http.get(saveUrl).setHeader(headers: _*).execute[HttpResponse]
+    http.get(saveUrl).setHeader(headers*).execute[HttpResponse]
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
         response.status match {
@@ -97,7 +98,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
   private def savePost(headers: Seq[(String, String)], url: URL, value: JsValue)
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[JsValue] = {
-    http.post(url).setHeader(headers: _*).withBody(value).execute[HttpResponse]
+    http.post(url).setHeader(headers*).withBody(value).execute[HttpResponse]
       .map { response =>
         response.status match {
           case CREATED =>
@@ -124,7 +125,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
   override def removeAll(id: String)
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Result] = {
     val headers: Seq[(String, String)] = Seq(("id", id))
-    http.delete(saveUrl).setHeader(headers: _*).execute[HttpResponse].map { _ =>
+    http.delete(saveUrl).setHeader(headers*).execute[HttpResponse].map { _ =>
       Ok
     }
   }
@@ -133,7 +134,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[SessionData]] = {
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"), ("id", id))
 
-    http.get(saveSessionUrl).setHeader(headers: _*).execute[HttpResponse]
+    http.get(saveSessionUrl).setHeader(headers*).execute[HttpResponse]
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
         response.status match {
@@ -154,7 +155,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"), ("id", srn + startDate))
 
-    http.get(lockDetailUrl).setHeader(headers: _*).execute[HttpResponse]
+    http.get(lockDetailUrl).setHeader(headers*).execute[HttpResponse]
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
         response.status match {

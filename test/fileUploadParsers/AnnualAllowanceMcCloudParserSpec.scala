@@ -170,7 +170,7 @@ Joe,Bliggs,AB123457C,2020 to 2021,100.50,01/01/2020,NO,YES,YES,4000017RN,30/06/2
     "return correctly where McCloud errors - invalid date" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
-Joe,Bloggs,AB123456C,2020 to 2021,268.28,01/01/2020,YES,YES,NO,,invalid,45.66,,,,,,,,,,,,"""
+  Joe,Bloggs,AB123456C,2020 to 2021,268.28,01/01/2020,YES,YES,NO,,invalid,45.66,,,,,,,,,,,,"""
       )
 
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
@@ -180,18 +180,18 @@ Joe,Bloggs,AB123456C,2020 to 2021,268.28,01/01/2020,YES,YES,NO,,invalid,45.66,,,
         ParserValidationError(1, 10, "Invalid tax quarter reported and paid", parser.McCloudFieldNames.dateReportedAndPaid))
     }
 
-  "return correctly where McCloud errors - invalid Tax Year" in {
-    val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
-      s"""$header
-Joe,Bloggs,AB123456C,2020-2021,268.28,01/01/2020,NO,NO,NO,,,,,,,,,,,,,,,"""
-    )
+    "return correctly where McCloud errors - invalid Tax Year" in {
+      val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
+        s"""$header
+  Joe,Bloggs,AB123456C,2020-2021,268.28,01/01/2020,NO,NO,NO,,,,,,,,,,,,,,,"""
+      )
 
-    val result = parser.parse(startDate, validCsvFile, UserAnswers())
-    result.isValid mustBe false
+      val result = parser.parse(startDate, validCsvFile, UserAnswers())
+      result.isValid mustBe false
 
-    result.swap.toList.flatten mustBe Seq(
-      ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.invalid", AnnualAllowanceFieldNames.taxYear))
-  }
+      result.swap.toList.flatten mustBe Seq(
+        ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.invalid", AnnualAllowanceFieldNames.taxYear))
+    }
 
     "return correctly where McCloud errors - invalid Tax Year field" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(

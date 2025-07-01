@@ -76,7 +76,7 @@ class ValidationErrorsAllControllerSpec extends ControllerSpecBase with JsonMatc
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockFileUploadOutcomeConnector.getOutcome(any(), any()))
       .thenReturn(Future.successful(Some(expectedOutcome)))
   }

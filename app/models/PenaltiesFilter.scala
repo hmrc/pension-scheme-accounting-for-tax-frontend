@@ -35,7 +35,7 @@ object PenaltiesFilter
   )
 
   implicit val enumerable: Enumerable[PenaltiesFilter] =
-    Enumerable(values.map(v => v.toString -> v): _*)
+    Enumerable(values.map(v => v.toString -> v)*)
 
   implicit def chargeDetailsFilterPathBindable(implicit stringBinder: PathBindable[String]): PathBindable[PenaltiesFilter] =
     new PathBindable[PenaltiesFilter] {

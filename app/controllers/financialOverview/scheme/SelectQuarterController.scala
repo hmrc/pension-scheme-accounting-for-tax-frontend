@@ -63,14 +63,14 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
           form = form(quarters, year),
           submitCall = routes.SelectQuarterController.onSubmit(srn, year),
           schemeName = paymentsCache.schemeDetails.schemeName,
-          returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
+          returnUrl = Option(config.financialOverviewUrl).getOrElse(s"/financial-overview/$srn"),
           radios = Quarters.radios(form(quarters, year), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
             Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
           Year = year,
           returnDashboardUrl = if(loggedInAsPsa) {
-            Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+            Option(config.managePensionsSchemeSummaryUrl).getOrElse(s"/pension-scheme-summary/$srn")
           } else {
-            Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+            Option(config.managePensionsSchemePspUrl).getOrElse(s"/$srn/dashboard/pension-scheme-details")
           }
         )))
       } else {
@@ -95,14 +95,14 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
               form = formWithErrors,
               submitCall = routes.SelectQuarterController.onSubmit(srn, year),
               schemeName = paymentsCache.schemeDetails.schemeName,
-              returnUrl = Option(config.financialOverviewUrl).getOrElse("/financial-overview/%s").format(srn),
+              returnUrl = Option(config.financialOverviewUrl).getOrElse(s"/financial-overview/$srn"),
               radios = Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFSDetail),
                 Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
               Year = year,
               returnDashboardUrl = if(loggedInAsPsa) {
-                Option(config.managePensionsSchemeSummaryUrl).getOrElse("/pension-scheme-summary/%s").format(srn)
+                Option(config.managePensionsSchemeSummaryUrl).getOrElse(s"/pension-scheme-summary/$srn")
               } else {
-                Option(config.managePensionsSchemePspUrl).getOrElse("/%s/dashboard/pension-scheme-details").format(srn)
+                Option(config.managePensionsSchemePspUrl).getOrElse(s"/$srn/dashboard/pension-scheme-details")
               }
             )))
           },

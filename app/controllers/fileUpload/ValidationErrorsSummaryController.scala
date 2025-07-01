@@ -55,28 +55,37 @@ class ValidationErrorsSummaryController @Inject()(appConfig: FrontendAppConfig,
           controllers.routes.FileDownloadController.instructionsFile(chargeType, request.userAnswers.isPublicServicePensionsRemedy(chargeType)).url
         val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
         val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
+
         fileUploadOutcomeConnector.getOutcome.flatMap {
           case Some(outcome@FileUploadOutcome(ValidationErrorsMoreThanOrEqualToMax, _, _)) =>
             val (errors, totalNumOfErrors) = generateAllErrors(outcome)
-          Future.successful(Ok(view(schemeName,ChargeType.fileUploadText(chargeType), fileDownloadInstructionLink,
-            totalNumOfErrors, errors, returnToFileUpload, returnToSchemeDetails)))
-          case _ => Future.successful(NotFound)
+            Future.successful(
+              Ok(view(
+                schemeName,
+                ChargeType.fileUploadText(chargeType),
+                fileDownloadInstructionLink,
+                totalNumOfErrors,
+                errors,
+                returnToFileUpload,
+                returnToSchemeDetails
+              ))
+            )
+          case _ =>
+            Future.successful(NotFound)
         }
     }
 
   private def generateAllErrors(fileUploadOutcome: FileUploadOutcome): (Seq[String], Int) = {
-    val numOfErrorsReads = (JsPath \ "totalError").read[Int]
-    val readsErrors = (JsPath \ "errors").read[Seq[String]](JsPath.read[Seq[String]](__.read(Reads.seq[String])))
+    val json = fileUploadOutcome.json
 
-    val numberOfErrors = numOfErrorsReads.reads(fileUploadOutcome.json) match {
-      case JsSuccess(total, _) => total
-      case JsError(errors) => throw JsResultException(errors)
+    val numberOfErrors = (json \ "totalError").asOpt[Int].getOrElse {
+      throw new IllegalArgumentException("Missing or invalid 'totalError' field in JSON")
     }
 
-    val errors = readsErrors.reads(fileUploadOutcome.json) match {
-      case JsSuccess(value, _) => value
-      case JsError(errors) => throw JsResultException(errors)
+    val errors = (json \ "errors").asOpt[Seq[String]].getOrElse {
+      throw new IllegalArgumentException("Missing or invalid 'errors' field in JSON")
     }
+
     (errors, numberOfErrors)
   }
 }

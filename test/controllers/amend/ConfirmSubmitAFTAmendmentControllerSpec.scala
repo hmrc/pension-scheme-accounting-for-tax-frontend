@@ -71,7 +71,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Js
     Mockito.reset(mockUserAnswersCacheConnector)
     Mockito.reset(mockAmendmentHelper)
     Mockito.reset(mockAFTConnector)
-    when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[?])).thenReturn(dummyCall.url)
     when(mockAmendmentHelper.amendmentSummaryRows(any(), any(), any())(any())).thenReturn(Nil)
     when(mockAmendmentHelper.getTotalAmount(any())).thenReturn((BigDecimal(2000.00), BigDecimal(40000.00)))
     when(mockAFTConnector.getAFTDetails(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))

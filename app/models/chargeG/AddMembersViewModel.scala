@@ -21,7 +21,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import viewmodels.Link
 
-case class AddMembersViewModel(form: Form[_],
+case class AddMembersViewModel(form: Form[?],
                                quarterStart: String,
                                quarterEnd: String,
                                table: Table,

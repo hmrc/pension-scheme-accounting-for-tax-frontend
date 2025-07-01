@@ -44,7 +44,7 @@ class YourActionWasNotProcessedControllerSpec extends ControllerSpecBase with Mo
   "YourActionWasNotProcessedController" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockAppConfig.schemeDashboardUrl(any():DataRequest[_])).thenReturn(returnUrl)
+      when(mockAppConfig.schemeDashboardUrl(any():DataRequest[?])).thenReturn(returnUrl)
       val application = applicationBuilder(userAnswers = data).overrides().build()
 
       val request = httpGETRequest(getRoute)

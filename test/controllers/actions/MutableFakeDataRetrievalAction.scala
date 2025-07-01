@@ -37,7 +37,7 @@ class MutableFakeDataRetrievalAction extends DataRetrievalAction {
   def setDataToReturn(userAnswers: Option[UserAnswers]): Unit = dataToReturn = userAnswers
   def setSessionData(sessionData: SessionData): Unit = storedSessionData = sessionData
   def setViewOnly(viewOnly: Boolean): Unit = {
-    storedSessionData = storedSessionData copy (
+    storedSessionData = storedSessionData `copy` (
       sessionAccessData = SessionAccessData(
         storedSessionData.sessionAccessData.version,
         if (viewOnly) AccessMode.PageAccessModeCompile else AccessMode.PageAccessModeViewOnly,

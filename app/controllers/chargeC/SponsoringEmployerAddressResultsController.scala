@@ -16,7 +16,6 @@
 
 package controllers.chargeC
 
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
@@ -49,7 +48,6 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
                                                            requireData: DataRequiredAction,
                                                            formProvider: SponsoringEmployerAddressResultsFormProvider,
                                                            val controllerComponents: MessagesControllerComponents,
-                                                           config: FrontendAppConfig,
                                                            view: SponsoringEmployerAddressResultsView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
@@ -99,17 +97,17 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
     "([0-9]+)".r.findAllIn(mkString(p)).map(n => Try(n.toInt).toOption).toSeq.reverse :+ None
 
 
-  private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form:Form[Int], status:Status,
+  private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form: Form[Int], status: Status,
                           accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Future[Result] = {
     DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>
       request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
-        case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+        case None =>
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         case Some(addresses) =>
           val submitCall = routes.SponsoringEmployerAddressResultsController.onSubmit(mode, srn, startDate, accessType, version, index)
           val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
 
-          val addressesSorted = addresses.sortWith((a, b) => {
-
+          val addressesSorted = addresses.sortWith { (a, b) =>
             def sort(zipped: Seq[(Option[Int], Option[Int])]): Boolean = zipped match {
               case (Some(nA), Some(nB)) :: tail =>
                 if (nA == nB) sort(tail) else nA < nB
@@ -118,13 +116,25 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
               case _ => mkString(a) < mkString(b)
             }
             sort(numbersIn(a).zipAll(numbersIn(b), None, None).toList)
-          })
+          }
 
           val empType = Messages(s"chargeC.employerType.${employerType.toString}")
           val enterManuallyUrl = routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index).url
 
-      Future.successful(status(view(form, schemeName, submitCall, returnUrl, sponsorName, empType, enterManuallyUrl,
-        ViewUtils.convertToRadioItems(addressesSorted))))
+          Future.successful(
+            status(
+              view(
+                form,
+                schemeName,
+                submitCall,
+                returnUrl,
+                sponsorName,
+                empType,
+                enterManuallyUrl,
+                ViewUtils.convertToRadioItems(addressesSorted)
+              )
+            )
+          )
       }
     }
   }

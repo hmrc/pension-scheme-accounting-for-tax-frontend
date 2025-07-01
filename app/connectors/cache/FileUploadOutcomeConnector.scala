@@ -26,6 +26,7 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException, StringContextOps}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import scala.concurrent.{ExecutionContext, Future}
+import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
 
 class FileUploadOutcomeConnector @Inject()(config: FrontendAppConfig, http: HttpClientV2) {
 
@@ -34,7 +35,7 @@ class FileUploadOutcomeConnector @Inject()(config: FrontendAppConfig, http: Http
   private val JsonHeaders: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
 
   def getOutcome(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[FileUploadOutcome]] = {
-    http.get(url).setHeader(JsonHeaders: _*).execute[HttpResponse]
+    http.get(url).setHeader(JsonHeaders*).execute[HttpResponse]
       .recoverWith(handleNotFoundException)
       .map { response =>
         if (response.status == OK) response.json.asOpt[FileUploadOutcome] else None
@@ -42,13 +43,13 @@ class FileUploadOutcomeConnector @Inject()(config: FrontendAppConfig, http: Http
   }
 
   def setOutcome(outcome: FileUploadOutcome)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Unit] = {
-    http.post(url).withBody(Json.toJson(outcome)).setHeader(JsonHeaders: _*).execute[HttpResponse]
+    http.post(url).withBody(Json.toJson(outcome)).setHeader(JsonHeaders*).execute[HttpResponse]
       .recoverWith(logFailure("Unable to post file upload outcome"))
       .map(_ => ())
   }
 
   def deleteOutcome(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Unit] = {
-    http.delete(url).setHeader(JsonHeaders: _*).execute[HttpResponse]
+    http.delete(url).setHeader(JsonHeaders*).execute[HttpResponse]
       .recoverWith(logFailure("Unable to delete file upload outcome"))
       .map(_ => ())
   }

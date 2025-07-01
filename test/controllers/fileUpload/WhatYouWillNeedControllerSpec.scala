@@ -45,7 +45,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with JsonMatchers
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
   }
 
   "whatYouWillNeed Controller" must {

@@ -63,7 +63,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   private def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
     implicit request: DataRequest[AnyContent]): Call =
     if (deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
-      Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+      Call("GET", config.managePensionsSchemeSummaryUrl.replace("%s", srn))
     } else if (chargeServiceHelper.isEmployerOrMemberPresent(ua, "chargeEDetails")) {
       AddMembersController.onPageLoad(srn, startDate, accessType, version)
     } else {
@@ -156,7 +156,6 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
           case (_, Some(false), Some(index)) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
           case _ => sessionExpiredPage
         }
-      case _ => sessionExpiredPage
     }
   }
 
@@ -246,7 +245,6 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       case (Some(i), true, CheckMode) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       case (Some(i), false, _) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       case (None, true | false, _) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case (_, _, _) => sessionExpiredPage
     }
   }
 

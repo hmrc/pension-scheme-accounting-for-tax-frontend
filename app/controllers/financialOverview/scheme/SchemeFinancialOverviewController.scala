@@ -66,7 +66,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
                                       schemeDetails: SchemeDetails,
                                       schemeFSCache: PaymentsCache,
                                       creditSchemeFSDetail: Seq[SchemeFSDetail]
-                                     )(implicit request: Request[_]): Future[Result] = {
+                                     )(implicit request: Request[?]): Future[Result] = {
     val schemeFSDetail                        = schemeFSCache.schemeFSDetail
     val schemeName                            = schemeDetails.schemeName
     val overdueCharges: Seq[SchemeFSDetail]   = paymentsAndChargesService.getOverdueCharges(schemeFSDetail)

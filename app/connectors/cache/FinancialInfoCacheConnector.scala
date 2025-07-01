@@ -23,6 +23,7 @@ import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.client.HttpClientV2
+import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -54,7 +55,7 @@ class FinancialInfoCacheConnector @Inject()(
           (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[JsValue] = {
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
 
-    http.post(url).withBody(value).setHeader(headers: _*).execute[HttpResponse]
+    http.post(url).withBody(value).setHeader(headers*).execute[HttpResponse]
       .map { response =>
         response.status match {
           case CREATED =>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,4 +25,7 @@ case class ChargeDetails(qropsReferenceNumber: String, qropsTransferDate: LocalD
 object ChargeDetails {
   implicit lazy val formats: Format[ChargeDetails] =
     Json.format[ChargeDetails]
+
+  def unapply(c: ChargeDetails): Option[(String, LocalDate)] =
+    Some((c.qropsReferenceNumber, c.qropsTransferDate))
 }

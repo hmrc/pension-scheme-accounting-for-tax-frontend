@@ -86,7 +86,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       addEmployers(ua, srn, startDate, accessType, version)
 
     case DeleteEmployerPage if deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment =>
-      Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+      Call("GET", config.managePensionsSchemeSummaryUrl.replace("%s", srn))
 
     case DeleteEmployerPage if chargeServiceHelper.isEmployerOrMemberPresent(ua, "chargeCDetails") =>
       AddEmployersController.onPageLoad(srn, startDate, accessType, version)

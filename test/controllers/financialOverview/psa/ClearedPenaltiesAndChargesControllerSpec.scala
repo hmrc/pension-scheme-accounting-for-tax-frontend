@@ -50,7 +50,7 @@ class ClearedPenaltiesAndChargesControllerSpec extends ControllerSpecBase {
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
-      ): _*
+      )*
     )
     .build()
 

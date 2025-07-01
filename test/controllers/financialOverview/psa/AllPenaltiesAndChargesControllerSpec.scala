@@ -60,7 +60,7 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with JsonM
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
-      ): _*
+      )*
     )
     .build()
 
@@ -68,7 +68,7 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with JsonM
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPsaPenaltiesAndChargesService)
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", multiplePenalties)))
     when(mockPsaPenaltiesAndChargesService.getDueCharges(any())).thenReturn(multiplePenalties)

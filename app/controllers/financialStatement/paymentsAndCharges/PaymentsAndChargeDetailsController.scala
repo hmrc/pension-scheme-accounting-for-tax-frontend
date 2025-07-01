@@ -81,7 +81,7 @@ class PaymentsAndChargeDetailsController @Inject()(
     if (chargeRefs.size > index.toInt) {
       filteredCharges.find(_.chargeReference == chargeRefs(index.toInt)) match {
         case Some(schemeFs) =>
-          val returnUrl = config.schemeDashboardUrl(request.psaId, request.pspId).format(srn)
+          val returnUrl = config.schemeDashboardUrl(request.psaId, request.pspId).replace("%s", srn)
           Future.successful(Ok(paymentsAndChargeDetailsView(
             chargeType = schemeFs.chargeType.toString,
             isPaymentOverdue = isPaymentOverdue(schemeFs),

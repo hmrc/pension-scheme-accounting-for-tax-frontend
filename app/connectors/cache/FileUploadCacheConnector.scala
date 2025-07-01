@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.client.HttpClientV2
+import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -53,7 +54,7 @@ class FileUploadCacheConnector @Inject()(
   override def getUploadResult(id: UploadId)
                               (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[FileUploadDataCache]] = {
     http.get(fileUploadUrl)
-      .setHeader(buildHeadersWithUploadId(id): _*)
+      .setHeader(buildHeadersWithUploadId(id)*)
       .execute[HttpResponse]
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
@@ -67,9 +68,13 @@ class FileUploadCacheConnector @Inject()(
 
   override def requestUpload(uploadId: UploadId, fileReference: Reference)
                             (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Unit] = {
+    val jsonBody = Json.obj(
+      "reference" -> fileReference.reference
+    )
+
     http.post(fileUploadUrl)
-      .withBody(Json.toJson(fileReference))
-      .setHeader(buildHeadersWithUploadId(uploadId): _*)
+      .withBody(jsonBody)
+      .setHeader(buildHeadersWithUploadId(uploadId)*)
       .execute[HttpResponse]
       .map { response =>
         response.status match {
@@ -86,7 +91,7 @@ class FileUploadCacheConnector @Inject()(
     val body = Json.toJson(mapUploadStatus(uploadStatus))
     http.post(fileUploadResultUrl)
       .withBody(body)
-      .setHeader(buildHeadersWithReference(reference): _*)
+      .setHeader(buildHeadersWithReference(reference)*)
       .execute[HttpResponse]
       .map { response =>
         response.status match {
