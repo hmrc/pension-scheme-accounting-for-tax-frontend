@@ -46,10 +46,10 @@ class SignOutController @Inject()(
           case (Some(startDt), Some(srn)) =>
             val id = s"$srn$startDt"
             userAnswersCacheConnector.removeAll(id).map { _ =>
-              Redirect(config.signOutUrl).withNewSession
+              Redirect(config.signOutUrl)
             }
           case _ =>
-            Future.successful(Redirect(config.signOutUrl).withNewSession)
+            Future.successful(Redirect(config.signOutUrl))
         }
       }
   }
