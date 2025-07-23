@@ -310,7 +310,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
     val headRow = scala.collection.immutable.Seq(
       HeadCell(Text(Messages("pension.scheme.chargeAmount.label.new"))),
-      HeadCell(Text("")),
+      HeadCell(HtmlContent(s"""<span class="govuk-visually-hidden">${Messages("psa.pension.scheme.tableHeader.date")}</span>""")),
       HeadCell(Text(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.totalAmount)}"), classes = "govuk-!-font-weight-regular govuk-!-text-align-right")
     )
 
