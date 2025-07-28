@@ -317,10 +317,10 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
   private def formatChargeTypeWithHyphen(chargeTypeString: String) = {
     chargeTypeString match {
-      case phrase if (phrase.contains("Accounting for Tax")) => phrase.replace("Accounting for Tax", "Accounting for Tax -")
-      case phrase if (phrase.contains("Overseas Transfer Charge")) => phrase.replace("Overseas Transfer Charge", "Overseas Transfer Charge -")
-      case phrase if (phrase.contains("Scheme Sanction Charge")) => phrase.replace("Scheme Sanction Charge", "Scheme Sanction Charge -")
-      case phrase if (phrase.contains("Lifetime Allowance Discharge Assessment")) => phrase.replace("Lifetime Allowance Discharge Assessment", "Lifetime Allowance Discharge Assessment -")
+      case phrase if phrase.contains("Accounting for Tax") => phrase.replace("Accounting for Tax", "Accounting for Tax -")
+      case phrase if phrase.contains("Overseas Transfer Charge") => phrase.replace("Overseas Transfer Charge", "Overseas Transfer Charge -")
+      case phrase if phrase.contains("Scheme Sanction Charge") => phrase.replace("Scheme Sanction Charge", "Scheme Sanction Charge -")
+      case phrase if phrase.contains("Lifetime Allowance Discharge Assessment") => phrase.replace("Lifetime Allowance Discharge Assessment", "Lifetime Allowance Discharge Assessment -")
       case _ => chargeTypeString
     }
   }

@@ -43,6 +43,8 @@ object PsaFSChargeType extends Enumerable.Implicits {
   case object LTA_DISCHARGE_ASSESSMENT_30_DAY_LPP extends WithName("Lifetime Allowance Discharge Assessment 30 Days Late Payment Penalty") with PsaFSChargeType
   case object LTA_DISCHARGE_ASSESSMENT_6_MONTH_LPP extends WithName("Lifetime Allowance Discharge Assessment 6 Months Late Payment Penalty") with PsaFSChargeType
   case object LTA_DISCHARGE_ASSESSMENT_12_MONTH_LPP extends WithName("Lifetime Allowance Discharge Assessment 12 Months Late Payment Penalty") with PsaFSChargeType
+  case object PSR_INITIAL_LFP extends WithName("Pension Scheme Return Initial Late Filing Penalty") with PsaFSChargeType
+  case object PSR_DAILY_LFP extends WithName("Pension Scheme Return Daily Late Filing Penalty") with PsaFSChargeType
 
   val values: Seq[PsaFSChargeType] = Seq(
     AFT_INITIAL_LFP,
@@ -65,7 +67,9 @@ object PsaFSChargeType extends Enumerable.Implicits {
     SSC_12_MONTH_LPP,
     LTA_DISCHARGE_ASSESSMENT_30_DAY_LPP,
     LTA_DISCHARGE_ASSESSMENT_6_MONTH_LPP,
-    LTA_DISCHARGE_ASSESSMENT_12_MONTH_LPP
+    LTA_DISCHARGE_ASSESSMENT_12_MONTH_LPP,
+    PSR_INITIAL_LFP,
+    PSR_DAILY_LFP
   )
 
   implicit val enumerable: Enumerable[PsaFSChargeType] =

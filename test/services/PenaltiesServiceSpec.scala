@@ -310,6 +310,22 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
       }
     }
 
+    "redirect to PenaltiesController.onPageLoadPension for PSR_INITIAL_LFP | PSR_DAILY_LFP" in {
+      val apiResponse: Seq[PsaFSDetail] =
+        Seq(
+          customPsaFS(PSR_INITIAL_LFP),
+          customPsaFS(PSR_DAILY_LFP, "2021-04-01", "2021-06-30")
+        )
+      val listOfSchemes: ListOfSchemes =
+        ListOfSchemes("", "1", Some(List(ListSchemeDetails("scheme-name", srn, "", None, None, Some(pstr), None, None, None))))
+
+      when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
+
+      whenReady(penaltiesService.navFromNonAftYearsPage(apiResponse, "2021", psaId, PensionsPenalties, All)) {
+        _ mustBe Redirect(PenaltiesController.onPageLoadPension("2021", srn, All))
+      }
+    }
+
     "redirect to PenaltiesController with pstr index identifier if charges from single scheme is returned and pstr is not found in list of schemes" in {
       val apiResponse: Seq[PsaFSDetail] = Seq(customPsaFS(PSS_INFO_NOTICE))
       val listOfSchemes: ListOfSchemes = ListOfSchemes("", "1",
