@@ -46,7 +46,8 @@ class FinancialStatementConnector @Inject()(httpClientV2: HttpClientV2, config: 
           val psaFS = response.json.as[PsaFS]
           PsaFS(
             inhibitRefundSignal = psaFS.inhibitRefundSignal,
-            seqPsaFSDetail = psaFS.seqPsaFSDetail.filterNot(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT))
+            seqPsaFSDetail = psaFS.seqPsaFSDetail.filterNot(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
+          )
         case _ =>
           handleErrorResponse("GET", url.toString)(response)
       }
