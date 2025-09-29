@@ -104,7 +104,8 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
         quartersInProgress = Seq(),
         pastYearsAndQuarters = Seq(),
         viewAllPastAftsUrl = "",
-        returnUrl = dummyCall.url
+        returnUrl = dummyCall.url,
+        allPastYears = 0
       )(httpGETRequest(httpPathGET(srn)), messages)
 
       compareResultAndView(result, view)

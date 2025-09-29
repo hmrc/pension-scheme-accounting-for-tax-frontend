@@ -62,7 +62,7 @@ class AFTOverviewController @Inject()(
             .flatMap(quarters => Future.successful((year, quarters)))
         )
       }
-      yield OverviewInfo(schemeDetails, quartersInProgress, pastYearsAndQuarters, outstandingAmount)
+      yield OverviewInfo(schemeDetails, quartersInProgress, pastYearsAndQuarters, outstandingAmount, allPastYears)
         ).flatMap { overviewInfo =>
         Future.successful(Ok(aftOverviewView(
           overviewInfo.schemeDetails.schemeName,
@@ -72,7 +72,8 @@ class AFTOverviewController @Inject()(
           overviewInfo.quartersInProgress.map(q => textAndLinkForQuarter(formatForDisplayOneYear, q, srn)),
           overviewInfo.pastYearsAndQuarters.map(pYAQ => (pYAQ._1, pYAQ._2.map(q => textAndLinkForQuarter(formatForDisplayOneYear, q, srn)))),
           controllers.routes.PastAftReturnsController.onPageLoad(srn, 0).url,
-          config.schemeDashboardUrl(request).format(srn)
+          config.schemeDashboardUrl(request).format(srn),
+          overviewInfo.allPastYears.length
         )))
       }
   }
@@ -125,7 +126,8 @@ object AFTOverviewController {
                                    schemeDetails: SchemeDetails,
                                    quartersInProgress: Seq[DisplayQuarter],
                                    pastYearsAndQuarters: Seq[(Int, Seq[DisplayQuarter])],
-                                   outstandingAmount: String
+                                   outstandingAmount: String,
+                                   allPastYears: Seq[Int]
                                  )
 
 }
