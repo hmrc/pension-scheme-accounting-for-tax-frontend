@@ -25,7 +25,8 @@
     quartersInProgress: Seq[(String, String)],
     pastYearsAndQuarters: Seq[(Int, Seq[(String, String)])],
     viewAllPastAftsUrl: String,
-    returnUrl: String
+    returnUrl: String,
+    allPastYears: Int
 )(implicit request: Request[_], messages: Messages)
 
 @layout(messages("aftOverview.title")) {
@@ -120,7 +121,7 @@
         <br>
 
 
-        @if(pastYearsAndQuarters.length > 3) {
+        @if(allPastYears > 3) {
             <p class="govuk-body govuk-!-margin-bottom-6">
                 <a class="govuk-link" href=@viewAllPastAftsUrl>
                     @messages("aftOverview.allPastAftReturns")
