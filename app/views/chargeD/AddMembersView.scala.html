@@ -47,13 +47,12 @@
         <ul class="govuk-list">
             @for(link <- pageLinksSeq) {
                 <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
-                    <a href=@link.url id=@link.id class="govuk-link">messages(@link.linkText)</a>
+                    @if(link.url) {
+                        <a href="@link.url" id="@link.id" class="govuk-link">@link.linkText.asHtml</a>
+                    } else {
+                        @link.linkText.asHtml
+                    }
                 </li>
-                } else {
-                <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
-                    messages(@link.linkText)
-                </li>
-                }
             }
         </ul>
     </nav>
