@@ -18,28 +18,29 @@ package controllers.chargeC
 
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData._
+import data.SampleData.*
 import forms.AddMembersFormProvider
 import helpers.{DeleteChargeHelper, FormatHelper}
 import matchers.JsonMatchers
-import models.LocalDateBinder._
+import models.LocalDateBinder.*
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.IdentifierRequest
 import models.{AddEmployersViewModel, Employer, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
-import pages.chargeC._
+import pages.chargeC.*
 import play.api.Application
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.api.test.Helpers.{redirectLocation, route, status, *}
 import services.{ChargePaginationService, PaginatedMembersInfo, PaginationStats}
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
-import utils.AFTConstants._
+import utils.AFTConstants.*
 import utils.DateHelper.dateFormatterDMY
 import viewmodels.Link
 import views.html.chargeC.AddEmployersView
@@ -65,27 +66,33 @@ class AddEmployersControllerSpec extends ControllerSpecBase with JsonMatchers {
 
   private def tableTemp: Table = Table(
     head = Some(Seq(
-      HeadCell(Text("Sponsoring employer")),
-      HeadCell(Text("Total"), classes = "govuk-table__header--numeric"),
-      HeadCell(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.viewSponsoringEmployer")}</span>""")),
-      HeadCell(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>"""))
+      HeadCell(Text(Messages("addEmployers.employer.header"))),
+      HeadCell(Text(Messages("addEmployers.amount.header")), classes = "govuk-table__header--numeric"),
+      HeadCell(HtmlContent(s"""<span class=\"govuk-visually-hidden\">${messages("addEmployers.hiddenText.header.viewSponsoringEmployer")}</span>""")),
+      HeadCell(HtmlContent(s"""<span class=\"govuk-visually-hidden\">${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>"""))
     )),
     rows = Seq(
         Seq(
           TableRow(Text("first last"), classes = cssHalfWidth),
-          TableRow(Text(FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44))), classes =s"$cssQuarterWidth,govuk-table__header--numeric"),
-          TableRow(HtmlContent(s"<a class=govuk-link id=employer-0-view href=viewlink1><span aria-hidden=true >View</span><span class= govuk-visually-hidden>View first last’s authorised surplus payments charge</span> </a>"), classes =cssQuarterWidth),
-          TableRow(HtmlContent( s"<a class=govuk-link id=employer-0-remove href=removelink1><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove first last’s authorised surplus payments charge</span> </a>"), classes =cssQuarterWidth)
+          TableRow(Text(FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44))), classes = s"$cssQuarterWidth govuk-table__header--numeric"),
+          TableRow(HtmlContent(s"<a class=\"govuk-link\" id=\"employer-0-view\" href=\"viewlink1\"><span aria-hidden=\"true\">View</span><span class=\"govuk-visually-hidden\">View first last’s authorised surplus payments charge</span></a>"), classes = cssQuarterWidth),
+          TableRow(HtmlContent( s"<a class=\"govuk-link\" id=\"employer-0-remove\" href=\"removelink1\"><span aria-hidden=\"true\">Remove</span><span class=\"govuk-visually-hidden\">Remove first last’s authorised surplus payments charge</span></a>"), classes = cssQuarterWidth)
         ),
       Seq(
-          TableRow(Text("Joe Bloggs"), classes =cssHalfWidth),
-          TableRow(Text(FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44))), classes =s"$cssQuarterWidth,govuk-table__header--numeric"),
-          TableRow(HtmlContent( s"<a class=govuk-link id=employer-1-view href=viewlink2><span aria-hidden=true >View</span><span class= govuk-visually-hidden>View Joe Bloggs’s authorised surplus payments charge</span> </a>"), classes =cssQuarterWidth),
-          TableRow(HtmlContent( s"<a class=govuk-link id=employer-1-remove href=removelink2><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove Joe Bloggs’s authorised surplus payments charge</span> </a>"), classes =cssQuarterWidth)
+          TableRow(Text("Joe Bloggs"), classes = cssHalfWidth),
+          TableRow(Text(FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44))), classes = s"$cssQuarterWidth govuk-table__header--numeric"),
+          TableRow(HtmlContent( s"<a class=\"govuk-link\" id=\"employer-1-view\" href=\"viewlink2\"><span aria-hidden=\"true\">View</span><span class=\"govuk-visually-hidden\">View Joe Bloggs’s authorised surplus payments charge</span></a>"), classes = cssQuarterWidth),
+          TableRow(HtmlContent( s"<a class=\"govuk-link\" id=\"employer-1-remove\" href=\"removelink2\"><span aria-hidden=\"true\">Remove</span><span class=\"govuk-visually-hidden\">Remove Joe Bloggs’s authorised surplus payments charge</span></a>"), classes =cssQuarterWidth)
         ),
       Seq(
-          TableRow(Text("Total charge amount for this quarter"), classes ="govuk-!-font-weight-bold govuk-table__header--numeric"),
-          TableRow(Text(FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88))), classes =s"govuk-!-font-weight-bold govuk-table__header--numeric"),
+        TableRow(Text("Joe Bloggs"), classes = cssHalfWidth),
+        TableRow(Text(FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44))), classes = s"$cssQuarterWidth govuk-table__header--numeric"),
+        TableRow(HtmlContent( s"<a class=\"govuk-link\" id=\"employer-2-view\" href=\"viewlink3\"><span aria-hidden=\"true\">View</span><span class=\"govuk-visually-hidden\">View Joe Bloggs’s authorised surplus payments charge</span></a>"), classes = cssQuarterWidth),
+        TableRow(HtmlContent( s"<a class=\"govuk-link\" id=\"employer-2-remove\" href=\"removelink3\"><span aria-hidden=\"true\">Remove</span><span class=\"govuk-visually-hidden\">Remove Joe Bloggs’s authorised surplus payments charge</span></a>"), classes =cssQuarterWidth)
+      ),
+      Seq(
+          TableRow(Text(Messages("addMembers.total")), classes ="govuk-!-font-weight-bold govuk-table__header--numeric"),
+          TableRow(Text(FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88))), classes ="govuk-!-font-weight-bold govuk-table__header--numeric"),
           TableRow(Text("")),
           TableRow(Text(""))
         )
@@ -101,7 +108,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with JsonMatchers {
       quarterEnd= LocalDate.parse(QUARTER_END_DATE).format(dateFormatterDMY),
       canChange= true,
       paginationStatsStartMember= pageNo,
-      paginationStatsLastMember= 2,
+      paginationStatsLastMember= 3,
       paginationStatsTotalMembers= 3,
       radios= utils.Radios.yesNo(form("value"))
     )
@@ -120,17 +127,18 @@ class AddEmployersControllerSpec extends ControllerSpecBase with JsonMatchers {
 
   private val expectedMembers = Seq(
     Employer(0, "first last", BigDecimal(33.44), "viewlink1", "removelink1"),
-    Employer(1, "Joe Bloggs", BigDecimal(33.44), "viewlink2", "removelink2")
+    Employer(1, "Joe Bloggs", BigDecimal(33.44), "viewlink2", "removelink2"),
+    Employer(2, "Joe Bloggs", BigDecimal(33.44), "viewlink3", "removelink3")
   )
 
-  private val expectedPaginatedEmployersInfo: Option[PaginatedMembersInfo] =
+  private def expectedPaginatedEmployersInfo(startMember: Int = 1): Option[PaginatedMembersInfo] =
     Some(PaginatedMembersInfo(
       itemsForCurrentPage = Right(expectedMembers),
       paginationStats = PaginationStats(
         currentPage = 1,
-        startMember = 0,
-        lastMember = 0,
-        totalMembers = 1,
+        startMember = startMember,
+        lastMember = 3,
+        totalMembers = 3,
         totalPages = 1,
         totalAmount = BigDecimal(66.88)
       )
@@ -155,7 +163,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with JsonMatchers {
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockMemberPaginationService
       .getItemsPaginated(any(), any(), any(), any(), any()))
-      .thenReturn(expectedPaginatedEmployersInfo)
+      .thenReturn(expectedPaginatedEmployersInfo())
     when(mockMemberPaginationService.pagerNavSeq(any(), any())(any()))
       .thenReturn(dummyPagerNavSeq)
   }
@@ -163,11 +171,11 @@ class AddEmployersControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   private val pageCaptor = ArgumentCaptor.forClass(classOf[Int])
 
-  "AddMembers Controller" must {
+  "AddEmployers Controller" must {
     "return OK and the correct view for a GET and get first page" in {
       when(mockMemberPaginationService
         .getItemsPaginated(pageCaptor.capture(), any(), any(), any(), any()))
-        .thenReturn(expectedPaginatedEmployersInfo)
+        .thenReturn(expectedPaginatedEmployersInfo())
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
       val request = httpGETRequest(httpPathGET)
@@ -190,7 +198,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with JsonMatchers {
     "return OK and the correct view for a GET with page no 2" in {
       when(mockMemberPaginationService
         .getItemsPaginated(pageCaptor.capture(), any(), any(), any(), any()))
-        .thenReturn(expectedPaginatedEmployersInfo)
+        .thenReturn(expectedPaginatedEmployersInfo(2))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
       val request = httpGETRequest(httpPathGET)
@@ -214,13 +222,13 @@ class AddEmployersControllerSpec extends ControllerSpecBase with JsonMatchers {
     "return OK and the correct view for a GET with onPageLoadWithPageNo" in {
       when(mockMemberPaginationService
         .getItemsPaginated(pageCaptor.capture(), any(), any(), any(), any()))
-        .thenReturn(expectedPaginatedEmployersInfo)
+        .thenReturn(expectedPaginatedEmployersInfo())
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
       def httpPathGET: String = controllers.chargeC.routes.AddEmployersController.onPageLoadWithPageNo(srn, startDate, accessType, versionInt, 2).url
       val request = httpGETRequest(httpPathGET)
 
-      val  viewModel = getAddEmployersViewModel(2)
+      val  viewModel = getAddEmployersViewModel(1)
       val view = application.injector.instanceOf[AddEmployersView].apply(
         form,
         viewModel,
