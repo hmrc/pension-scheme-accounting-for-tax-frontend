@@ -66,8 +66,8 @@ class AddEmployersControllerSpec extends ControllerSpecBase with JsonMatchers {
 
   private def tableTemp: Table = Table(
     head = Some(Seq(
-      HeadCell(Text(Messages("addEmployers.employer.header"))),
-      HeadCell(Text(Messages("addEmployers.amount.header")), classes = "govuk-table__header--numeric"),
+      HeadCell(Text("Sponsoring employer")),
+      HeadCell(Text("Total"), classes = "govuk-table__header--numeric"),
       HeadCell(HtmlContent(s"""<span class=\"govuk-visually-hidden\">${messages("addEmployers.hiddenText.header.viewSponsoringEmployer")}</span>""")),
       HeadCell(HtmlContent(s"""<span class=\"govuk-visually-hidden\">${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>"""))
     )),
