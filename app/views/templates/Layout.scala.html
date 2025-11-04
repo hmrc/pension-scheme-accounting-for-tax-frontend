@@ -78,15 +78,30 @@
 
 @_pageTitle = @{titlePrefix + pageTitle + " " + Messages("site.title.suffix")}
 
+@headerBlock = @{
+    if (appConfig.forceServiceNavigation) {
+        hmrcStandardHeader(
+            serviceNavigation = Some(ServiceNavigation(
+                serviceName = Some(messages("site.service_name")),
+                serviceUrl  = Some(appConfig.managePensionsSchemeOverviewUrl)
+            )),
+            signOutUrl  = if(canSignOut) Some(controllers.routes.SignOutController.signOut(None,None).url) else None,
+            phaseBanner = Some(standardBetaBanner(url = appConfig.betaFeedbackUnauthenticatedUrl))
+        )
+    } else {
+        hmrcStandardHeader(
+            serviceName = Some(messages("site.service_name")),
+            serviceUrl  = Some(appConfig.managePensionsSchemeOverviewUrl),
+            signOutUrl  = if(canSignOut) Some(controllers.routes.SignOutController.signOut(None,None).url) else None,
+            phaseBanner = Some(standardBetaBanner(url = appConfig.betaFeedbackUnauthenticatedUrl))
+        )
+    }
+}
+
 @govukLayout(
     pageTitle = Some(_pageTitle),
     headBlock = Some(hmrcHead(headBlock = Some(headScripts))),
-    headerBlock = Some(hmrcStandardHeader(
-        serviceName = Some(messages("site.service_name")),
-        serviceUrl = Some(appConfig.managePensionsSchemeOverviewUrl),
-        signOutUrl = if(canSignOut) Some(controllers.routes.SignOutController.signOut(None,None).url) else None,
-        phaseBanner = Some(standardBetaBanner(url = appConfig.betaFeedbackUnauthenticatedUrl))
-    )),
+    headerBlock = Some(headerBlock),
     beforeContentBlock = Some(beforeContentBlock),
     scriptsBlock = Some(hmrcScripts(
         scriptsBlock = Some(scripts)

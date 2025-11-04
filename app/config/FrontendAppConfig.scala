@@ -200,4 +200,6 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val validLifetimeAllowanceHeader: String = configuration.get[String]("validLifetimeAllowanceHeader")
   lazy val validLifetimeAllowanceMcCloudHeader: String = configuration.get[String]("validLifetimeAllowanceMcCloudHeader")
   lazy val validOverseasTransferHeader: String = configuration.get[String]("validOverseasTransferHeader")
+
+  lazy val forceServiceNavigation: Boolean = configuration.getOptional[Boolean]("play-frontend-hmrc.forceServiceNavigation").getOrElse(false)
 }
