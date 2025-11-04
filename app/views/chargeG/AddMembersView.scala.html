@@ -55,17 +55,13 @@
                         <nav class="govuk-margin-top-5" aria-label="page">
                             <ul class="govuk-list">
                                 @for(link <- viewModel.pageLinksSeq) {
-                                    @if(link.url) {
-                                        <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
-                                            <a href=@link.url id=@link.id class="govuk-link">
-                                                @link.linkText
-                                            </a>
-                                        </li>
-                                    } else {
-                                        <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
-                                            @link.linkText
-                                        </li>
-                                    }
+                                    <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
+                                        @if(link.url) {
+                                            <a href="@link.url" id="@link.id" class="govuk-link">@link.linkText.asHtml</a>
+                                        } else {
+                                            @link.linkText.asHtml
+                                        }
+                                    </li>
                                 }
                             </ul>
                         </nav>

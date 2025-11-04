@@ -41,20 +41,18 @@
 
 @if(pageLinksSeq.length > 0){
 <div class="govuk-!-margin-bottom-9">
-    <p class="govuk-body">messages("paginationForMembers.pagerSummary", viewModel.paginationStatsStartMember, viewModel.paginationStatsLastMember,
+    <p class="govuk-body">@messages("paginationForMembers.pagerSummary", viewModel.paginationStatsStartMember, viewModel.paginationStatsLastMember,
         viewModel.paginationStatsTotalMembers)</p>
     <nav class="govuk-margin-top-5" aria-label="page">
         <ul class="govuk-list">
             @for(link <- pageLinksSeq) {
+            <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
                 @if(link.url) {
-                <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
-                    <a href=@link.url id=@link.id class="govuk-link">messages(@link.linkText)</a>
-                </li>
+                    <a href=@link.url id=@link.id class="govuk-link">@link.linkText.asHtml</a>
                 } else {
-                <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
-                    messages(@link.linkText)
-                </li>
+                    @link.linkText.asHtml
                 }
+            </li>
             }
         </ul>
     </nav>

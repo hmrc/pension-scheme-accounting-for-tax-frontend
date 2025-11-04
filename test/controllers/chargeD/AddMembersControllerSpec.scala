@@ -122,14 +122,14 @@ class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
     Member(1, "Joe Bloggs", "AB123456C", BigDecimal(33.44), "viewlink2", "removelink2")
   )
 
-  private val expectedPaginatedMembersInfo: Option[PaginatedMembersInfo] =
+  private def expectedPaginatedMembersInfo(startMember: Int = 1): Option[PaginatedMembersInfo] =
     Some(PaginatedMembersInfo(
       itemsForCurrentPage = Left(expectedMembers),
       paginationStats = PaginationStats(
         currentPage = 1,
-        startMember = 0,
-        lastMember = 0,
-        totalMembers = 1,
+        startMember = startMember,
+        lastMember = 2,
+        totalMembers = 3,
         totalPages = 1,
         totalAmount = BigDecimal(66.88)
       )
@@ -155,7 +155,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[?])).thenReturn(dummyCall.url)
     when(mockMemberPaginationService
       .getItemsPaginated(any(), any(), any(), any(), any()))
-      .thenReturn(expectedPaginatedMembersInfo)
+      .thenReturn(expectedPaginatedMembersInfo())
     when(mockMemberPaginationService.pagerNavSeq(any(), any())(any()))
       .thenReturn(dummyPagerNavSeq)
   }
@@ -167,7 +167,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
     "return OK and the correct view for a GET and get first page" in {
       when(mockMemberPaginationService
         .getItemsPaginated(pageCaptor.capture(), any(), any(), any(), any()))
-        .thenReturn(expectedPaginatedMembersInfo)
+        .thenReturn(expectedPaginatedMembersInfo())
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val request = httpGETRequest(httpPathGET)
 
@@ -189,7 +189,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
     "return OK and the correct view for a GET with onPageLoadWithPageNo" in {
       when(mockMemberPaginationService
         .getItemsPaginated(pageCaptor.capture(), any(), any(), any(), any()))
-        .thenReturn(expectedPaginatedMembersInfo)
+        .thenReturn(expectedPaginatedMembersInfo())
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       def httpPathGET: String = controllers.chargeD.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, versionInt, 2).url
 
@@ -213,7 +213,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
     "return OK and the correct view for a GET with page no 2" in {
       when(mockMemberPaginationService
         .getItemsPaginated(pageCaptor.capture(), any(), any(), any(), any()))
-        .thenReturn(expectedPaginatedMembersInfo)
+        .thenReturn(expectedPaginatedMembersInfo(2))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val request = httpGETRequest(httpPathGET)
 

@@ -151,10 +151,10 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
     val head = Seq(
         HeadCell(Text(Messages("addEmployers.employer.header"))),
         HeadCell(Text(Messages("addEmployers.amount.header")), classes = "govuk-table__header--numeric"),
-        HeadCell(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.viewSponsoringEmployer")}</span>"""))
+        HeadCell(HtmlContent(s"""<span class=\"govuk-visually-hidden\">${messages("addEmployers.hiddenText.header.viewSponsoringEmployer")}</span>"""))
       ) ++ (
         if (canChange)
-          Seq(HeadCell(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>""")))
+          Seq(HeadCell(HtmlContent(s"""<span class=\"govuk-visually-hidden\">${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>""")))
         else
           Nil
         )
@@ -162,9 +162,9 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
     val rows = members.map { data =>
       Seq(
         TableRow(Text(data.name), classes = "govuk-!-width-one-half"),
-        TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"), classes = "govuk-!-width-one-quarter,govuk-table__header--numeric"),
-        TableRow(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = "govuk-!-width-one-quarter")
-      ) ++ (if (canChange) Seq(TableRow(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = "govuk-!-width-one-quarter"))
+        TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"), classes = "govuk-!-width-one-quarter govuk-table__header--numeric"),
+        TableRow(link(s"\"${data.viewLinkId}\"", "site.view", s"\"${data.viewLink}\"", data.name), classes = "govuk-!-width-one-quarter")
+      ) ++ (if (canChange) Seq(TableRow(link(s"\"${data.removeLinkId}\"", "site.remove", s"\"${data.removeLink}\"", data.name), classes = "govuk-!-width-one-quarter"))
       else Nil)
     }
     val totalRow = Seq(
@@ -180,8 +180,8 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
   private def link(id: String, text: String, url: String, name: String)(implicit messages: Messages): HtmlContent = {
     val hiddenTag = "govuk-visually-hidden"
     HtmlContent(
-      s"<a class=govuk-link id=$id href=$url>" + s"<span aria-hidden=true >${messages(text)}</span>" +
-        s"<span class= $hiddenTag>${messages(text)} ${messages(s"chargeC.addEmployers.visuallyHidden", name)}</span> </a>")
+      s"<a class=\"govuk-link\" id=$id href=$url><span aria-hidden=\"true\">${messages(text)}</span>" +
+        s"<span class=\"$hiddenTag\">${messages(text)} ${messages(s"chargeC.addEmployers.visuallyHidden", name)}</span></a>")
   }
 
   private def viewUrl(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Int => Call =
