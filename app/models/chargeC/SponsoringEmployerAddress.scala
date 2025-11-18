@@ -19,9 +19,9 @@ package models.chargeC
 import play.api.libs.json.{Format, Json}
 
 case class SponsoringEmployerAddress(line1: String,
-                                     line2: Option[String],
-                                     townOrCity: String,
-                                     county: Option[String],
+                                     line2: String,
+                                     line3: Option[String],
+                                     line4: Option[String],
                                      country: String,
                                      postcode: Option[String])
 
@@ -29,6 +29,6 @@ object SponsoringEmployerAddress {
   implicit lazy val formats: Format[SponsoringEmployerAddress] =
     Json.format[SponsoringEmployerAddress]
 
-  def unapply(address: SponsoringEmployerAddress): Option[(String, Option[String], String, Option[String], String, Option[String])] =
-    Some((address.line1, address.line2, address.townOrCity, address.county, address.country, address.postcode))
+  def unapply(address: SponsoringEmployerAddress): Option[(String, String, Option[String], Option[String], String, Option[String])] =
+    Some((address.line1, address.line2, address.line3, address.line4, address.country, address.postcode))
 }
