@@ -170,8 +170,8 @@ object TolerantAddress {
       country <- tolerant.country
     } yield {
       SponsoringEmployerAddress(
-        tolerant.addressLine1,
-        tolerant.addressLine2,
+        tolerant.addressLine1.getOrElse(""),
+        tolerant.addressLine2.getOrElse(""),
         tolerant.addressLine3,
         tolerant.addressLine4,
         country,
