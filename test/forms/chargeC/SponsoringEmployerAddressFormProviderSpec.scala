@@ -84,11 +84,11 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours wi
     )
   }
 
-  "townOrCity" must {
+  "line3" must {
     val requiredKey = "address.townOrCity.error.required"
     val lengthKey = "address.townOrCity.error.length"
     val invalidKey = "address.townOrCity.error.invalid"
-    val fieldName = "townOrCity"
+    val fieldName = "line3"
 
     behave like mandatoryField(
       form,
@@ -117,7 +117,7 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours wi
     )
   }
 
-  "county" must {
+  "line4" must {
     val lengthKey = "address.county.error.length"
     val invalidKey = "address.county.error.invalid"
     val fieldName = "county"
