@@ -18,10 +18,10 @@ package controllers.chargeC
 
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData._
+import data.SampleData.*
 import forms.chargeC.SponsoringEmployerAddressFormProvider
 import matchers.JsonMatchers
-import models.LocalDateBinder._
+import models.LocalDateBinder.*
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.SponsoringEmployerAddress
 import models.requests.IdentifierRequest
@@ -35,7 +35,7 @@ import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringOrganisationDetai
 import play.api.Application
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
 import views.html.chargeC.SponsoringEmployerAddressView
 
@@ -59,8 +59,8 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
   private val valuesValid: Map[String, Seq[String]] = Map(
     "line1" -> Seq("line1"),
     "line2" -> Seq("line2"),
-    "townOrCity" -> Seq("town"),
-    "county" -> Seq("county"),
+    "line3" -> Seq("line3"),
+    "line4" -> Seq("line4"),
     "country" -> Seq("UK"),
     "postcode" -> Seq("ZZ1 1ZZ")
 
@@ -69,9 +69,9 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
   val sponsoringEmployerAddress: SponsoringEmployerAddress =
     SponsoringEmployerAddress(
       line1 = "line1",
-      line2 = Some("line2"),
-      townOrCity = "town",
-      county = Some("county"),
+      line2 = "line2",
+      line3 = Some("line3"),
+      line4 = Some("line4"),
       country = "UK",
       postcode = Some("ZZ1 1ZZ")
     )
@@ -101,13 +101,13 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
       val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
 
       val view = application.injector.instanceOf[SponsoringEmployerAddressView].apply(
-        form,
-        schemeName,
-        submitCall,
-        returnUrl,
-        "First Last",
-        Messages(s"chargeC.employerType.${SponsoringEmployerTypeIndividual.toString}"),
-        Seq(SelectItem(Some("")), SelectItem(Some("UK"), "country.UK"))
+        form = form,
+        schemeName = schemeName,
+        submitUrl = submitCall,
+        returnUrl = returnUrl,
+        sponsorName = "First Last",
+        employerType = Messages(s"chargeC.employerType.${SponsoringEmployerTypeIndividual.toString}"),
+        countries = Seq(SelectItem(Some("")), SelectItem(Some("UK"), "country.UK"))
       )(request, messages)
 
       val result = route(application, request).value

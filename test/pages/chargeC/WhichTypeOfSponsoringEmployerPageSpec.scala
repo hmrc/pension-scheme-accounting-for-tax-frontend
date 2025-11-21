@@ -28,7 +28,7 @@ class WhichTypeOfSponsoringEmployerPageSpec extends PageBehaviours {
   val ua: UserAnswers = UserAnswers().set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeOrganisation).
     flatMap(_.set(SponsoringOrganisationDetailsPage(0), SponsoringOrganisationDetails("name", "srn"))).
     flatMap(_.set(SponsoringIndividualDetailsPage(0), MemberDetails("first", "last", "ab200100a")))
-    .flatMap(_.set(SponsoringEmployerAddressPage(0), SponsoringEmployerAddress("line1", Some("line2"), "town", None, "GB", None)))
+    .flatMap(_.set(SponsoringEmployerAddressPage(0), SponsoringEmployerAddress("line1", "line2", Some("town"), None, "GB", None)))
     .flatMap(_.set(ChargeCDetailsPage(0), ChargeCDetails(LocalDate.now(), 10.00))).getOrElse(UserAnswers())
 
   "WhichTypeOfSponsoringEmployerPage" - {

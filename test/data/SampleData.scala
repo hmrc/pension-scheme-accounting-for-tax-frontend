@@ -88,9 +88,9 @@ object SampleData {
   val sponsoringEmployerAddress: SponsoringEmployerAddress =
     SponsoringEmployerAddress(
       line1 = "line1",
-      line2 = Some("line2"),
-      townOrCity = "town",
-      county = Some("county"),
+      line2 = "line2",
+      line3 = Some("line3"),
+      line4 = Some("line4"),
       country = "GB",
       postcode = Some("ZZ1 1ZZ")
     )

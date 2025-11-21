@@ -120,7 +120,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
             },
             value =>
               for {
-                address <- Future.successful(if (value.line2.isEmpty) { value.copy(line2 = Some(" ")) } else value)
+                address <- Future.successful(if (value.line2.isEmpty) { value.copy(line2 = " ") } else value)
                 updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressPage(index), address, mode))
                 _ <- userAnswersCacheConnector.savePartial(
                   request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAuthSurplus), memberNo = Some(index.id))

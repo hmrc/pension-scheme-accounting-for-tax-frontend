@@ -53,9 +53,9 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
   private val firstAddress = TolerantAddress(Some("first1"), Some("first2"), Some("town"), Some("county"), Some("firstpost"), Some("UK"))
   private val secondAddress = TolerantAddress(
     Some(sponsoringEmployerAddress.line1),
-    sponsoringEmployerAddress.line2,
-    Some(sponsoringEmployerAddress.townOrCity),
-    sponsoringEmployerAddress.county,
+    Some(sponsoringEmployerAddress.line2),
+    sponsoringEmployerAddress.line3,
+    sponsoringEmployerAddress.line4,
     sponsoringEmployerAddress.postcode,
     Some(sponsoringEmployerAddress.country)
   )

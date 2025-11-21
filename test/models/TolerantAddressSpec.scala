@@ -26,9 +26,9 @@ class TolerantAddressSpec extends AnyWordSpec with Matchers with MockitoSugar wi
   "deriveMinimumChargeValueAllowed" must {
     "must correctly convert TolerantAddress to Address if one value missing" in {
       val tolerantAddress = TolerantAddress(
-        Some("Line 1"),
-        Some("Line 2"),
         None,
+        Some("Line 2"),
+        Some("Line 3"),
         Some("Line 4"),
         Some("12345"),
         Some("Country")
@@ -37,10 +37,10 @@ class TolerantAddressSpec extends AnyWordSpec with Matchers with MockitoSugar wi
       val addressOption = tolerantAddress.toAddress
 
       addressOption mustBe defined
-      addressOption.get.line1 mustEqual "Line 1"
-      addressOption.get.line2 mustEqual Some("Line 2")
-      addressOption.get.townOrCity mustEqual "Line 4"
-      addressOption.get.county mustEqual None
+      addressOption.get.line1 mustEqual "Line 2"
+      addressOption.get.line2 mustEqual "Line 3"
+      addressOption.get.line3 mustEqual Some("Line 4")
+      addressOption.get.line4 mustEqual None
       addressOption.get.postcode mustEqual Some("12345")
       addressOption.get.country mustEqual "Country"
     }
@@ -58,9 +58,9 @@ class TolerantAddressSpec extends AnyWordSpec with Matchers with MockitoSugar wi
 
       addressOption mustBe defined
       addressOption.get.line1 mustEqual "Line 3"
-      addressOption.get.line2 mustEqual None
-      addressOption.get.townOrCity mustEqual "Line 4"
-      addressOption.get.county mustEqual None
+      addressOption.get.line2 mustEqual "Line 4"
+      addressOption.get.line3 mustEqual None
+      addressOption.get.line4 mustEqual None
       addressOption.get.postcode mustEqual Some("12345")
       addressOption.get.country mustEqual "GB"
     }
