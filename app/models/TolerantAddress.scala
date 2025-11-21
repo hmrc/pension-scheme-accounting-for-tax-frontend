@@ -59,15 +59,23 @@ case class TolerantAddress(addressLine1: Option[String],
     case _ => shuffle
   }
 
-  private def shuffle: Option[SponsoringEmployerAddress] = (addressLine1, addressLine2, addressLine3, addressLine4) match {
-    case (None, None, Some(line3), Some(line4)) => Some(SponsoringEmployerAddress(line3, line4, None, None, country.get, postcode))
-    case (Some(line1), None, Some(line3), al4) => Some(SponsoringEmployerAddress(line1, line3, al4, None, country.get, postcode))
-    case (Some(line1), None, None, Some(line4)) => Some(SponsoringEmployerAddress(line1, line4, None, None, country.get, postcode))
-    case (None, Some(line2), Some(line3), al4) => Some(SponsoringEmployerAddress(line2, line3, al4, None, country.get, postcode))
-    case (None, Some(line2), None, Some(line4)) => Some(SponsoringEmployerAddress(line2, line4, None, None, country.get, postcode))
-    case _ => None
+  private def emptyAddressLineCheck(addr: Seq[String], index: Int): Option[String] = {
+    if (addr(index).trim.isEmpty) None else Some(addr(index))
   }
 
+  private def shuffle: Option[SponsoringEmployerAddress] = {
+    val values: Seq[String] = Seq(addressLine1, addressLine2, addressLine3, addressLine4).flatten.padTo(4, "")
+
+    Some(SponsoringEmployerAddress(
+      line1 = values.head,
+      line2 = values(1),
+      line3 = emptyAddressLineCheck(values, 2),
+      line4 = emptyAddressLineCheck(values, 3),
+      country = country.getOrElse(""),
+      postcode = postcode
+    ))
+
+  }
 
   def equalsAddress(address: SponsoringEmployerAddress): Boolean =
     address.line1 == addressLine1.getOrElse("") &&

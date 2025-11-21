@@ -85,16 +85,9 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours wi
   }
 
   "line3" must {
-    val requiredKey = "address.townOrCity.error.required"
-    val lengthKey = "address.townOrCity.error.length"
-    val invalidKey = "address.townOrCity.error.invalid"
+    val lengthKey = "address.line3.error.length"
+    val invalidKey = "address.line3.error.invalid"
     val fieldName = "line3"
-
-    behave like mandatoryField(
-      form,
-      fieldName,
-      requiredError = FormError(fieldName, requiredKey)
-    )
 
     behave like fieldThatBindsValidData(
       form,
@@ -118,9 +111,9 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours wi
   }
 
   "line4" must {
-    val lengthKey = "address.county.error.length"
-    val invalidKey = "address.county.error.invalid"
-    val fieldName = "county"
+    val lengthKey = "address.line4.error.length"
+    val invalidKey = "address.line4.error.invalid"
+    val fieldName = "line4"
 
     behave like fieldThatBindsValidData(
       form,
