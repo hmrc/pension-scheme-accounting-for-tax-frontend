@@ -23,11 +23,11 @@ import play.api.Logger
 import play.api.http.Status.*
 import play.api.libs.json.Json
 import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
+import services.JsonCryptoService
 import uk.gov.hmrc.crypto.PlainText
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
-import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.ApplicationCrypto
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -40,7 +40,7 @@ case object EmailNotSent extends EmailStatus
 class EmailConnector @Inject()(
                                 appConfig: FrontendAppConfig,
                                 http: HttpClientV2,
-                                crypto: ApplicationCrypto
+                                crypto: JsonCryptoService
                               ) {
 
   private val logger = Logger(classOf[EmailConnector])
@@ -52,8 +52,8 @@ class EmailConnector @Inject()(
                            psaOrPspId: String,
                            email: String
                          ): String = {
-    val encryptedPsaOrPspId = crypto.QueryParameterCrypto.encrypt(PlainText(psaOrPspId)).value
-    val encryptedEmail = crypto.QueryParameterCrypto.encrypt(PlainText(email)).value
+    val encryptedPsaOrPspId = crypto.encrypt(PlainText(psaOrPspId))
+    val encryptedEmail = crypto.encrypt(PlainText(email))
 
     appConfig.aftEmailCallback(schemeAdministratorType, journeyType, requestId, encryptedEmail, encryptedPsaOrPspId)
   }
