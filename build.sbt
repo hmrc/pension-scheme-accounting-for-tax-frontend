@@ -8,7 +8,7 @@ lazy val appName: String = "pension-scheme-accounting-for-tax-frontend"
 lazy val root = (project in file("."))
   .disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
-  .settings(inConfig(Test)(testSettings): _*)
+  .settings(inConfig(Test)(testSettings) *)
   .settings(
     scalaVersion := "3.6.4",
     Test / parallelExecution := true,
@@ -64,7 +64,7 @@ lazy val root = (project in file("."))
     Assets / pipelineStages := Seq(concat),
   )
 
-lazy val testSettings: Seq[Def.Setting[_]] = Seq(
+lazy val testSettings: Seq[Def.Setting[?]] = Seq(
   fork := true,
   javaOptions ++= Seq(
     "-Dconfig.resource=test.application.conf"
