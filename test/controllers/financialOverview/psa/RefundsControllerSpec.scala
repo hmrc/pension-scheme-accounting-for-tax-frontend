@@ -17,11 +17,10 @@
 package controllers.financialOverview.psa
 
 import config.FrontendAppConfig
-import connectors.FinancialStatementConnectorSpec.psaFs
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import models.financialStatement.PsaFSDetail
+import models.financialStatement.{PsaFS, PsaFSChargeType, PsaFSDetail}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.Application
@@ -29,16 +28,61 @@ import play.api.http.Status.OK
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.test.Helpers.{route, _}
+import play.api.test.Helpers.{route, *}
 import services.AFTPartialService
 import uk.gov.hmrc.govukfrontend.views.Aliases.{HeadCell, Table, TableRow, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import utils.DateHelper.formatDateDMY
 import views.html.financialOverview.psa.RefundsView
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class RefundsControllerSpec extends ControllerSpecBase {
+
+  private val psaFs: PsaFS = PsaFS(
+    inhibitRefundSignal = true,
+    seqPsaFSDetail = Seq(
+      PsaFSDetail(
+        index = 0,
+        chargeReference = "CR123",
+        chargeType = PsaFSChargeType.PAYMENT_ON_ACCOUNT,
+        dueDate = Some(LocalDate.now().minusDays(10)),
+        totalAmount = BigDecimal(-100),
+        outstandingAmount = BigDecimal(0),
+        stoodOverAmount = BigDecimal(0),
+        accruedInterestTotal = BigDecimal(0),
+        amountDue = BigDecimal(-100),
+        periodStartDate = LocalDate.now().minusMonths(3),
+        periodEndDate = LocalDate.now().minusMonths(1),
+        pstr = "12345678AA",
+        sourceChargeRefForInterest = None,
+        documentLineItemDetails = Seq.empty
+      )
+    )
+  )
+
+  private val psaFsFalse: PsaFS = PsaFS(
+    inhibitRefundSignal = false,
+    seqPsaFSDetail = Seq(
+      PsaFSDetail(
+        index = 0,
+        chargeReference = "CR123",
+        chargeType = PsaFSChargeType.PAYMENT_ON_ACCOUNT,
+        dueDate = Some(LocalDate.now().minusDays(10)),
+        totalAmount = BigDecimal(-100),
+        outstandingAmount = BigDecimal(0),
+        stoodOverAmount = BigDecimal(0),
+        accruedInterestTotal = BigDecimal(0),
+        amountDue = BigDecimal(-100),
+        periodStartDate = LocalDate.now().minusMonths(3),
+        periodEndDate = LocalDate.now().minusMonths(1),
+        pstr = "12345678AA",
+        sourceChargeRefForInterest = None,
+        documentLineItemDetails = Seq.empty
+      )
+    )
+  )
 
   private def httpPathGET: String = routes.RefundsController.onPageLoad().url
 
@@ -59,7 +103,8 @@ class RefundsControllerSpec extends ControllerSpecBase {
     )
     .build()
 
-  val requestRefundUrl = controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url
+  val requestRefundUrlTrue  = controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url
+  val requestRefundUrlFalse = controllers.financialOverview.psa.routes.PsaRequestRefundController.onPageLoad.url
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -70,14 +115,28 @@ class RefundsControllerSpec extends ControllerSpecBase {
   }
 
   "RefundsController" must {
-    "return OK and the correct view for GET" in {
+    "return OK and the correct view for GET when inhibit refund is true" in {
       val result = route(application, httpGETRequest(httpPathGET)).value
       status(result) mustEqual OK
 
       val view = application.injector.instanceOf[RefundsView].apply(
         "psa-name",
         "£100.00",
-        requestRefundUrl,
+        requestRefundUrlTrue,
+        createCreditsAndRefundTable(psaFs.seqPsaFSDetail)
+      )(httpGETRequest(httpPathGET), messages)
+
+      compareResultAndView(result, view)
+    }
+    "return OK and the correct view for GET when inhibit refund is false" in {
+      when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any())).thenReturn(Future.successful(psaFsFalse))
+      val result = route(application, httpGETRequest(httpPathGET)).value
+      status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[RefundsView].apply(
+        "psa-name",
+        "£100.00",
+        requestRefundUrlFalse,
         createCreditsAndRefundTable(psaFs.seqPsaFSDetail)
       )(httpGETRequest(httpPathGET), messages)
 

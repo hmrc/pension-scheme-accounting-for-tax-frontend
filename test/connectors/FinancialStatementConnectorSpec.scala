@@ -319,7 +319,7 @@ object FinancialStatementConnectorSpec {
         clearedAmountItem = BigDecimal(0.00)))
     )
   )
-  val psaFs: PsaFS = PsaFS (false, psaFSResponse)
+  val psaFs: PsaFS = PsaFS(false, psaFSResponse)
 
   val psaFSResponseToValidate: Seq[PsaFSDetail] = Seq(
     PsaFSDetail(

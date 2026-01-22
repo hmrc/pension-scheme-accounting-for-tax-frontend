@@ -17,11 +17,11 @@
 package controllers.financialOverview.psa
 
 import connectors.{FinancialStatementConnector, MinimalConnector}
-import controllers.actions._
+import controllers.actions.*
 import helpers.FormatHelper
 import models.financialStatement.PsaFSChargeType
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc._
+import play.api.mvc.*
 import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.financialOverview.psa.RefundsView
@@ -43,15 +43,17 @@ class RefundsController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
-
   def onPageLoad(): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
 
       minimalConnector.getPsaOrPspName.flatMap { name =>
-        val requestRefundUrl = controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url
         financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id).flatMap{
           psaFSWithPaymentOnAccount =>
-
+            val requestRefundUrl = if (psaFSWithPaymentOnAccount.inhibitRefundSignal) {
+              controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url
+            } else {
+              controllers.financialOverview.psa.routes.PsaRequestRefundController.onPageLoad.url
+            }
             val latestCredits = psaFSWithPaymentOnAccount.seqPsaFSDetail
               .filter(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
               .filter(_.amountDue < 0)
