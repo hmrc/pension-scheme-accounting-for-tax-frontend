@@ -39,8 +39,6 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with JsonMatchers
 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
-//  private val application: Application = registerApp(applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build())
-
   private val uaPsrTrue = userAnswersWithSchemeNamePstrQuarter.setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(0)), true)
   private val uaPsrFalse = userAnswersWithSchemeNamePstrQuarter.setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(0)), false)
   private def httpPathGET: String = controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt, index = 0).url
