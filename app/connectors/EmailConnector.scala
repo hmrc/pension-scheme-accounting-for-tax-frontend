@@ -55,7 +55,9 @@ class EmailConnector @Inject()(
     val encryptedPsaOrPspId = crypto.encrypt(PlainText(psaOrPspId))
     val encryptedEmail = crypto.encrypt(PlainText(email))
 
-    appConfig.aftEmailCallback(schemeAdministratorType, journeyType, requestId, encryptedEmail, encryptedPsaOrPspId)
+    val encryptedUrl = appConfig.aftEmailCallback(schemeAdministratorType, journeyType, requestId, encryptedEmail, encryptedPsaOrPspId)
+    logger.debug(s"encrypted email callback url: $encryptedUrl")
+    encryptedUrl
   }
 
   //scalastyle:off parameter.number
