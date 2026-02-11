@@ -28,6 +28,7 @@ import uk.gov.hmrc.crypto.PlainText
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
+import java.net.URLEncoder
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -55,9 +56,10 @@ class EmailConnector @Inject()(
     val encryptedPsaOrPspId = crypto.encrypt(PlainText(psaOrPspId))
     val encryptedEmail = crypto.encrypt(PlainText(email))
 
-    val encryptedUrl = appConfig.aftEmailCallback(schemeAdministratorType, journeyType, requestId, encryptedEmail, encryptedPsaOrPspId)
-    logger.debug(s"encrypted email callback url: $encryptedUrl")
-    encryptedUrl
+    val encodedPsaOrPspId = URLEncoder.encode(encryptedPsaOrPspId, "UTF-8")
+    val encodedEmail = URLEncoder.encode(encryptedEmail, "UTF-8")
+
+    appConfig.aftEmailCallback(schemeAdministratorType, journeyType, requestId, encodedEmail, encodedPsaOrPspId)
   }
 
   //scalastyle:off parameter.number
