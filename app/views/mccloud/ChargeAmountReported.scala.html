@@ -19,7 +19,7 @@
     formHelper: FormWithCSRF,
     govukErrorSummary: GovukErrorSummary,
     govukButton: GovukButton,
-    hmrcCurrencyInput: HmrcCurrencyInput
+    govukInput: GovukInput
 )
 
 @(form: Form[_], submitCall: Call, returnUrl: String, schemeName: String, periodDescription: String, ordinal: String, chargeTypeDesc: String)(implicit request: Request[_], messages: Messages)
@@ -32,20 +32,14 @@
         <h1 class="govuk-heading-xl">@messages("chargeAmountReported.heading", periodDescription, ordinal, messages(chargeTypeDesc))</h1>
 
         @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
-            @hmrcCurrencyInput(
-                CurrencyInput(
-                    name = "value",
-                    id = "value",
-                    label = Label(
-                    content = Text(messages("chargeEDetails.chargeAmount.label")),
-                    isPageHeading = false,
-                        classes = "govuk-label--s"
-                    ),
-                    value = form("value").value,
-                    classes = "govuk-input--width-10",
-                    autocomplete = Some("off"),
-                    errorMessage = form("value").error.map(e => ErrorMessage.errorMessageWithDefaultStringsTranslated(content = Text(messages(e.message, e.args:_*))))
+            @govukInput(
+                InputViewModel(
+                    field = form("value"),
+                    label = Label(content = Text(messages("chargeEDetails.chargeAmount.label")), classes = "govuk-label--s"),
+                    autocomplete = Some("off")
                 )
+                .withPrefix(PrefixOrSuffix(content = Text("£")))
+                .withCssClass("govuk-input--width-10")
             )
             @govukButton(
                 ButtonViewModel(Text(messages("site.continue"))).asFormSubmit
