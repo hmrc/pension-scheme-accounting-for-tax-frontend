@@ -44,7 +44,7 @@ object Radios  {
         )
     }
 
-    val tail = items.zipWithIndex.tail.map {
+    val tail = items.zipWithIndex.drop(1).map {
       case (item, i) =>
         RadioItem(
           content = item.label,
