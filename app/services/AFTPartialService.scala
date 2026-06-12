@@ -134,11 +134,16 @@ class AFTPartialService @Inject()(
       Nil
     }
 
+    val links = {
+      val base = viewFinancialOverviewLink()
+      if (totalOverdue > 0) base ++ viewAllPenaltiesAndChargesLink() else base
+    }
+
     Seq(CardViewModel(
       id = "aft-overdue-charges",
       heading = messages("psaPenaltiesCard.h2"),
       subHeadings = subHeadingTotalOutstanding ++ subHeadingPenaltiesOverdue,
-      links = viewFinancialOverviewLink() ++ viewAllPenaltiesAndChargesLink()
+      links = links
     ))
   }
 
