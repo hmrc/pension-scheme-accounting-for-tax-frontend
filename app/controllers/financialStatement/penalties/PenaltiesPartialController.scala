@@ -20,7 +20,6 @@ import connectors.FinancialStatementConnector
 import controllers.actions._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import play.twirl.api.Html
 import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.partials.SchemePaymentsAndChargesPartialView
@@ -41,13 +40,8 @@ class PenaltiesPartialController @Inject()(
 
   def penaltiesPartial() : Action[AnyContent] = identify.async { implicit request =>
         fsConnector.getPsaFS(request.psaIdOrException.id).flatMap { psaFS =>
-          val result = if (psaFS.seqPsaFSDetail.isEmpty) {
-            Future.successful(Html(""))
-          } else {
-            val viewModel = aftPartialService.penaltiesAndCharges(psaFS.seqPsaFSDetail)
-            Future.successful(view(viewModel))
-          }
-          result.map(Ok(_))
+          val viewModel = aftPartialService.penaltiesAndCharges(psaFS.seqPsaFSDetail)
+          Future.successful(Ok(view(viewModel)))
         }
   }
 }
